@@ -1,0 +1,12 @@
+[package]
+name = "hiq_common"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["lib", "staticlib", "cdylib", ]
+
+[dependencies]
+serde = { version = "1.0.147", features = ["derive"] }
+chrono = { version = "0.4.23", features = ["serde"] }

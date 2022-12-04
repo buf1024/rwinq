@@ -1,0 +1,24 @@
+[package]
+edition = "2021"
+name = "hiq-pydata"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib"]
+name = "hiq_pydata"
+
+[dependencies]
+chrono = {version = "0.4.23", features = ["serde"]}
+hiq_common = {path = "../../common"}
+hiq_data = {path = "../../data"}
+hiq_pycommon = {path = "../hiq-pycommon"}
+mongodb = {version = "2.3.1", features = ["bson-chrono-0_4"]}
+pyo3 = {version = "0.17.3", features = ["extension-module", "chrono"]}
+pyo3-asyncio = {version = "0.17.0", features = ["attributes", "tokio-runtime"]}
+pyo3-log = "0.7.0"
+serde = {version = "1.0.147", features = ["derive"]}
+serde_json = "1.0.89"
+tokio = {version = "1.21.2", features = ["full"]}
+[build-dependencies]
+pyo3-build-config = "0.17.3"

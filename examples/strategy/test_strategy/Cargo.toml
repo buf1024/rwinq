@@ -1,0 +1,15 @@
+[package]
+name = "test_strategy"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+libc = "0.2.138"
+async-trait = "0.1.58"
+
+hiq_strategy = {path = "../../../strategy"}

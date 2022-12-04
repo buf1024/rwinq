@@ -1,0 +1,20 @@
+[package]
+build = "build.rs"
+edition = "2021"
+name = "hiq-pyfetch"
+version = "0.1.1"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "hiq_pyfetch"
+
+[dependencies]
+chrono = {version = "0.4.23", features = ["serde"]}
+hiq_fetch = {path = "../../fetch"}
+hiq_pycommon = {path = "../hiq-pycommon"}
+pyo3 = {version = "0.17.3", features = ["extension-module", "chrono"]}
+pyo3-asyncio = {version = "0.17.0", features = ["attributes", "tokio-runtime"]}
+
+[build-dependencies]
+pyo3-build-config = "0.17.3"

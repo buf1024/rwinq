@@ -1,0 +1,23 @@
+[package]
+edition = "2021"
+name = "hiq-pystrategy"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib"]
+name = "hiq_pystrategy"
+
+[dependencies]
+async-trait = "0.1.58"
+hiq_strategy = {path = "../../strategy"}
+log = "0.4.17"
+pyo3 = {version = "0.17.3", features = ["extension-module", "chrono"]}
+pyo3-asyncio = {version = "0.17.0", features = ["attributes", "tokio-runtime"]}
+pyo3-log = "0.7.0"
+serde = {version = "1.0.147", features = ["derive"]}
+serde_json = "1.0.87"
+tokio = {version = "1.21.2", features = ["full"]}
+
+[build-dependencies]
+pyo3-build-config = "0.17.3"

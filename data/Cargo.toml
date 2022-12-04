@@ -1,0 +1,26 @@
+[package]
+edition = "2021"
+name = "hiq_data"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[dependencies]
+anyhow = "1.0.66"
+chrono = {version = "0.4.19", features = ["serde"]}
+futures = "0.3"
+mongodb = {version = "2.3.1", features = ["bson-chrono-0_4"]}
+thiserror = "1.0.37"
+tokio = {version = "1.21.2", features = ["full"]}
+
+async-trait = "0.1.58"
+serde = {version = "1.0.147", features = ["derive"]}
+
+fern = "0.6.1"
+log = "0.4.17"
+
+argh = "0.1.9"
+
+hiq_fetch = {path = "../fetch"}
