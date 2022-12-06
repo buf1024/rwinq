@@ -27,4 +27,4 @@ class MyRunner:
         return data
 
     def shutdown(self) -> bool:
-        pass
+        return self.inner.shutdown()

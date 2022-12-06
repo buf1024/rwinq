@@ -14,7 +14,7 @@ mod fund;
 pub use fund::*;
 
 mod comm;
-pub use comm::fetch_trade_date;
+pub use comm::*;
 
 mod util;
 

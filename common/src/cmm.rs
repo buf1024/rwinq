@@ -33,6 +33,10 @@ pub struct Bar {
     pub turnover: f32,
     /// 涨跌比(百分比)
     pub chg_pct: f32,
+    /// 成交量变更(百分比)
+    pub volume_chg_pct: f32,
+    /// 成交额变更(百分比)
+    pub amount_chg_pct: f32,
     /// 后复权因子
     /// 量化时一般采用后复权，前复权可能出现股价位负数，一般不使用
     pub hfq_factor: f32,

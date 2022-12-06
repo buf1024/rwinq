@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::BTreeSet,
     sync::{Arc, RwLock},
 };
 
@@ -112,7 +112,7 @@ impl MongoStore {
             let trade_date_v: Vec<hiq_fetch::TradeDate> =
                 query(client.clone(), TAB_TRADE_DATE, doc! {}, None).await?;
 
-            let trade_date: HashSet<_> = trade_date_v.iter().map(|t| t.trade_date).collect();
+            let trade_date: BTreeSet<_> = trade_date_v.iter().map(|t| t.trade_date).collect();
             (bond_info, index_info, stock_info, fund_info, trade_date)
         };
 

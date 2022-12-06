@@ -1,10 +1,10 @@
-use crate::comm::{async_client, fetch_bar, XueQiuBar};
+use crate::comm::{async_client, fetch_bar, fetch_prev_trade_date, XueQiuBar};
 use crate::fund::hi_fund_info::EastFundNet;
 use crate::fund::FundFetch;
 use crate::util::to_std_code;
 use crate::{Error, HeaderValue, Market, MarketType, Result, HTTP_CMM_HEADER};
 use async_trait::async_trait;
-use chrono::{Duration, Local, NaiveDate, NaiveDateTime, TimeZone};
+use chrono::{Duration, Local, NaiveDate, NaiveDateTime, TimeZone, Datelike};
 use hiq_common::{Bar, BarFreq, FundBar, FundInfo, FundNet};
 use reqwest::header::REFERER;
 use reqwest::Client;
@@ -28,18 +28,25 @@ impl HiqFundFetch {
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
     ) -> Result<FundBar> {
+        let mut first_date: Option<i32> = None;
         let code = code.to_uppercase();
         let name = name.unwrap_or("");
-        let mut start = start.map_or(
-            NaiveDateTime::parse_from_str("2010-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-            |d| d.and_hms_opt(0, 0, 0).unwrap(),
-        );
+
+        let mut start = if let Some(st) = &start {
+            let prev = fetch_prev_trade_date(&st).await?;
+            first_date = Some(prev);
+            NaiveDateTime::parse_from_str(&format!("{} 00:00:00", prev), "%Y%m%d %H:%M:%S").unwrap()
+        } else {
+            NaiveDateTime::parse_from_str("2010-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap()
+        };
+
         let end = end.map_or(Local::now().naive_local(), |d| {
             d.and_hms_opt(0, 0, 0).unwrap()
         });
 
         let mut data = Vec::new();
 
+        let mut pre_item: Option<Bar> = None;
         // prepare cookie
         self.client.get("https://xueqiu.com/hq").send().await?;
         while start <= end {
@@ -62,7 +69,20 @@ impl HiqFundFetch {
                         // ["timestamp","volume","open","high","low","close","chg","percent","turnoverrate","amount","volume_post","amount_post"]
                         let trade_date: NaiveDateTime =
                             Local.timestamp_opt(item.0 / 1000, 0).unwrap().naive_local();
-                        Bar {
+
+                        let volume = item.1.unwrap_or(0);
+                        let amount = item.9.unwrap_or(0.0);
+                        let (volume_chg_pct, amount_chg_pct) = if let Some(item) = &pre_item {
+                            (
+                                (((volume as i64 - item.volume as i64) * 100) as f64
+                                    / item.volume as f64) as f32,
+                                ((amount - item.amount) * 100.0 / item.amount) as f32,
+                            )
+                        } else {
+                            (0.0, 0.0)
+                        };
+
+                        let bar = Bar {
                             code: result.code[2..].to_owned(),
                             name: name.to_owned(),
                             trade_date,
@@ -70,12 +90,16 @@ impl HiqFundFetch {
                             close: item.5.unwrap_or(0.0),
                             high: item.3.unwrap_or(0.0),
                             low: item.4.unwrap_or(0.0),
-                            volume: item.1.unwrap_or(0),
-                            amount: item.9.unwrap_or(0.0),
+                            volume,
+                            amount,
+                            volume_chg_pct,
+                            amount_chg_pct,
                             turnover: item.8.unwrap_or(0.0),
                             chg_pct: item.6.unwrap_or(0.0),
                             hfq_factor: 1.0,
-                        }
+                        };
+                        pre_item = Some(bar.clone());
+                        bar
                     })
                     .filter(|item| item.trade_date <= end)
                     .collect();
@@ -88,6 +112,20 @@ impl HiqFundFetch {
                 data.extend(tmp_vec.into_iter());
             } else {
                 break;
+            }
+        }
+        if let Some(first_date) = first_date {
+            if data.len() > 0 {
+                let first = data.get(0).unwrap();
+                let (y, m, d) = (
+                    first.trade_date.year(),
+                    first.trade_date.month(),
+                    first.trade_date.day(),
+                );
+                let date = y * 10000 + m as i32 * 100 + d as i32;
+                if first_date == date {
+                    data = data.into_iter().skip(1).collect();
+                }
             }
         }
 
@@ -257,12 +295,14 @@ mod tests {
             .block_on(async {
                 let fetch = HiqFundFetch::new();
 
-                let data = fetch.fetch_fund_net(
-                    &to_std_code(MarketType::Fund, "159915"),
-                    None,
-                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                ).await;
+                let data = fetch
+                    .fetch_fund_net(
+                        &to_std_code(MarketType::Fund, "159915"),
+                        None,
+                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                    )
+                    .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }
@@ -282,12 +322,14 @@ mod tests {
             .block_on(async {
                 let fetch = HiqFundFetch::new();
 
-                let data = fetch.fetch_fund_bar_xq(
-                    &to_std_code(MarketType::Fund, "159915"),
-                    None,
-                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                ).await;
+                let data = fetch
+                    .fetch_fund_bar_xq(
+                        &to_std_code(MarketType::Fund, "159915"),
+                        None,
+                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                    )
+                    .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }
@@ -307,13 +349,15 @@ mod tests {
             .block_on(async {
                 let fetch = HiqFundFetch::new();
 
-                let data = fetch.fetch_fund_bar(
-                    &to_std_code(MarketType::Fund, "159915"),
-                    None,
-                    None,
-                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                ).await;
+                let data = fetch
+                    .fetch_fund_bar(
+                        &to_std_code(MarketType::Fund, "159915"),
+                        None,
+                        None,
+                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                    )
+                    .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }

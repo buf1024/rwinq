@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeSet, HashMap},
     ops::Add,
     sync::Arc,
 };
@@ -87,7 +87,7 @@ pub trait Store: Sync + Send {
 }
 
 pub(crate) struct HiqCache {
-    trade_date: Option<HashSet<i32>>,
+    trade_date: Option<BTreeSet<i32>>,
     index_info: Option<HashMap<String, StockInfo>>,
     stock_info: Option<HashMap<String, StockInfo>>,
     bond_info: Option<HashMap<String, BondInfo>>,
@@ -120,12 +120,12 @@ impl HiqCache {
         };
         trade_date
     }
-    pub fn cache_trade_date(&mut self, data: &HashSet<i32>) {
-        let mut cache = HashSet::new();
+    pub fn cache_trade_date(&mut self, data: &BTreeSet<i32>) {
+        let mut cache = BTreeSet::new();
         cache.extend(data.iter());
         self.trade_date = Some(cache);
     }
-    pub fn trade_date(&self) -> &Option<HashSet<i32>> {
+    pub fn trade_date(&self) -> &Option<BTreeSet<i32>> {
         &self.trade_date
     }
     pub fn cache_index_info(&mut self, data: &Vec<StockInfo>) {

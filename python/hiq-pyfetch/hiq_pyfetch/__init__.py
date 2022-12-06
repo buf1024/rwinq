@@ -23,6 +23,8 @@ class MarketType:
 my_fetch = MyFetch()
 
 fetch_trade_date = my_fetch.fetch_trade_date
+fetch_next_trade_date = my_fetch.fetch_next_trade_date
+fetch_prev_trade_date = my_fetch.fetch_prev_trade_date
 
 # bond
 fetch_bond_info = my_fetch.fetch_bond_info

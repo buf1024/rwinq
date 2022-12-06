@@ -1,8 +1,10 @@
 use crate::comm::EastBar;
 use crate::{AdjustFactor, Result, HTTP_CMM_HEADER};
-use chrono::{Duration, Local, NaiveDate, NaiveDateTime, Timelike};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, Timelike};
 use hiq_common::{Bar, BarFreq};
 use std::ops::Add;
+
+use super::hiq_trade_date::fetch_prev_trade_date;
 
 // pub(crate) fn block_client() -> reqwest::blocking::Client {
 //     reqwest::blocking::ClientBuilder::new()
@@ -42,9 +44,12 @@ pub(crate) async fn fetch_bar(
     start: Option<NaiveDate>,
     end: Option<NaiveDate>,
 ) -> Result<Vec<Bar>> {
+    let mut first_date: Option<i32> = None;
     let mut start_str = "0".to_owned();
     if let Some(s) = &start {
-        start_str = s.format("%Y%m%d").to_string();
+        let prev = fetch_prev_trade_date(s).await?;
+        start_str = format!("{}", prev);
+        first_date = Some(prev);
     }
 
     let mut n = Local::now().naive_local();
@@ -65,7 +70,7 @@ pub(crate) async fn fetch_bar(
     let mut data = Vec::new();
     if let Some(s) = &start {
         if s > &n.date() {
-            return Ok(data)
+            return Ok(data);
         }
     }
     let end_str = n.format("%Y%m%d").to_string();
@@ -74,7 +79,7 @@ pub(crate) async fn fetch_bar(
     } else {
         freq as i32
     };
-    
+
     for fq_type in vec![AdjustFactor::NFQ, AdjustFactor::HFQ] {
         let req_url = format!(
             "https://push2his.eastmoney.com/api/qt/stock/kline/get?\
@@ -91,6 +96,7 @@ pub(crate) async fn fetch_bar(
 
         let resp = client.get(req_url).send().await?.text().await?;
 
+        let mut pre_item: Option<Bar> = None;
         let json: EastBar = serde_json::from_str(&resp)?;
         let tmp_bars: Option<Vec<_>> = if let Some(data) = json.data {
             let tmp_vec: Vec<_> = data
@@ -109,7 +115,19 @@ pub(crate) async fn fetch_bar(
                     } else {
                         format!("{}:00", trade_date)
                     };
-                    Bar {
+                    let volume = s.get(5).unwrap().parse().unwrap();
+                    let amount = s.get(6).unwrap().parse().unwrap();
+                    let (volume_chg_pct, amount_chg_pct) = if let Some(item) = &pre_item {
+                        (
+                            (((volume as i64 - item.volume as i64) * 100) as f64
+                                / item.volume as f64) as f32,
+                            ((amount - item.amount) * 100.0 / item.amount) as f32,
+                        )
+                    } else {
+                        (0.0, 0.0)
+                    };
+
+                    let bar = Bar {
                         code: orig_code.to_owned(),
                         name: data.name.to_owned(),
                         trade_date: NaiveDateTime::parse_from_str(&trade_date, "%Y-%m-%d %H:%M:%S")
@@ -118,12 +136,16 @@ pub(crate) async fn fetch_bar(
                         close: s.get(2).unwrap().parse().unwrap(),
                         high: s.get(3).unwrap().parse().unwrap(),
                         low: s.get(4).unwrap().parse().unwrap(),
-                        volume: s.get(5).unwrap().parse().unwrap(),
-                        amount: s.get(6).unwrap().parse().unwrap(),
+                        volume,
+                        amount,
+                        volume_chg_pct,
+                        amount_chg_pct,
                         turnover: s.get(10).unwrap().parse().unwrap(),
                         chg_pct: s.get(8).unwrap().parse().unwrap(),
                         hfq_factor: 1.0,
-                    }
+                    };
+                    pre_item = Some(bar.clone());
+                    bar
                 })
                 .collect();
 
@@ -142,6 +164,20 @@ pub(crate) async fn fetch_bar(
                             t_data.hfq_factor = t_bar.close / t_data.close;
                         })
                 }
+            }
+        }
+    }
+    if let Some(first_date) = first_date {
+        if data.len() > 0 {
+            let first = data.get(0).unwrap();
+            let (y, m, d) = (
+                first.trade_date.year(),
+                first.trade_date.month(),
+                first.trade_date.day(),
+            );
+            let date = y * 10000 + m as i32 * 100 + d as i32;
+            if first_date == date {
+                data = data.into_iter().skip(1).collect();
             }
         }
     }

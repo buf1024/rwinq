@@ -7,7 +7,7 @@ use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, StockFetch, HTTP_CMM_HEADER};
 use async_trait::async_trait;
 use calamine::{open_workbook_auto_from_rs, DataType, Reader};
-use chrono::{Datelike, Duration, Local, NaiveDate, TimeZone, NaiveTime};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveTime, TimeZone};
 use hiq_common::{
     BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockIndex,
     StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot,
@@ -889,9 +889,11 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
+                let start = NaiveDate::parse_from_str("20220301", "%Y%m%d").unwrap();
+                // let end = start.clone();
                 let fetch = HiqStockFetch::new();
                 let data = fetch
-                    .fetch_stock_bar("sz000001", None, None, None, None)
+                    .fetch_stock_bar("sz301200", None, None, Some(start), None)
                     .await;
                 assert!(data.is_ok());
 

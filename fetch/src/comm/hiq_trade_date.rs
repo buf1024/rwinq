@@ -1,9 +1,18 @@
 use crate::comm::async_client;
 use crate::{Error, Result};
+use chrono::{Duration, NaiveDate};
 use js_sandbox::Script;
-use std::collections::HashSet;
+use once_cell::sync::Lazy;
+use std::collections::BTreeSet;
+use std::ops::Add;
+use std::sync::RwLock;
 
-pub async fn fetch_trade_date() -> Result<HashSet<i32>> {
+static CACHE_TRADE_DATE: Lazy<RwLock<BTreeSet<i32>>> = Lazy::new(|| {
+    let set: BTreeSet<i32> = BTreeSet::new();
+    RwLock::new(set)
+});
+
+pub async fn fetch_trade_date() -> Result<BTreeSet<i32>> {
     let client = async_client();
 
     let resp = client
@@ -15,11 +24,75 @@ pub async fn fetch_trade_date() -> Result<HashSet<i32>> {
     let js_code = format!("{}{}", resp, JS_CODE);
     let mut js_script =
         Script::from_string(&js_code).map_err(|_| Error::Custom("Load js code fatal!"))?;
-    let data: HashSet<i32> = js_script
+    let data: BTreeSet<i32> = js_script
         .call("get_trade_date", &())
         .map_err(|_| Error::Custom("Call js function fatal!"))?;
 
+    {
+        let mut cache = CACHE_TRADE_DATE.write().unwrap();
+        *cache = data.clone();
+    }
+
     Ok(data)
+}
+
+pub async fn fetch_next_trade_date(date: &NaiveDate) -> Result<i32> {
+    let mut mx_date = {
+        let cache = CACHE_TRADE_DATE.read().unwrap();
+        let elm = cache.iter().next_back();
+        elm.map_or(0, |e| *e)
+    };
+
+    if mx_date == 0 {
+        let cache = fetch_trade_date().await?;
+        let elm = cache.iter().next_back();
+        mx_date = elm.map_or(0, |e| *e);
+    }
+
+    let mut test_date = date.clone();
+    loop {
+        test_date = test_date.add(Duration::days(1));
+        let d: i32 = test_date.format("%Y%m%d").to_string().parse().unwrap();
+        if d > mx_date {
+            break;
+        }
+        {
+            let cache = CACHE_TRADE_DATE.read().unwrap();
+            if cache.contains(&d) {
+                return Ok(*(cache.get(&d).unwrap()));
+            }
+        }
+    }
+    Err(Error::Custom("date is to far ..."))
+}
+pub async fn fetch_prev_trade_date(date: &NaiveDate) -> Result<i32> {
+    let mut min_date = {
+        let cache = CACHE_TRADE_DATE.read().unwrap();
+        let elm = cache.iter().next();
+        elm.map_or(0, |e| *e)
+    };
+
+    if min_date == 0 {
+        let cache = fetch_trade_date().await?;
+        let elm = cache.iter().next();
+        min_date = elm.map_or(0, |e| *e);
+    }
+
+    let mut test_date = date.clone();
+    loop {
+        test_date = test_date.add(Duration::days(-1));
+        let d: i32 = test_date.format("%Y%m%d").to_string().parse().unwrap();
+        if d < min_date {
+            break;
+        }
+        {
+            let cache = CACHE_TRADE_DATE.read().unwrap();
+            if cache.contains(&d) {
+                return Ok(*(cache.get(&d).unwrap()));
+            }
+        }
+    }
+    Err(Error::Custom("date is to old ..."))
 }
 
 const JS_CODE: &'static str = r###"
@@ -325,7 +398,11 @@ function get_trade_date() {
 
 #[cfg(test)]
 mod tests {
-    use crate::comm::hiq_trade_date::fetch_trade_date;
+    use chrono::NaiveDate;
+
+    use crate::comm::hiq_trade_date::{
+        fetch_next_trade_date, fetch_prev_trade_date, fetch_trade_date,
+    };
 
     #[test]
     fn test_fetch_trade_date() {
@@ -342,6 +419,12 @@ mod tests {
 
                 let day = 20221114;
                 assert!(data.contains(&day));
+
+                let date = NaiveDate::parse_from_str("20221114", "%Y%m%d").unwrap();
+
+                let next = fetch_next_trade_date(&date).await.unwrap();
+                let prev = fetch_prev_trade_date(&date).await.unwrap();
+                println!("next: {}, prev: {}", next, prev);
             })
     }
 }
