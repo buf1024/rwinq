@@ -12,8 +12,8 @@ class MyRunner:
     def runner(self):
         return self.inner
 
-    async def run(self, strategy: Strategy) -> Optional[Dict]:
-        data = await self.inner.run(strategy)
+    async def run(self, strategy: Strategy, codes: Optional[Dict] = None) -> Optional[Dict]:
+        data = await self.inner.run(strategy, codes)
         if data is not None:
             m = {}
             for (k, v) in data.items():

@@ -4,7 +4,11 @@ use hiq_strategy::{
     store::{get_loader, Loader},
     CommonParam, HiqSyncDest, Strategy, StrategyResult, StrategyType,
 };
-use pyo3::{exceptions::PyException, prelude::*, types::PyTuple};
+use pyo3::{
+    exceptions::PyException,
+    prelude::*,
+    types::{PyDict, PyList, PyTuple},
+};
 
 use async_trait::async_trait;
 use pyo3_asyncio::TaskLocals;
@@ -97,6 +101,38 @@ impl Strategy for WrapStrategy {
     }
 }
 
+fn extract(
+    the_codes: Option<PyObject>,
+) -> PyResult<Option<HashMap<StrategyType, Vec<(String, String)>>>> {
+    if let Some(the_codes) = the_codes {
+        Python::with_gil(|py| {
+            let mut map = HashMap::new();
+            let py_dict: &PyDict = the_codes.cast_as(py)?;
+            for (k, v) in py_dict.into_iter() {
+                let typ: i32 = k.extract()?;
+                let py_list: &PyList = v.cast_as()?;
+                let mut items = Vec::new();
+                for pair in py_list.into_iter() {
+                    let py_tuple: &PyTuple = pair.cast_as()?;
+                    if py_tuple.len() != 2 {
+                        return Err(PyException::new_err(
+                            "code name pair not correct".to_owned(),
+                        ));
+                    }
+                    let code: String = py_tuple.get_item(0)?.extract()?;
+                    let name: String = py_tuple.get_item(1)?.extract()?;
+                    items.push((code, name));
+                }
+
+                map.insert(StrategyType::from(typ), items);
+            }
+            Ok(Some(map))
+        })
+    } else {
+        Ok(None)
+    }
+}
+
 #[pyclass]
 pub(crate) struct Runner {
     loader: Arc<Box<dyn Loader>>,
@@ -120,7 +156,12 @@ impl Runner {
         })
     }
     /// 运行python策略
-    fn run<'a>(&self, py: Python<'a>, py_strategy: PyObject) -> PyResult<&'a PyAny> {
+    fn run<'a>(
+        &self,
+        py: Python<'a>,
+        py_strategy: PyObject,
+        the_codes: Option<PyObject>,
+    ) -> PyResult<&'a PyAny> {
         let loader = self.loader.clone();
         let concurrent = self.concurrent;
         let shutdown_rx = self.shutdown_tx.subscribe();
@@ -128,6 +169,8 @@ impl Runner {
         let run = py_strategy.getattr(py, "run")?;
         let locals = pyo3_asyncio::tokio::get_current_locals(py)?;
         pyo3_asyncio::tokio::future_into_py(py, async move {
+            let the_codes = extract(the_codes)?;
+            log::info!("arguments: {:?}", the_codes);
             let mut strategy = WrapStrategy {
                 prepare,
                 run,
@@ -141,7 +184,7 @@ impl Runner {
             let strategy: Arc<Box<dyn Strategy>> = Arc::new(Box::new(strategy));
 
             log::info!("start run strategy");
-            let data = hiq_strategy::run(strategy, loader, concurrent, shutdown_rx)
+            let data = hiq_strategy::run(strategy, loader, concurrent, shutdown_rx, the_codes)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?;
             log::info!("done run strategy");

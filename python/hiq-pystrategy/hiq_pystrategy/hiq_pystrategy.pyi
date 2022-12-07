@@ -7,7 +7,7 @@ class Runner:
     def __init__(self, typ: str, url: str, concurrent: int):
         pass
 
-    async def run(self, strategy: Strategy) -> Optional[Dict]:
+    async def run(self, strategy: Strategy, codes: Optional[Dict]) -> Optional[Dict]:
         pass
 
     def shutdown(self) -> bool:

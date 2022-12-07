@@ -114,6 +114,7 @@ async fn main() -> anyhow::Result<()> {
             loader,
             s.concurrent,
             shutdown_tx.subscribe(),
+            None
         ) => {
             if rs.is_err() {
                 println!("run strategy error: {:?}", rs.err());

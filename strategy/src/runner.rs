@@ -12,75 +12,86 @@ pub async fn run(
     loader: Arc<Box<dyn Loader>>,
     concurrent: usize,
     mut shutdown_rx: broadcast::Receiver<()>,
+    the_codes: Option<HashMap<StrategyType, Vec<(String, String)>>>,
 ) -> Result<Option<HashMap<StrategyType, Vec<StrategyResult>>>> {
     let (shutdown_tx, _) = broadcast::channel(1);
     let types = strategy.accept();
     let mut test_codes = HashMap::new();
-    for typ in types.into_iter() {
-        let codes: Vec<_> = match typ {
-            StrategyType::Bond => {
-                let info = loader
-                    .load_bond_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query bond info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
+    if let Some(the_codes) = the_codes {
+        for (k, v) in the_codes.into_iter() {
+            let codes = split_code(v, concurrent);
+            test_codes.insert(k, codes);
+        }
+        // test_codes.extend(the_codes.into_iter());
+    } else {
+        for typ in types.into_iter() {
+            let codes: Vec<_> = match typ {
+                StrategyType::Bond => {
+                    let info = loader
+                        .load_bond_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| Error::Custom(format!("query bond info error: {:?}", e)))?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+                StrategyType::Fund => {
+                    let info = loader
+                        .load_fund_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| Error::Custom(format!("query fund info error: {:?}", e)))?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+                StrategyType::Stock => {
+                    let info = loader
+                        .load_stock_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| Error::Custom(format!("query stock info error: {:?}", e)))?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+                StrategyType::Index => {
+                    let info = loader
+                        .load_index_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| Error::Custom(format!("query index info error: {:?}", e)))?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+                StrategyType::Concept => {
+                    let info = loader
+                        .load_stock_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| Error::Custom(format!("query concept info error: {:?}", e)))?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+                StrategyType::Industry => {
+                    let info = loader
+                        .load_stock_info(doc! {}, doc! {}, None)
+                        .await
+                        .map_err(|e| {
+                            Error::Custom(format!("query industry info error: {:?}", e))
+                        })?;
+                    split_code(
+                        info.into_iter().map(|e| (e.code, e.name)).collect(),
+                        concurrent,
+                    )
+                }
+            };
+            if !codes.is_empty() {
+                test_codes.insert(typ, codes);
             }
-            StrategyType::Fund => {
-                let info = loader
-                    .load_fund_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query fund info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
-            }
-            StrategyType::Stock => {
-                let info = loader
-                    .load_stock_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query stock info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
-            }
-            StrategyType::Index => {
-                let info = loader
-                    .load_index_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query index info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
-            }
-            StrategyType::Concept => {
-                let info = loader
-                    .load_stock_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query concept info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
-            }
-            StrategyType::Industry => {
-                let info = loader
-                    .load_stock_info(doc! {}, doc! {}, None)
-                    .await
-                    .map_err(|e| Error::Custom(format!("query industry info error: {:?}", e)))?;
-                split_code(
-                    info.into_iter().map(|e| (e.code, e.name)).collect(),
-                    concurrent,
-                )
-            }
-        };
-        if !codes.is_empty() {
-            test_codes.insert(typ, codes);
         }
     }
 
@@ -310,7 +321,7 @@ mod tests {
 
                 strategy.prepare(loader.clone(), None, None).await.unwrap();
                 let strategy = Arc::new(strategy);
-                let result = run(strategy, loader, 5, tx.subscribe()).await.unwrap();
+                let result = run(strategy, loader, 5, tx.subscribe(), None).await.unwrap();
                 log::info!("result: {:?}", result);
             });
     }
