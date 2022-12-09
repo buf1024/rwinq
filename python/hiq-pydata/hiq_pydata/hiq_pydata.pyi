@@ -23,7 +23,7 @@ class BlockHiqSync:
         pass
 
 
-class MongoFetch:
+class MongoLoader:
     def __init__(url: str):
         pass
 
@@ -172,7 +172,7 @@ class MongoFetch:
         pass
 
 
-class BlockMongoFetch:
+class BlockMongoLoader:
     def __init__(url: str):
         pass
 

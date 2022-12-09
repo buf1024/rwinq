@@ -22,26 +22,6 @@ impl IntoPy<PyObject> for StrategyType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Marker {
-    pub(crate) inner: hiq_strategy::Marker,
-}
-
-impl From<hiq_strategy::Marker> for Marker {
-    fn from(inner: hiq_strategy::Marker) -> Self {
-        Self { inner }
-    }
-}
-
-impl IntoPy<PyObject> for Marker {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        let dict = PyDict::new(py);
-        dict.set_item("key", self.inner.key).unwrap();
-        dict.set_item("val", self.inner.val).unwrap();
-        dict.into()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stat {
     pub(crate) inner: hiq_strategy::Stat,
 }
@@ -54,9 +34,18 @@ impl From<hiq_strategy::Stat> for Stat {
 
 impl IntoPy<PyObject> for Stat {
     fn into_py(self, py: Python<'_>) -> PyObject {
-        let list = PyList::new(py, self.inner.chg_pct.into_iter());
-
-        list.into()
+        let dict = PyDict::new(py);
+        let list = PyList::new(py, self.inner.hit_chg_pct.into_iter());
+        dict.set_item("hit_chg_pct", list).unwrap();
+        dict.set_item("start", self.inner.start.into_py(py))
+            .unwrap();
+        dict.set_item("end", self.inner.end.into_py(py)).unwrap();
+        dict.set_item("low", self.inner.low.into_py(py)).unwrap();
+        dict.set_item("high", self.inner.high.into_py(py)).unwrap();
+        dict.set_item("hit", self.inner.hit.into_py(py)).unwrap();
+        dict.set_item("hit_max", self.inner.hit_max.into_py(py))
+            .unwrap();
+        dict.into()
     }
 }
 
@@ -76,19 +65,12 @@ impl IntoPy<PyObject> for StrategyResult {
         let dict = PyDict::new(py);
         dict.set_item("code", self.inner.code).unwrap();
         dict.set_item("name", self.inner.name).unwrap();
-        if let Some(m) = self.inner.marker {
-            let marker: Vec<_> = m
-                .into_iter()
-                .map(|e| {
-                    let mk = Marker::from(e);
-                    mk.into_py(py)
-                })
-                .collect();
-            dict.set_item("marker", marker).unwrap();
+        if let Some(m) = self.inner.mark {
+            dict.set_item("mark", m.into_py(py)).unwrap();
         }
         if let Some(m) = self.inner.stat {
-            let stat = Stat::from(m).into_py(py);
-            dict.set_item("stat", stat).unwrap();
+            let stat = Stat::from(m);
+            dict.set_item("stat", stat.into_py(py)).unwrap();
         }
         dict.into()
     }

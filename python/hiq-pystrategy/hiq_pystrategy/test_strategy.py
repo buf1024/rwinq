@@ -1,9 +1,12 @@
-from typing import Optional
-from hiq_pystrategy.strategy import Strategy, StrategyResult
+import json
+from typing import Dict, Optional
+from hiq_pydata.hiq_loader import HiqLoader
+from hiq_pyfetch.hiq_fetch import HiqFetch
+from hiq_pystrategy.strategy import CommonParam, Strategy, StrategyResult
 
 
 class TestStrategy(Strategy):
-    def __init__(self, loader, fetch, cmm_params, params) -> None:
+    def __init__(self, loader: Optional[HiqLoader] = None, fetch: Optional[HiqFetch] = None, cmm_params: Optional[CommonParam] = None, params: Optional[Dict] = None) -> None:
         super().__init__(loader=loader, fetch=fetch, cmm_params=cmm_params, params=params)
 
     def help(self):
@@ -26,6 +29,15 @@ class TestStrategy(Strategy):
         ]
         if code in codes:
             print('python got data: {}'.format(code))
-            return StrategyResult(code=code, name=name, marker=None, stat=None)
+            stat = None
+            mark = None
+            if self.loader is not None:
+                data = await self.loader.load_stock_daily(filter={'code': code}, sort={'trade_date': -1}, limit=15, to_frame=False)
+                
+                stat = self.stat_result(data, 10, 10)
+                mark = {}
+                mark[data[0]['trade_date']] = 'mark1'
+                mark[data[2]['trade_date']] = 'mark2'
+            return StrategyResult(code=code, name=name, mark=mark, stat=stat)
 
         return None

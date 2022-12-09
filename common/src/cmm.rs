@@ -16,6 +16,7 @@ pub struct Bar {
     /// 简称
     pub name: String,
     /// 交易日
+    // #[serde(with = "naive_date_time_format")]
     pub trade_date: NaiveDateTime,
     /// 开盘价
     pub open: f32,

@@ -234,22 +234,22 @@ fn build_cmm_params(params: &HashMap<String, String>) -> anyhow::Result<Option<C
         let date = date.unwrap();
         test_end_date = Some(date);
     }
-    let mut min_trade_days = None;
-    if params.contains_key(&String::from("min_trade_days")) {
-        let s = params.get(&String::from("min_trade_days")).unwrap();
+    let mut test_trade_days = None;
+    if params.contains_key(&String::from("test_trade_days")) {
+        let s = params.get(&String::from("test_trade_days")).unwrap();
         let days = s.parse::<i64>();
         if days.is_err() {
-            return Err(anyhow::anyhow!("min_trade_days is not number"));
+            return Err(anyhow::anyhow!("test_trade_days is not number"));
         }
         let days = days.unwrap();
-        min_trade_days = Some(days);
+        test_trade_days = Some(days);
     }
-    if test_end_date.is_none() || min_trade_days.is_none() {
+    if test_end_date.is_none() || test_trade_days.is_none() {
         return Ok(None);
     }
     let cmm_param = CommonParam {
         test_end_date,
-        min_trade_days,
+        test_trade_days,
     };
     Ok(Some(cmm_param))
 }
@@ -257,7 +257,7 @@ fn build_cmm_params(params: &HashMap<String, String>) -> anyhow::Result<Option<C
 fn build_strategy_params(params: &HashMap<String, String>) -> Option<HashMap<String, String>> {
     let mut map = HashMap::new();
     for (k, v) in params.iter() {
-        if k == &String::from("test_end_date") || k == &String::from("min_trade_days") {
+        if k == &String::from("test_end_date") || k == &String::from("test_trade_days") {
             continue;
         }
         map.insert((*k).clone(), (*v).clone());
@@ -302,7 +302,7 @@ struct HiqStrategy {
     #[argh(option, short = 'b')]
     builtin: Option<String>,
 
-    /// 策略参数
+    /// 策略参数，key=val格式
     #[argh(positional)]
     params: Vec<String>,
 

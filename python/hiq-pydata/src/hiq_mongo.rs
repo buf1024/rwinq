@@ -77,12 +77,12 @@ where
 }
 
 #[pyclass]
-pub struct MongoFetch {
+pub struct MongoLoader {
     client: Option<Client>,
 }
 
 #[pymethods]
-impl MongoFetch {
+impl MongoLoader {
     #[new]
     fn new<'a>(py: Python<'a>, url: String) -> PyResult<Self> {
         let event_loop = py.import("asyncio")?.call_method0("new_event_loop")?;
@@ -448,12 +448,12 @@ impl MongoFetch {
 }
 
 #[pyclass]
-pub struct BlockMongoFetch {
+pub struct BlockMongoLoader {
     client: Option<Client>,
 }
 
 #[pymethods]
-impl BlockMongoFetch {
+impl BlockMongoLoader {
     #[new]
     fn new<'a>(py: Python<'a>, url: String) -> PyResult<Self> {
         let event_loop = py.import("asyncio")?.call_method0("new_event_loop")?;

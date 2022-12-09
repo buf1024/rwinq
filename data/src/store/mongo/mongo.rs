@@ -426,7 +426,7 @@ mod tests {
         // Parse a connection string into an options struct.
         let mut client_options = ClientOptions::parse("mongodb://localhost:27017").await?;
 
-        client_options.app_name = Some("My HIQ App".to_string());
+        client_options.app_name = Some("HIQ App".to_string());
 
         let client = Client::with_options(client_options)?;
 

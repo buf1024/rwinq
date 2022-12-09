@@ -6,7 +6,7 @@ from hiq_pyfetch.hiq_pyfetch import BlockBondFetch, BlockFundFetch, BlockStockFe
 import pandas as pd
 
 
-class MyFetch:
+class HiqFetch:
     def __init__(self):
         self.bond_fetch = BondFetch()
         self.fund_fetch = FundFetch()

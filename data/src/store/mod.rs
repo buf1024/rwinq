@@ -7,6 +7,7 @@ use std::{
 use chrono::{Duration, NaiveDate};
 use hiq_fetch::{BondInfo, FundInfo, StockInfo};
 use mongodb::bson::Document;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     syncer::Syncer,
@@ -162,6 +163,16 @@ impl HiqCache {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum DataType {
+    Bond = 1,
+    Fund,
+    Stock,
+    Index,
+    Concept,
+    Industry,
+}
+
 #[async_trait]
 pub trait Loader: Sync + Send {
     async fn init(&mut self) -> Result<()> {
@@ -286,6 +297,71 @@ pub trait Loader: Sync + Send {
         sort: Document,
         limit: Option<i64>,
     ) -> Result<Vec<hiq_fetch::StockMargin>>;
+
+    async fn load_info(
+        &self,
+        typ: DataType,
+        filter: Document,
+        sort: Document,
+        limit: Option<i64>,
+    ) -> Result<Vec<(String, String)>> {
+        let data: Vec<_> = match typ {
+            DataType::Bond => self
+                .load_bond_info(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+            DataType::Fund => self
+                .load_fund_info(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+            DataType::Stock => self
+                .load_stock_info(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+            DataType::Index => self
+                .load_index_info(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+            DataType::Concept => self
+                .load_stock_concept(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+            DataType::Industry => self
+                .load_stock_industry(filter, sort, limit)
+                .await?
+                .into_iter()
+                .map(|e| (e.code, e.name))
+                .collect(),
+        };
+        Ok(data)
+    }
+    async fn load_daily(
+        &self,
+        typ: DataType,
+        filter: Document,
+        sort: Document,
+        limit: Option<i64>,
+    ) -> Result<Vec<hiq_fetch::Bar>> {
+        let data: Vec<_> = match typ {
+            DataType::Bond => self.load_bond_daily(filter, sort, limit).await?,
+            DataType::Fund => self.load_fund_daily(filter, sort, limit).await?,
+            DataType::Stock => self.load_stock_daily(filter, sort, limit).await?,
+            DataType::Index => self.load_index_daily(filter, sort, limit).await?,
+            DataType::Concept => self.load_stock_concept_daily(filter, sort, limit).await?,
+            DataType::Industry => self.load_stock_industry_daily(filter, sort, limit).await?,
+        };
+        Ok(data)
+    }
 }
 
 pub const DATA_DEF_START_DATE: &'static str = "2010-01-01";

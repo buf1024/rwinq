@@ -4,7 +4,7 @@ use self::exam_strategy::ExamStrategy;
 
 mod exam_strategy;
 
-pub fn get_strategy(name: &String) -> Result<Box<dyn Strategy>> {
+pub fn get_strategy(name: &str) -> Result<Box<dyn Strategy>> {
     if name == "ExamStrategy" {
         let s = ExamStrategy {};
 

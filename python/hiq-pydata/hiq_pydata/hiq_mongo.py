@@ -1,20 +1,14 @@
 from typing import List, Dict, Union, Optional
 
-from hiq_pydata.hiq_pydata import BlockMongoFetch, MongoFetch
-
+from hiq_pydata.hiq_pydata import BlockMongoLoader, MongoLoader
+from hiq_pydata.hiq_loader import HiqLoader, BlockHiqLoader
 import pandas as pd
 import json
 
 
-class MyMongoFetch:
+class HiqMongoLoader(HiqLoader):
     def __init__(self, url: str):
-        self.fetch = MongoFetch(url)
-
-    @staticmethod
-    def _to_dataframe(to_frame, data):
-        if to_frame and data is not None:
-            return pd.DataFrame(data)
-        return data
+        self.loader = MongoLoader(url)
 
     async def load_bond_info(
         self, *,
@@ -23,9 +17,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_bond_info(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_bond_info(filter=filter, sort=sort, limit=limit))
 
     async def load_bond_daily(
         self, *,
@@ -34,9 +29,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_bond_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_bond_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_info(
         self, *,
@@ -45,9 +41,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_fund_info(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_fund_info(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_daily(
         self, *,
@@ -56,9 +53,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_fund_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_fund_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_net(
         self, *,
@@ -67,9 +65,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_fund_net(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_fund_net(filter=filter, sort=sort, limit=limit))
 
     async def load_index_info(
         self, *,
@@ -78,9 +77,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_index_info(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_index_info(filter=filter, sort=sort, limit=limit))
 
     async def load_index_daily(
         self, *,
@@ -89,9 +89,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_index_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_index_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_info(
         self, *,
@@ -100,9 +101,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_info(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_info(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_daily(
         self, *,
@@ -111,9 +113,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_index(
         self, *,
@@ -122,9 +125,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_index(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_index(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry(
         self, *,
@@ -133,9 +137,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_industry(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_industry(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry_daily(
         self, *,
@@ -144,9 +149,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry_detail(
         self, *,
@@ -155,9 +161,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept(
         self, *,
@@ -166,9 +173,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_concept(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_concept(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept_daily(
         self, *,
@@ -177,9 +185,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept_detail(
         self, *,
@@ -188,9 +197,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_yjbb(
         self, *,
@@ -199,9 +209,10 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_margin(
         self, *,
@@ -210,14 +221,15 @@ class MyMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  await self.fetch.load_stock_margin(filter=filter, sort=sort, limit=limit))
+                                  await self.loader.load_stock_margin(filter=filter, sort=sort, limit=limit))
 
 
-class MyBlockMongoFetch:
+class HiqBlockMongoLoader(BlockHiqLoader):
     def __init__(self, url: str):
-        self.fetch = BlockMongoFetch(url)
+        self.loader = BlockMongoLoader(url)
 
     @staticmethod
     def _to_dataframe(to_frame, data):
@@ -232,9 +244,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_bond_info(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_bond_info(filter=filter, sort=sort, limit=limit))
 
     def load_bond_daily(
         self, *,
@@ -243,9 +256,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_bond_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_bond_daily(filter=filter, sort=sort, limit=limit))
 
     def load_fund_info(
         self, *,
@@ -254,9 +268,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_fund_info(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_fund_info(filter=filter, sort=sort, limit=limit))
 
     def load_fund_daily(
         self, *,
@@ -265,9 +280,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_fund_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_fund_daily(filter=filter, sort=sort, limit=limit))
 
     def load_fund_net(
         self, *,
@@ -276,9 +292,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_fund_net(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_fund_net(filter=filter, sort=sort, limit=limit))
 
     def load_index_info(
         self, *,
@@ -287,9 +304,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_index_info(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_index_info(filter=filter, sort=sort, limit=limit))
 
     def load_index_daily(
         self, *,
@@ -298,9 +316,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_index_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_index_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_info(
         self, *,
@@ -309,9 +328,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_info(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_info(filter=filter, sort=sort, limit=limit))
 
     def load_stock_daily(
         self, *,
@@ -320,9 +340,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_index(
         self, *,
@@ -331,9 +352,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_index(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_index(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry(
         self, *,
@@ -342,9 +364,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_industry(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_industry(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry_daily(
         self, *,
@@ -353,9 +376,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry_detail(
         self, *,
@@ -364,9 +388,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept(
         self, *,
@@ -375,9 +400,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_concept(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_concept(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept_daily(
         self, *,
@@ -386,9 +412,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept_detail(
         self, *,
@@ -397,9 +424,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
 
     def load_stock_yjbb(
         self, *,
@@ -408,9 +436,10 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
 
     def load_stock_margin(
         self, *,
@@ -419,6 +448,7 @@ class MyBlockMongoFetch:
         limit: Optional[int] = None, to_frame=True
     ) -> Union[List[Dict], pd.DataFrame]:
 
-        filter, sort = json.dumps(filter, default=str), json.dumps(sort, default=str)
+        filter, sort = json.dumps(
+            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
         return self._to_dataframe(to_frame,
-                                  self.fetch.load_stock_margin(filter=filter, sort=sort, limit=limit))
+                                  self.loader.load_stock_margin(filter=filter, sort=sort, limit=limit))

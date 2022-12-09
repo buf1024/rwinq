@@ -5,7 +5,7 @@ mod hiq_sync;
 use hiq_sync::{BlockHiqSync, HiqSync};
 
 mod hiq_mongo;
-use hiq_mongo::{BlockMongoFetch, MongoFetch};
+use hiq_mongo::{BlockMongoLoader, MongoLoader};
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -20,7 +20,7 @@ fn hiq_pydata(_py: Python, m: &PyModule) -> PyResult<()> {
     // my_module.log_something()
     m.add_class::<HiqSync>()?;
     m.add_class::<BlockHiqSync>()?;
-    m.add_class::<MongoFetch>()?;
-    m.add_class::<BlockMongoFetch>()?;
+    m.add_class::<MongoLoader>()?;
+    m.add_class::<BlockMongoLoader>()?;
     Ok(())
 }

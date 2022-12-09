@@ -27,6 +27,10 @@ impl IntoPy<PyObject> for Bar {
         dict.set_item("amount", self.inner.amount).unwrap();
         dict.set_item("turnover", self.inner.turnover).unwrap();
         dict.set_item("chg_pct", self.inner.chg_pct).unwrap();
+        dict.set_item("volume_chg_pct", self.inner.volume_chg_pct)
+            .unwrap();
+        dict.set_item("amount_chg_pct", self.inner.amount_chg_pct)
+            .unwrap();
         dict.set_item("hfq_factor", self.inner.hfq_factor).unwrap();
         dict.into()
     }

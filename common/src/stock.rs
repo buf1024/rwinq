@@ -203,6 +203,7 @@ pub struct StockRtQuot {
     /// 代码
     pub code: String,
     /// 行情时间
+    // #[serde(with = "naive_date_time_format")]
     pub time: NaiveDateTime,
     /// 昨收价
     pub last_close: f32,

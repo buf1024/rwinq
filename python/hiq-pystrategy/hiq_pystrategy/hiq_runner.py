@@ -4,7 +4,7 @@ from hiq_pystrategy.strategy import Strategy, StrategyResult
 from hiq_pystrategy.hiq_pystrategy import Runner
 
 
-class MyRunner:
+class HiqRunner:
     def __init__(self, typ: str, url: str, concurrent: int):
         self.inner = Runner(typ=typ, url=url, concurrent=concurrent)
 

@@ -3,10 +3,8 @@ use thiserror::Error;
 pub mod store;
 
 pub mod sync;
-pub mod types;
 pub mod syncer;
-
-
+pub mod types;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -24,10 +22,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-
-
 pub use sync::HiqSync;
 pub use types::*;
-
 
 pub use hiq_fetch::*;

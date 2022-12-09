@@ -1,9 +1,10 @@
-use std::sync::Arc;
+use std::{sync::Arc, collections::HashMap};
 
 use async_trait::async_trait;
+use bson::doc;
 use hiq_data::store::Loader;
 
-use crate::{Result, Strategy, StrategyResult, StrategyType};
+use crate::{Result, Error, Strategy, StrategyResult, StrategyType, strategy_to_data_type, stat_result};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ExamStrategy {}
@@ -17,8 +18,8 @@ impl Strategy for ExamStrategy {
     }
     async fn test(
         &self,
-        _loader: Arc<Box<dyn Loader>>,
-        _typ: StrategyType,
+        loader: Arc<Box<dyn Loader>>,
+        typ: StrategyType,
         code: String,
         name: String,
     ) -> Result<Option<StrategyResult>> {
@@ -28,14 +29,39 @@ impl Strategy for ExamStrategy {
             "sz000762".to_string(),
         ];
         if codes.contains(&code) {
+            let data = loader
+                .load_daily(
+                    strategy_to_data_type(typ),
+                    doc! {"code": &code},
+                    doc! {"trade_date": -1},
+                    Some(60),
+                )
+                .await
+                .map_err(|e| Error::Custom(format!("load_daily error: {}", e.to_string())))?;
+            let stat = stat_result(&data, 3, 15)
+                .map_err(|e| Error::Custom(format!("stat result error: {}", e.to_string())))?;
+
+            let mut mark = HashMap::new();
+            let data0 = data.get(0).unwrap();
+            let data1 = data.get(1).unwrap();
+            mark.insert(
+                data0.trade_date.date(),
+                format!("data0 marker: {:?}", &data0.trade_date),
+            );
+            mark.insert(
+                data1.trade_date.date(),
+                format!("data1 marker: {:?}", &data1.trade_date),
+            );
+
             let rs = StrategyResult {
                 code,
                 name,
-                marker: None,
-                stat: None,
+                mark: Some(mark),
+                stat: Some(stat),
             };
             return Ok(Some(rs));
         }
+
         Ok(None)
     }
 }
