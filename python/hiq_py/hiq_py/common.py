@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import logging
 import os
 from functools import wraps
 
@@ -29,7 +30,7 @@ def load_strategy(dir_path, package, exclude=()):
         dir_path = os.path.expanduser('~') + dir_path[1:]
 
     strategy = {}
-    for root_path, dirs, files in os.walk(dir_path):
+    for root_path, _, files in os.walk(dir_path):
         if root_path.find('__') >= 0 or root_path.startswith('.'):
             continue
 
@@ -82,3 +83,9 @@ def is_alive(pid):
         return False
     else:
         return True
+
+
+def setup_logger(level: str):
+    level = logging.getLevelName(level.upper())
+    FORMAT = '[%(asctime)-15s][%(filename)s:%(lineno)d][%(name)s][%(levelname)s] %(message)s'
+    logging.basicConfig(encoding='utf-8', format=FORMAT, level=level)

@@ -1,6 +1,6 @@
 
 from typing import Dict, Optional
-from hiq_pystrategy.strategy import Strategy, StrategyResult
+from hiq_pystrategy.strategy import Strategy, StrategyResult, StrategyType
 from hiq_pystrategy.hiq_pystrategy import Runner
 
 
@@ -24,6 +24,14 @@ class HiqRunner:
                     l.append(rst)
                 m[k] = l
             data = m
+        return data
+
+    async def fit(self, strategy: Strategy, code: str, name: str, typ: StrategyType) -> Optional[StrategyResult]:
+        data = await self.inner.fit(strategy, code, name, typ)
+        if data is not None:
+            rst = StrategyResult()
+            rst.from_json(data)
+            data = rst
         return data
 
     def shutdown(self) -> bool:

@@ -1,10 +1,5 @@
 from typing import List, Dict, Union, Optional
-
-from hiq_pydata.hiq_pydata import BlockMongoLoader, MongoLoader
-
 import pandas as pd
-import json
-
 from abc import ABC
 
 
@@ -13,24 +8,24 @@ def _to_dataframe(to_frame, data):
         return pd.DataFrame(data)
     return data
 
+
 def _json_def_handler(obj):
     if hasattr(obj, 'isoformat'):
         return obj.isoformat()
     return None
+
 
 class HiqLoader(ABC):
     def __init__(self, url: str):
         pass
 
     @staticmethod
-    def _to_dataframe(to_frame, data):
+    def to_dataframe(to_frame, data):
         return _to_dataframe(to_frame, data)
-    
+
     @staticmethod
-    def _json_def_handler(obj):
-        if hasattr(obj, 'isoformat'):
-            return obj.isoformat()
-        return None
+    def json_def_handler(obj):
+        return _json_def_handler(obj)
 
     async def load_bond_info(
         self, *,
@@ -179,10 +174,10 @@ class HiqLoader(ABC):
 
 class BlockHiqLoader(ABC):
     def __init__(self, url: str):
-        self.fetch = BlockMongoLoader(url)
+        pass
 
     @staticmethod
-    def _to_dataframe(to_frame, data):
+    def to_dataframe(to_frame, data):
         return _to_dataframe(to_frame, data)
 
     def load_bond_info(

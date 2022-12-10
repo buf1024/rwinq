@@ -19,7 +19,7 @@ class BaseStrategy(Strategy):
     @staticmethod
     def shadow(last_close: float, open: float, close: float, low: float, high: float) -> Tuple[float, float, float, float]:
         if high == low:
-            return (0, 0)
+            return (0, 0, 0, 0)
         amp = (high - low)*100/last_close
         base = high - low
         is_up = close > open

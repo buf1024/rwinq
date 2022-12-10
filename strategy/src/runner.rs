@@ -33,7 +33,6 @@ pub async fn run(
             let codes = split_code(v, concurrent);
             test_codes.insert(k, codes);
         }
-        // test_codes.extend(the_codes.into_iter());
     } else {
         for typ in types.into_iter() {
             let codes = loader
@@ -272,7 +271,7 @@ mod tests {
                 let mut strategy: Box<dyn Strategy> = Box::new(TestStrategy {});
                 let loader = Arc::new(loader);
 
-                strategy.prepare(loader.clone(), None, None).await.unwrap();
+                strategy.prepare(loader.clone(), Some(Default::default()), None).await.unwrap();
                 let strategy = Arc::new(strategy);
                 let result = run(strategy, loader, 5, tx.subscribe(), None)
                     .await

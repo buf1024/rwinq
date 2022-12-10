@@ -7,7 +7,9 @@ use hiq_data::{
     store::{get_loader, Loader},
     HiqSyncDest,
 };
-use hiq_strategy::{get_strategy, run, strategies, CommonParam, Strategy, Symbol, SYMBOL_NAME};
+use hiq_strategy::{
+    fit, get_strategy, run, strategies, CommonParam, Strategy, StrategyType, Symbol, SYMBOL_NAME,
+};
 use tokio::{signal, sync::broadcast};
 
 #[tokio::main]
@@ -78,7 +80,7 @@ async fn main() -> anyhow::Result<()> {
 
     let rs = build_app_params(&s.dest, &s.params).await;
     if rs.is_err() {
-        println!("build_app_params error: {:?}", res);
+        println!("build_app_params error: {:?}", rs.err());
         return Ok(());
     }
     let (loader, cmm_params, params) = rs.unwrap();
@@ -108,32 +110,70 @@ async fn main() -> anyhow::Result<()> {
         .prepare(loader.clone(), cmm_params.clone(), params.clone())
         .await?;
 
-    tokio::select! {
-        rs = run(
-            Arc::new(strategy),
-            loader,
-            s.concurrent,
-            shutdown_tx.subscribe(),
-            None
-        ) => {
-            if rs.is_err() {
-                println!("run strategy error: {:?}", rs.err());
-                return Ok(());
-            }
-            let rs = rs.unwrap();
-            if let Some(rs) = rs {
-                println!("run strategy result:");
-                for (k, v) in rs {
-                    println!("type: {:?}", k);
-                    println!("result: {:?}", v);
+    if s.function == "run".to_string() {
+        tokio::select! {
+            rs = run(
+                Arc::new(strategy),
+                loader,
+                s.concurrent,
+                shutdown_tx.subscribe(),
+                None
+            ) => {
+                if rs.is_err() {
+                    println!("run strategy error: {:?}", rs.err());
+                    return Ok(());
                 }
-            } else {
-                println!("run strategy with no result!");
+                let rs = rs.unwrap();
+                if let Some(rs) = rs {
+                    println!("run strategy result:");
+                    for (k, v) in rs {
+                        println!("type: {:?}", k);
+                        println!("result: {:?}", v);
+                    }
+                } else {
+                    println!("run strategy with no result!");
+                }
+            },
+            _ = signal::ctrl_c() => {
+                log::info!("shutdown receive");
+                let _ = shutdown_tx.send(());
             }
-        },
-        _ = signal::ctrl_c() => {
-            log::info!("shutdown receive");
-            let _ = shutdown_tx.send(());
+        }
+    } else {
+        if s.code.is_none() {
+            println!("test strategy need code!");
+            return Ok(());
+        }
+        let code = s.code.unwrap();
+        let typ = if let Some(typ) = &s.typ {
+            StrategyType::from(typ.as_str())
+        } else {
+            StrategyType::Stock
+        };
+        tokio::select! {
+            rs = fit(
+                code,
+                String::from(""),
+                typ,
+                Arc::new(strategy),
+                loader,
+                shutdown_tx.subscribe(),
+            ) => {
+                if rs.is_err() {
+                    println!("test strategy fit error: {:?}", rs.err());
+                    return Ok(());
+                }
+                let rs = rs.unwrap();
+                if let Some(rs) = rs {
+                    println!("test strategy fit result: {:?}", rs);
+                } else {
+                    println!("test strategy fit with no result!");
+                }
+            },
+            _ = signal::ctrl_c() => {
+                log::info!("shutdown receive");
+                let _ = shutdown_tx.send(());
+            }
         }
     }
 
@@ -280,7 +320,7 @@ struct HiqStrategy {
     level: String,
 
     /// 并发获取数据任务数，默认为1
-    #[argh(option, short = 'c', default = "4")]
+    #[argh(option, short = 'r', default = "4")]
     concurrent: usize,
 
     /// 如：file=/user/home/app, mongodb=mongodb://localhost:27017
@@ -301,6 +341,19 @@ struct HiqStrategy {
     /// 内置策略名称
     #[argh(option, short = 'b')]
     builtin: Option<String>,
+
+    /// 测试或者运行策略，run/test
+    #[argh(option, short = 'f', default = "String::from(\"run\")")]
+    function: String,
+
+    /// function == test 有效，测试的类型
+    /// 可选为：bond,fund,stock,index,concept,industry
+    #[argh(option, short = 't')]
+    typ: Option<String>,
+
+    /// function == test 有效，测试的代码
+    #[argh(option, short = 'c')]
+    code: Option<String>,
 
     /// 策略参数，key=val格式
     #[argh(positional)]

@@ -18,8 +18,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_bond_info(filter=filter, sort=sort, limit=limit))
 
     async def load_bond_daily(
@@ -30,8 +30,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_bond_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_info(
@@ -42,8 +42,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_fund_info(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_daily(
@@ -54,8 +54,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_fund_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_fund_net(
@@ -66,8 +66,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_fund_net(filter=filter, sort=sort, limit=limit))
 
     async def load_index_info(
@@ -78,8 +78,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_index_info(filter=filter, sort=sort, limit=limit))
 
     async def load_index_daily(
@@ -90,8 +90,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_index_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_info(
@@ -102,8 +102,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_info(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_daily(
@@ -114,8 +114,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_index(
@@ -126,8 +126,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_index(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry(
@@ -138,8 +138,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_industry(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry_daily(
@@ -150,8 +150,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_industry_detail(
@@ -162,8 +162,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept(
@@ -174,8 +174,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_concept(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept_daily(
@@ -186,8 +186,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_concept_detail(
@@ -198,8 +198,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_yjbb(
@@ -210,8 +210,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
 
     async def load_stock_margin(
@@ -222,8 +222,8 @@ class HiqMongoLoader(HiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   await self.loader.load_stock_margin(filter=filter, sort=sort, limit=limit))
 
 
@@ -232,7 +232,7 @@ class HiqBlockMongoLoader(BlockHiqLoader):
         self.loader = BlockMongoLoader(url)
 
     @staticmethod
-    def _to_dataframe(to_frame, data):
+    def to_dataframe(to_frame, data):
         if to_frame and data is not None:
             return pd.DataFrame(data)
         return data
@@ -245,8 +245,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_bond_info(filter=filter, sort=sort, limit=limit))
 
     def load_bond_daily(
@@ -257,8 +257,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_bond_daily(filter=filter, sort=sort, limit=limit))
 
     def load_fund_info(
@@ -269,8 +269,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_fund_info(filter=filter, sort=sort, limit=limit))
 
     def load_fund_daily(
@@ -281,8 +281,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_fund_daily(filter=filter, sort=sort, limit=limit))
 
     def load_fund_net(
@@ -293,8 +293,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_fund_net(filter=filter, sort=sort, limit=limit))
 
     def load_index_info(
@@ -305,8 +305,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_index_info(filter=filter, sort=sort, limit=limit))
 
     def load_index_daily(
@@ -317,8 +317,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_index_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_info(
@@ -329,8 +329,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_info(filter=filter, sort=sort, limit=limit))
 
     def load_stock_daily(
@@ -341,8 +341,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_index(
@@ -353,8 +353,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_index(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry(
@@ -365,8 +365,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_industry(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry_daily(
@@ -377,8 +377,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_industry_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_industry_detail(
@@ -389,8 +389,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_industry_detail(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept(
@@ -401,8 +401,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_concept(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept_daily(
@@ -413,8 +413,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_concept_daily(filter=filter, sort=sort, limit=limit))
 
     def load_stock_concept_detail(
@@ -425,8 +425,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_concept_detail(filter=filter, sort=sort, limit=limit))
 
     def load_stock_yjbb(
@@ -437,8 +437,8 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_yjbb(filter=filter, sort=sort, limit=limit))
 
     def load_stock_margin(
@@ -449,6 +449,6 @@ class HiqBlockMongoLoader(BlockHiqLoader):
     ) -> Union[List[Dict], pd.DataFrame]:
 
         filter, sort = json.dumps(
-            filter, default=self._json_def_handler), json.dumps(sort, default=self._json_def_handler)
-        return self._to_dataframe(to_frame,
+            filter, default=self.json_def_handler), json.dumps(sort, default=self.json_def_handler)
+        return self.to_dataframe(to_frame,
                                   self.loader.load_stock_margin(filter=filter, sort=sort, limit=limit))

@@ -1,5 +1,5 @@
 mod strategy;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 pub use strategy::*;
 use thiserror::Error;
 
@@ -40,6 +40,19 @@ impl From<i32> for StrategyType {
             4 => StrategyType::Index,
             5 => StrategyType::Concept,
             6 => StrategyType::Industry,
+            _ => StrategyType::Stock,
+        }
+    }
+}
+impl From<&str> for StrategyType {
+    fn from(v: &str) -> Self {
+        match v {
+            "bond" => StrategyType::Bond,
+            "fund" => StrategyType::Fund,
+            "stock" => StrategyType::Stock,
+            "index" => StrategyType::Index,
+            "concept" => StrategyType::Concept,
+            "industry" => StrategyType::Industry,
             _ => StrategyType::Stock,
         }
     }

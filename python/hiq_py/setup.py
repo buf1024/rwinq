@@ -12,8 +12,7 @@ setup(
     install_requires=[
         'hiq_pyfetch',
         'hiq_pydata',
-        'hiq_pystrategy'
-
+        'hiq_pystrategy',
         'pyecharts',
         'TA-Lib',
     ],

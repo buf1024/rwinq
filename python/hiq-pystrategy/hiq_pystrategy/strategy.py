@@ -1,15 +1,17 @@
 from abc import ABC
-from datetime import date
+from datetime import date, datetime
 import json
 from typing import Dict, List, Optional
 from hiq_pydata.hiq_loader import HiqLoader
 from hiq_pyfetch.hiq_fetch import HiqFetch
 from hiq_pystrategy.hiq_pystrategy import stat_result
 
+
 def _json_def_handler(obj):
     if hasattr(obj, 'isoformat'):
         return obj.isoformat()
     return None
+
 
 class StrategyType:
     Bond = 1
@@ -92,17 +94,25 @@ class StrategyResult:
 
 
 class CommonParam:
-    def __init__(self, test_end_date, test_trade_days) -> None:
+    def __init__(self, test_end_date: Optional[date] = None, test_trade_days: int = 60) -> None:
+        if test_end_date is None:
+            test_end_date = datetime.now().date()
         self.test_end_date = test_end_date
         self.test_trade_days = test_trade_days
 
 
 class Strategy(ABC):
     def __init__(self, loader: Optional[HiqLoader] = None, fetch: Optional[HiqFetch] = None, cmm_params: Optional[CommonParam] = None, params: Optional[Dict] = None) -> None:
+        if cmm_params is None:
+            cmm_params = CommonParam()
         self.loader = loader
         self.fetch = fetch
         self.cmm_params = cmm_params
         self.params = params
+
+    @staticmethod
+    def json_def_handler(obj):
+        return _json_def_handler(obj)
 
     async def run(self, typ, code, name) -> Optional[str]:
         """
@@ -116,9 +126,9 @@ class Strategy(ABC):
     @staticmethod
     def stat_result(data: List[Dict], hit: int, hit_max: int) -> Stat:
         js_str = json.dumps(data, default=_json_def_handler)
-        js_str = stat_result(js_str, hit, hit_max)
+        js = stat_result(js_str, hit, hit_max)
         s = Stat()
-        s.from_json(js_str)
+        s.from_json(js)
         return s
 
     def help(self) -> str:

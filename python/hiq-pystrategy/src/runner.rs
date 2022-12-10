@@ -207,6 +207,49 @@ impl Runner {
         })
     }
 
+    /// 运行测试某是否符合python策略
+    fn fit<'a>(
+        &self,
+        py: Python<'a>,
+        py_strategy: PyObject,
+        code: String,
+        name: String,
+        typ: i32
+    ) -> PyResult<&'a PyAny> {
+        let loader = self.loader.clone();
+        let shutdown_rx = self.shutdown_tx.subscribe();
+        let prepare = py_strategy.getattr(py, "prepare")?;
+        let run = py_strategy.getattr(py, "run")?;
+        let locals = pyo3_asyncio::tokio::get_current_locals(py)?;
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let typ = StrategyType::from(typ);
+            log::info!("arguments: code={}, name={}, typ={:?}", &code, &name, &typ);
+            let mut strategy = WrapStrategy {
+                prepare,
+                run,
+                locals,
+            };
+            strategy
+                .prepare(loader.clone(), None, None)
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?;
+
+            let strategy: Arc<Box<dyn Strategy>> = Arc::new(Box::new(strategy));
+
+            log::info!("start strategy fit test");
+            let data = hiq_strategy::fit(code, name, typ, strategy, loader, shutdown_rx)
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?;
+            log::info!("done strategy fit test");
+            if let Some(data) = data {
+                let m = crate::types::StrategyResult::from(data);
+                Ok(Some(m))
+            } else {
+                Ok(None)
+            }
+        })
+    }
+
     fn shutdown(&self) -> PyResult<bool> {
         self.shutdown_tx
             .send(())
@@ -214,4 +257,3 @@ impl Runner {
         Ok(true)
     }
 }
-
