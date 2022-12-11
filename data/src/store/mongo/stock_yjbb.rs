@@ -119,7 +119,7 @@ impl Syncer for StockYJBBSyncer {
                     if data.len() > 0 {
                         tx.send(HiqSyncData::StockYJBB(data)).map_err(|e| {
                             log::error!("send data error {:?}", e);
-                            Error::Custom("queue send error")
+                            Error::Custom(format!("send data error {:?}", e))
                         })?;
                     }
                 }

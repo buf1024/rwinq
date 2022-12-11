@@ -12,6 +12,7 @@ static CACHE_TRADE_DATE: Lazy<RwLock<BTreeSet<i32>>> = Lazy::new(|| {
     RwLock::new(set)
 });
 
+/// 获取全量交易日数据，获取数据后，进行缓存
 pub async fn fetch_trade_date() -> Result<BTreeSet<i32>> {
     let client = async_client();
 
@@ -22,11 +23,11 @@ pub async fn fetch_trade_date() -> Result<BTreeSet<i32>> {
         .text()
         .await?;
     let js_code = format!("{}{}", resp, JS_CODE);
-    let mut js_script =
-        Script::from_string(&js_code).map_err(|_| Error::Custom("Load js code fatal!"))?;
+    let mut js_script = Script::from_string(&js_code)
+        .map_err(|e| Error::Custom(format!("Load js code error: {}!", e.to_string())))?;
     let data: BTreeSet<i32> = js_script
         .call("get_trade_date", &())
-        .map_err(|_| Error::Custom("Call js function fatal!"))?;
+        .map_err(|e| Error::Custom(format!("Call js function error:{}!", e.to_string())))?;
 
     {
         let mut cache = CACHE_TRADE_DATE.write().unwrap();
@@ -36,6 +37,7 @@ pub async fn fetch_trade_date() -> Result<BTreeSet<i32>> {
     Ok(data)
 }
 
+/// 获取某交易日后的第一个交易日
 pub async fn fetch_next_trade_date(date: &NaiveDate) -> Result<i32> {
     let mut mx_date = {
         let cache = CACHE_TRADE_DATE.read().unwrap();
@@ -63,8 +65,10 @@ pub async fn fetch_next_trade_date(date: &NaiveDate) -> Result<i32> {
             }
         }
     }
-    Err(Error::Custom("date is to far ..."))
+    Err(Error::Custom("date is to far ...".to_string()))
 }
+
+/// 获取某交易日前的第一个交易日
 pub async fn fetch_prev_trade_date(date: &NaiveDate) -> Result<i32> {
     let mut min_date = {
         let cache = CACHE_TRADE_DATE.read().unwrap();
@@ -92,7 +96,7 @@ pub async fn fetch_prev_trade_date(date: &NaiveDate) -> Result<i32> {
             }
         }
     }
-    Err(Error::Custom("date is to old ..."))
+    Err(Error::Custom("date is to old ...".to_string()))
 }
 
 const JS_CODE: &'static str = r###"

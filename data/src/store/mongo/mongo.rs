@@ -119,7 +119,7 @@ impl MongoStore {
         {
             let mut cache = self.cache.write().map_err(|e| {
                 log::error!("get cache write log error: {}", e.to_string());
-                Error::Custom("get cache write log error")
+                Error::Custom(format!("get cache write log error: {}", e.to_string()))
             })?;
             cache.cache_bond_info(&bond_info);
             cache.cache_index_info(&index_info);
@@ -133,7 +133,9 @@ impl MongoStore {
             || fund_info.is_empty()
             || trade_date.is_empty()
         {
-            Err(Error::Custom("cache info is empty, try not skip basic"))
+            Err(Error::Custom(
+                "cache info is empty, try not skip basic".to_owned(),
+            ))
         } else {
             Ok(())
         }
@@ -381,14 +383,14 @@ impl MongoStore {
     async fn build_client(&self) -> Result<Client> {
         let mut client_options = ClientOptions::parse(&self.url[..]).await.map_err(|e| {
             log::error!("parse connect url error: {}", e.to_string());
-            Error::Custom("parse connect url error")
+            Error::Custom(format!("parse connect url error: {}", e.to_string()))
         })?;
 
         client_options.app_name = Some("HIQ App".to_string());
 
         let client = Client::with_options(client_options).map_err(|e| {
             log::error!("with_options error: {}", e.to_string());
-            Error::Custom("with client option error")
+            Error::Custom(format!("with_options error: {}", e.to_string()))
         })?;
         Ok(client)
     }

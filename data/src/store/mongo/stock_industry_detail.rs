@@ -90,7 +90,7 @@ impl Syncer for StockIndustryDetailSyncer {
                         tx.send(HiqSyncData::StockIndustryDetail(data))
                             .map_err(|e| {
                                 log::error!("send data error {:?}", e);
-                                Error::Custom("queue send error")
+                                Error::Custom(format!("send data error {:?}", e))
                             })?;
                     }
                 }

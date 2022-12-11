@@ -1,13 +1,15 @@
+//! etf场内基金基本数据
+
 use crate::{Bar, BarFreq};
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-/// 基金基本信息
+/// etf基金基本信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FundInfo {
     /// 代码
     pub code: String,
-    /// 简称
+    /// etf基金简称
     pub name: String,
 }
 
@@ -18,7 +20,7 @@ pub struct FundNet {
     pub code: String,
     /// 简称
     pub name: String,
-    /// 交易日
+    /// 净值日期
     pub trade_date: NaiveDate,
     /// 净值
     pub net: f32,

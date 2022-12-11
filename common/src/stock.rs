@@ -1,3 +1,5 @@
+//! 股票基本数据
+
 use crate::{Bar, BarFreq};
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -7,11 +9,11 @@ use serde::{Deserialize, Serialize};
 pub struct StockInfo {
     /// 代码
     pub code: String,
-    /// 简称
+    /// 股票简称
     pub name: String,
-    /// 所在板块
+    /// 股票所在板块
     pub block: String,
-    /// 是否融资融券
+    /// 是否融资融券标的
     pub is_margin: bool,
     /// 上市日期
     pub listing_date: NaiveDate,
@@ -35,7 +37,7 @@ pub struct StockBar {
 pub struct StockIndex {
     /// 代码
     pub code: String,
-    /// 简称
+    /// 股票简称
     pub name: String,
     /// 市值日期
     pub trade_date: NaiveDate,
@@ -51,7 +53,7 @@ pub struct StockIndex {
     pub currency_value: f64,
 }
 
-/// 行业基本信息
+/// 股票行业基本信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StockIndustry {
     /// 代码
@@ -126,7 +128,7 @@ pub struct StockConceptBar {
 pub struct StockYJBB {
     /// 年份
     pub year: u16,
-    /// 季度
+    /// 季度，1~4
     pub season: u16,
     /// 季度时间
     pub season_date: NaiveDate,
@@ -203,7 +205,6 @@ pub struct StockRtQuot {
     /// 代码
     pub code: String,
     /// 行情时间
-    // #[serde(with = "naive_date_time_format")]
     pub time: NaiveDateTime,
     /// 昨收价
     pub last_close: f32,

@@ -30,6 +30,12 @@ use self::mongo::MongoLoader;
 // pub(crate) use mysql::MysqlStore;
 // pub(crate) use clickhouse::ClickHouseStore;
 
+/// 获取同步数据store  
+/// `dest`: 目标数据源  
+/// `skip_basic` 初始化数据是否从远程获取，true在从数据库获取, false则从远程获取    
+/// `split_count` 代码切分份数，同一份数据在同一个task里处理  
+/// `funcs` 过滤的同步类型，None则全部同步
+/// `try_init` 是否初始化
 pub async fn get_store(
     dest: &HiqSyncDest,
     skip_basic: bool,
@@ -57,6 +63,9 @@ pub async fn get_store(
     }
 }
 
+/// 获取访问本地数据loader
+/// `dest`: 目标数据源  
+/// `try_init` 是否初始化
 pub async fn get_loader(
     dest: &HiqSyncDest,
     try_init: bool,
@@ -76,14 +85,18 @@ pub async fn get_loader(
     }
 }
 
+/// 同步数据trait接口
 #[async_trait]
 pub trait Store: Sync + Send {
+    /// 初始化
     async fn init(&mut self) -> Result<()> {
         Ok(())
     }
+    /// 创建索引
     async fn build_index(&self) -> Result<()> {
         Ok(())
     }
+    /// 同步的syncer
     fn syncer(&self) -> Result<Vec<Arc<Box<dyn Syncer>>>>;
 }
 

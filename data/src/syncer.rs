@@ -6,11 +6,13 @@ use tokio::sync::mpsc;
 
 use crate::{types::HiqSyncData, Result};
 
+/// 封装获取数据函数，方便无参数调用，出错时重试等
 #[async_trait]
 pub trait AsyncFunc {
     async fn call(&self) -> Result<Option<HiqSyncData>>;
 }
 
+/// 出错时重试
 pub async fn retry(func: impl AsyncFunc) -> Result<Option<HiqSyncData>> {
     let mut backoff = 1;
     const MAX_BACKOFF: u64 = 64;
@@ -29,6 +31,7 @@ pub async fn retry(func: impl AsyncFunc) -> Result<Option<HiqSyncData>> {
     }
 }
 
+/// 判断是否可以同步
 pub fn need_to_start(start: &Option<NaiveDate>) -> bool {
     if let Some(s) = start {
         let now = Local::now().naive_local();
@@ -50,10 +53,12 @@ pub fn need_to_start(start: &Option<NaiveDate>) -> bool {
     return true;
 }
 
+/// 同步接口
 #[async_trait]
 pub trait Syncer: Sync + Send {
+    /// 获取远程数据，如果有数据，则塞进队列
     async fn fetch(&self, _tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()>;
 
-    // async fn fetch_raw_data(&self) -> Result<Option<HiqSyncData>>;
+    /// 保存远程数据，独立任务保存
     async fn save(&self, data: HiqSyncData) -> Result<()>;
 }

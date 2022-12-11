@@ -1,3 +1,4 @@
+//! 数据同步，支持同时同步到多个数据源
 use std::{collections::HashMap, sync::Arc};
 
 use futures::future::join_all;
@@ -14,6 +15,7 @@ use crate::{
     Error, Result,
 };
 
+/// 数据同步
 pub struct HiqSync {
     dest: Vec<HiqSyncDest>,
     shutdown: broadcast::Receiver<()>,
@@ -23,6 +25,10 @@ pub struct HiqSync {
 }
 
 impl HiqSync {
+    /// 构造对象  
+    /// `dest` 数据源，需保证数据源正确，否则后续`init`会报错  
+    /// `shutdown·` 停止信号  
+    /// `funcs` 同步的条目类型，如果为`None`，则全部同步
     pub fn new(
         dest: Vec<HiqSyncDest>,
         shutdown: broadcast::Receiver<()>,
@@ -36,6 +42,9 @@ impl HiqSync {
             is_init: false,
         }
     }
+    /// 初始化 
+    /// `skip_basic` 初始化数据是否从远程获取，true在从数据库获取, false则从远程获取    
+    /// `split_count` 代码切分份数，同一份数据在同一个task里处理  
     pub async fn init(&mut self, skip_basic: bool, split_count: usize) -> Result<()> {
         if !self.is_init {
             let mut store = HashMap::new();
@@ -50,6 +59,10 @@ impl HiqSync {
         }
         Ok(())
     }
+    /// 初始化 
+    /// `skip_basic` 初始化数据是否从远程获取，true在从数据库获取, false则从远程获取    
+    /// `split_count` 代码切分份数，同一份数据在同一个task里处理  
+    /// `task_count` 远程获取数据启动的task数量，代表并发获取， task_count不宜过大，可能被封
     pub async fn sync(
         &mut self,
         skip_basic: bool,
@@ -74,7 +87,7 @@ impl HiqSync {
                     log::info!("stop sync received");
                     tx.send(()).map_err(|e| {
                         log::error!("send data error {:?}", e);
-                        Error::Custom("shutdown send error")
+                        Error::Custom(format!("send data error {:?}", e))
                     })?;
                 }
             }
@@ -152,8 +165,8 @@ async fn sync_task(
         _ = shutdown_rx.recv() => {
             log::info!("sync_task shutdown recv");
             shutdown_tx.send(()).map_err(|e| {
-                log::error!("send data error {:?}", e);
-                Error::Custom("sync_task shutdown send error")
+                log::error!("sync_task shutdown send error: {:?}", e);
+                Error::Custom(format!("sync_task shutdown send error: {:?}", e))
             })?;
         }
     }
@@ -180,7 +193,7 @@ async fn fetch_task(
         }
         tx.send(HiqSyncData::Done).map_err(|e| {
             log::error!("send data error {:?}", e);
-            Error::Custom("queue send error")
+            Error::Custom(format!("send data error {:?}", e))
         })?;
     }
     Ok(())

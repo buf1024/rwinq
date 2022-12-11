@@ -65,3 +65,5 @@ z_gen_*.py
 target
 *.lock
 .vscode
+
+python/notebook

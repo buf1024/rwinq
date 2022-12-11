@@ -4,7 +4,7 @@ use crate::fund::FundFetch;
 use crate::util::to_std_code;
 use crate::{Error, HeaderValue, Market, MarketType, Result, HTTP_CMM_HEADER};
 use async_trait::async_trait;
-use chrono::{Duration, Local, NaiveDate, NaiveDateTime, TimeZone, Datelike};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, TimeZone};
 use hiq_common::{Bar, BarFreq, FundBar, FundInfo, FundNet};
 use reqwest::header::REFERER;
 use reqwest::Client;
@@ -20,7 +20,6 @@ impl HiqFundFetch {
             client: async_client(),
         }
     }
-
     pub async fn fetch_fund_bar_xq(
         &self,
         code: &str,
@@ -146,7 +145,9 @@ impl FundFetch for HiqFundFetch {
 
         let resp = self.client.get(req_url).send().await?.text().await?;
 
-        let index = resp.find("[").ok_or(Error::Custom("Invalid response"))?;
+        let index = resp
+            .find("[")
+            .ok_or(Error::Custom("Invalid fund info response".to_string()))?;
         let resp = &resp[index..resp.len() - 1];
         let json = serde_json::from_str::<Vec<Vec<&str>>>(resp)?;
 

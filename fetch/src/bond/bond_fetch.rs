@@ -1,3 +1,7 @@
+//! 获取可转债接口
+//! 
+//! 如有其他实现方式，实现该trait即可。
+
 #![allow(unused_variables)]
 
 use crate::{Error, Result};
@@ -5,12 +9,13 @@ use async_trait::async_trait;
 use chrono::NaiveDate;
 use hiq_common::{BarFreq, BondBar, BondInfo};
 
+/// 可转债trait
 #[async_trait]
 pub trait BondFetch: Sync + Send {
     /// 获取可转债基本信息
     async fn fetch_bond_info(&self) -> Result<Vec<BondInfo>>
     {
-        Err(Error::NotImpl("fetch_bond_info"))
+        Err(Error::NotImpl("fetch_bond_info".to_string()))
     }
     /// 获取可转债基本
     ///
@@ -27,6 +32,6 @@ pub trait BondFetch: Sync + Send {
         end: Option<NaiveDate>,
     ) -> Result<BondBar>
     {
-        Err(Error::NotImpl("fetch_bond_bar"))
+        Err(Error::NotImpl("fetch_bond_bar".to_string()))
     }
 }

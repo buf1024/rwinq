@@ -23,7 +23,11 @@ where
     if del_old {
         let del_res = coll.delete_many(doc! {}, None).await.map_err(|e| {
             log::error!("delete collection {} failed: {}", collection, e.to_string());
-            Error::Custom("delete collection failed")
+            Error::Custom(format!(
+                "delete collection {} failed: {}",
+                collection,
+                e.to_string()
+            ))
         })?;
         log::info!("delete {}, {} items", collection, del_res.deleted_count);
     }
@@ -33,12 +37,20 @@ where
         let item = info.get(0).unwrap();
         coll.insert_one(item, None).await.map_err(|e| {
             log::error!("insert collection {} failed: {}", collection, e.to_string());
-            Error::Custom("insert collection failed")
+            Error::Custom(format!(
+                "insert collection {} failed: {}",
+                collection,
+                e.to_string()
+            ))
         })?;
     } else {
         coll.insert_many(info, None).await.map_err(|e| {
             log::error!("insert collection {} failed: {}", collection, e.to_string());
-            Error::Custom("insert collection failed")
+            Error::Custom(format!(
+                "insert collection {} failed: {}",
+                collection,
+                e.to_string()
+            ))
         })?;
     }
     Ok(())
@@ -58,12 +70,12 @@ where
 
     let mut res = coll.find(filter, options).await.map_err(|e| {
         log::error!("find {} error: {}", collection, e.to_string());
-        Error::Custom("find error")
+        Error::Custom(format!("find {} error: {}", collection, e.to_string()))
     })?;
     let mut data = Vec::new();
     while let Some(info) = res.try_next().await.map_err(|e| {
         log::error!("try next {}  error: {}", collection, e.to_string());
-        Error::Custom("find error")
+        Error::Custom(format!("try next {}  error: {}", collection, e.to_string()))
     })? {
         data.push(info);
     }
@@ -85,11 +97,11 @@ where
 
     let mut res = coll.find(filter, options).await.map_err(|e| {
         log::error!("find {} error: {}", collection, e.to_string());
-        Error::Custom("find error")
+        Error::Custom(format!("find {} error: {}", collection, e.to_string()))
     })?;
     let data = res.try_next().await.map_err(|e| {
         log::error!("try next {}  error: {}", collection, e.to_string());
-        Error::Custom("find error")
+        Error::Custom(format!("try next {}  error: {}", collection, e.to_string()))
     })?;
     Ok(data)
 }

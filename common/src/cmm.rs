@@ -1,22 +1,23 @@
+//! 公共数据
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-/// 方便数据库存储
+/// 交易日历
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradeDate {
     /// 交易日
     pub trade_date: i32,
 }
 
-/// 可日线基本信息
+/// K线基本信息（可表示分钟线，日线，周线，年线等）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bar {
     /// 代码
     pub code: String,
     /// 简称
     pub name: String,
-    /// 交易日
-    // #[serde(with = "naive_date_time_format")]
+    /// 交易时间
     pub trade_date: NaiveDateTime,
     /// 开盘价
     pub open: f32,
@@ -43,16 +44,27 @@ pub struct Bar {
     pub hfq_factor: f32,
 }
 
+/// k线频率
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum BarFreq {
+    /// 1 分钟
     Min1 = 1,
+    /// 5 分钟
     Min5 = 5,
+    /// 15 分钟
     Min15 = 15,
+    /// 30 分钟
     Min30 = 30,
+    /// 60 分钟
     Min60 = 60,
+    /// 日频
     Daily = 101,
+    /// 周频
     Weekly = 102,
+    /// 月频
     Monthly = 103,
+    /// 宽松版日频，当前交易交易时间，如果少于15点交易时间时
+    /// 取当前最新价，如果大于15点，和日频一样
     LooseDaily = 1010,
 }
 

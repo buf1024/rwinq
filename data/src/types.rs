@@ -1,3 +1,4 @@
+//! 公共基本数据类型
 use std::path::PathBuf;
 
 use hiq_fetch::{
@@ -7,6 +8,7 @@ use hiq_fetch::{
 
 use crate::Error;
 
+/// 目的数据源
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HiqSyncDest {
     File(PathBuf),
@@ -15,6 +17,8 @@ pub enum HiqSyncDest {
     ClickHouse(String),
 }
 
+/// 转换为`HiqSyncDest`  
+/// 格式为(file, path), (mongodb, url), (mysql, url), (clickhouse, url)
 impl TryFrom<(String, String)> for HiqSyncDest {
     type Error = Error;
 
@@ -26,12 +30,15 @@ impl TryFrom<(String, String)> for HiqSyncDest {
             "mongodb" => Ok(HiqSyncDest::MongoDB(val)),
             "mysql" => Ok(HiqSyncDest::MySQL(val)),
             "clickhouse" => Ok(HiqSyncDest::ClickHouse(val)),
-            _ => Err(Error::Custom("invalid HiqSyncDest")),
+            _ => Err(Error::Custom(format!(
+                "Invalid HiqSyncDest: {}",
+                typ.as_str()
+            ))),
         }
     }
 }
 
-
+/// 目标数据源类型
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum HiqSyncDestType {
     File = 1,
@@ -49,12 +56,10 @@ impl TryFrom<i32> for HiqSyncDestType {
             2 => Ok(HiqSyncDestType::MongoDB),
             3 => Ok(HiqSyncDestType::MySQL),
             4 => Ok(HiqSyncDestType::ClickHouse),
-            _ => Err(Error::Custom("invalid HiqSyncDestType")),
+            _ => Err(Error::Custom(format!("Invalid HiqSyncDestType: {}", v))),
         }
     }
 }
-
-
 
 #[derive(Debug, Clone)]
 pub enum HiqSyncData {
@@ -144,7 +149,7 @@ impl TryFrom<i32> for HiqSyncDataType {
             // bond
             18 => Ok(HiqSyncDataType::BondInfo),
             19 => Ok(HiqSyncDataType::BondBar),
-            _ => Err(Error::Custom("invalid HiqSyncDataType")),
+            _ => Err(Error::Custom(format!("Invalid HiqSyncDataType: {}", v))),
         }
     }
 }
@@ -180,7 +185,10 @@ impl TryFrom<&str> for HiqSyncDataType {
             // bond
             "bond_info" => Ok(HiqSyncDataType::BondInfo),
             "bond_daily" => Ok(HiqSyncDataType::BondBar),
-            _ => Err(Error::Custom("invalid HiqSyncDataType")),
+            _ => Err(Error::Custom(format!(
+                "Invalid HiqSyncDataType: {}",
+                v.as_str()
+            ))),
         }
     }
 }

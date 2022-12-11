@@ -30,7 +30,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
         .await
         .map_err(|e| {
             log::error!("create index err: {}", e.to_string());
-            Error::Custom("create index error")
+            Error::Custom(format!("create index err: {}", e.to_string()))
         })?;
     }
     // fund
@@ -41,7 +41,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
             .await
             .map_err(|e| {
                 log::error!("create index err: {}", e.to_string());
-                Error::Custom("create index error")
+                Error::Custom(format!("create index err: {}", e.to_string()))
             })?;
 
         log::info!("start build {} index!", TAB_FUND_NET);
@@ -51,7 +51,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
             .await
             .map_err(|e| {
                 log::error!("create index err: {}", e.to_string());
-                Error::Custom("create index error")
+                Error::Custom(format!("create index err: {}", e.to_string()))
             })?;
 
         log::info!("start build {} index!", TAB_FUND_INFO);
@@ -60,7 +60,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
             .await
             .map_err(|e| {
                 log::error!("create index err: {}", e.to_string());
-                Error::Custom("create index error")
+                Error::Custom(format!("create index err: {}", e.to_string()))
             })?;
     }
 
@@ -72,7 +72,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
             .await
             .map_err(|e| {
                 log::error!("create index err: {}", e.to_string());
-                Error::Custom("create index error")
+                Error::Custom(format!("create index err: {}", e.to_string()))
             })?;
 
         log::info!("start build {} index!", TAB_BOND_INFO);
@@ -81,7 +81,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
             .await
             .map_err(|e| {
                 log::error!("create index err: {}", e.to_string());
-                Error::Custom("create index error")
+                Error::Custom(format!("create index err: {}", e.to_string()))
             })?;
     }
 
@@ -95,7 +95,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
 
             log::info!("start build {} index!", TAB_INDEX_INFO);
@@ -104,7 +104,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
         }
         {
@@ -115,7 +115,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
 
             log::info!("start build {} index!", TAB_STOCK_INFO);
@@ -124,7 +124,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
 
             log::info!("start build {} index!", TAB_STOCK_MARGIN);
@@ -133,7 +133,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
             log::info!("start build {} index!", TAB_STOCK_INDEX);
             let coll = db.collection::<hiq_fetch::StockIndex>(TAB_STOCK_INDEX);
@@ -141,7 +141,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
 
             log::info!("start build {} index!", TAB_STOCK_YJBB);
@@ -150,7 +150,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
 
             {
@@ -161,7 +161,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                     .await
                     .map_err(|e| {
                         log::error!("create index err: {}", e.to_string());
-                        Error::Custom("create index error")
+                        Error::Custom(format!("create index err: {}", e.to_string()))
                     })?;
 
                 log::info!("start build {} index!", TAB_STOCK_CONCEPT);
@@ -170,7 +170,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                     .await
                     .map_err(|e| {
                         log::error!("create index err: {}", e.to_string());
-                        Error::Custom("create index error")
+                        Error::Custom(format!("create index err: {}", e.to_string()))
                     })?;
 
                 log::info!("start build {} index!", TAB_STOCK_CONCEPT_DETAIL);
@@ -184,7 +184,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
             }
             {
@@ -195,7 +195,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                     .await
                     .map_err(|e| {
                         log::error!("create index err: {}", e.to_string());
-                        Error::Custom("create index error")
+                        Error::Custom(format!("create index err: {}", e.to_string()))
                     })?;
 
                 log::info!("start build {} index!", TAB_STOCK_INDUSTRY);
@@ -204,7 +204,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                     .await
                     .map_err(|e| {
                         log::error!("create index err: {}", e.to_string());
-                        Error::Custom("create index error")
+                        Error::Custom(format!("create index err: {}", e.to_string()))
                     })?;
 
                 log::info!("start build {} index!", TAB_STOCK_INDUSTRY_DETAIL);
@@ -218,7 +218,7 @@ pub(crate) async fn build_index(client: Client) -> Result<()> {
                 .await
                 .map_err(|e| {
                     log::error!("create index err: {}", e.to_string());
-                    Error::Custom("create index error")
+                    Error::Custom(format!("create index err: {}", e.to_string()))
                 })?;
             }
         }

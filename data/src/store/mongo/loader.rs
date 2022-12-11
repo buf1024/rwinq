@@ -35,14 +35,14 @@ impl MongoLoader {
 
         let mut client_options = ClientOptions::parse(&self.url[..]).await.map_err(|e| {
             log::error!("parse connect url error: {}", e.to_string());
-            Error::Custom("parse connect url error")
+            Error::Custom(format!("parse connect url error: {}", e.to_string()))
         })?;
 
         client_options.app_name = Some("HIQ App".to_string());
 
         let client = Client::with_options(client_options).map_err(|e| {
             log::error!("with_options error: {}", e.to_string());
-            Error::Custom("with client option error")
+            Error::Custom(format!("with_options error: {}", e.to_string()))
         })?;
         self.client = Some(client.clone());
         Ok(client)
@@ -51,7 +51,7 @@ impl MongoLoader {
         let client = self
             .client
             .as_ref()
-            .ok_or(Error::Custom("mongodb not connected!"))?;
+            .ok_or(Error::Custom("mongodb not connected!".to_owned()))?;
         Ok(client.clone())
     }
     async fn query<T>(

@@ -150,7 +150,7 @@ impl StockFetch for HiqStockFetch {
         // 	B股简称	B股上市日期	B股总股本	B股流通股本	地 区	省    份	城     市	所属行业	公司网址
         // 2712
         let mut workbook = open_workbook_auto_from_rs(Cursor::new(&*resp))
-            .map_err(|_| Error::Custom("Open shenzhen stock info xlsx stream fatal!"))?;
+            .map_err(|e| Error::Custom(format!("Open shenzhen stock info xlsx stream error: {}!", e.to_string())))?;
 
         if let Some(Ok(range)) = workbook.worksheet_range("A股列表") {
             let tmp_vec: Vec<_> = range
@@ -554,10 +554,10 @@ impl StockFetch for HiqStockFetch {
         let season_vec = vec!["03-31", "06-30", "09-30", "12-31"];
 
         if year < 1991 || year > 2050 {
-            return Err(Error::Custom("Invalid year"));
+            return Err(Error::Custom(format!("Invalid year: {}", year)));
         }
         if season < 1 || season > 4 {
-            return Err(Error::Custom("Invalid season"));
+            return Err(Error::Custom(format!("Invalid season: {}", season)));
         }
         let season_date = format!(
             "{}-{}",
@@ -766,7 +766,7 @@ impl StockFetch for HiqStockFetch {
         let resp = self.client.get(req_url).send().await?.text().await?;
 
         let json: XuQiuStockRtQuot = serde_json::from_str(&resp)?;
-        let data = json.data.ok_or(Error::Custom("Error fetch quotation"))?;
+        let data = json.data.ok_or(Error::Custom("Error fetch quotation".to_string()))?;
 
         let data: Vec<_> = data
             .iter()

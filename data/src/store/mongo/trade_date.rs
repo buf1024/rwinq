@@ -74,7 +74,7 @@ impl Syncer for TradeDateSyncer {
             if new_data.len() > 0 {
                 tx.send(HiqSyncData::TradeDate(new_data)).map_err(|e| {
                     log::error!("send data error {:?}", e);
-                    Error::Custom("queue send error")
+                    Error::Custom(format!("send data error {:?}", e))
                 })?;
             }
         }

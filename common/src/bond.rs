@@ -1,3 +1,5 @@
+//! 可转债数据
+
 use crate::{Bar, BarFreq};
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -21,7 +23,7 @@ pub struct BondInfo {
     pub is_delist: u8,
 }
 
-/// 可转债日线基本信息
+/// 可转债k线基本信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BondBar {
     /// 可转债代码
