@@ -17,6 +17,7 @@ tokio = {version = "1.21.2", features = ["full"]}
 
 async-trait = "0.1.58"
 serde = {version = "1.0.147", features = ["derive"]}
+serde_json = "1.0.89"
 
 fern = "0.6.1"
 log = "0.4.17"

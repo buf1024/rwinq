@@ -1,7 +1,7 @@
 //! 可转债数据
 
 use crate::{Bar, BarFreq};
-use chrono::NaiveDate;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 /// 可转债基本信息（已经确定上市交易的可转债）
@@ -18,7 +18,7 @@ pub struct BondInfo {
     /// 上市时间
     /// 1. 没上市的可转债不会返回
     /// 2. 上市时间大于当前交易日，仅代表已经确认上市时间
-    pub listing_date: NaiveDate,
+    pub listing_date: NaiveDateTime,
     /// 是否已经退市 0, 1
     pub is_delist: u8,
 }

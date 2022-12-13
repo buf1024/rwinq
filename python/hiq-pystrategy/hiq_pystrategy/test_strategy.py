@@ -36,8 +36,8 @@ class TestStrategy(Strategy):
                 
                 stat = self.stat_result(data, 10, 10)
                 mark = {}
-                mark[data[0]['trade_date']] = 'mark1'
-                mark[data[2]['trade_date']] = 'mark2'
+                mark[data[0]['trade_date'].date()] = 'mark1'
+                mark[data[2]['trade_date'].date()] = 'mark2'
             return StrategyResult(code=code, name=name, mark=mark, stat=stat)
 
         return None

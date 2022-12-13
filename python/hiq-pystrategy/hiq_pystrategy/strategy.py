@@ -1,7 +1,7 @@
 from abc import ABC
 from datetime import date, datetime
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from hiq_pydata.hiq_loader import HiqLoader
 from hiq_pyfetch.hiq_fetch import HiqFetch
 from hiq_pystrategy.hiq_pystrategy import stat_result
@@ -37,7 +37,7 @@ class StrategyType:
 
 
 class Stat:
-    def __init__(self, hit_chg_pct=None, start=None, end=None, low=None, high=None, hit=None, hit_max=None) -> None:
+    def __init__(self, hit_chg_pct: Optional[List] = None, start: Optional[date] = None, end: Optional[date] = None, low: Optional[date] = None, high: Optional[date] = None, hit: Optional[date] = None, hit_max: Optional[date] = None) -> None:
         self.hit_chg_pct = hit_chg_pct
         self.start = start
         self.end = end
@@ -55,7 +55,7 @@ class Stat:
                     hit=self.hit,
                     hit_max=self.hit_max)
 
-    def from_json(self, js):
+    def from_json(self, js: Dict):
         self.hit_chg_pct = js['hit_chg_pct']
         self.start = js['start']
         self.end = js['end']
@@ -69,16 +69,22 @@ class Stat:
 
 
 class StrategyResult:
-    def __init__(self, code=None, name=None, mark=None, stat=None) -> None:
+    def __init__(self, code: Optional[str] = None, name: Optional[str] = None, mark: Optional[Dict[date, str]] = None, stat: Optional[Stat] = None) -> None:
         self.code = code
         self.name = name
         self.mark = mark
         self.stat = stat
 
     def to_dict(self):
-        return dict(code=self.code, name=self.name, stat=self.stat.to_dict() if self.stat is not None else None)
+        mark = None
+        if self.mark is not None:
+            mark = {}
+            for k, v in self.mark.items():
+                mark[str(k)] = v
 
-    def from_json(self, js):
+        return dict(code=self.code, name=self.name, mark=mark, stat=self.stat.to_dict() if self.stat is not None else None)
+
+    def from_json(self, js: Dict):
         self.code = js['code']
         self.name = js['name']
         if 'mark' in js:
@@ -92,11 +98,38 @@ class StrategyResult:
     def to_json(self):
         return json.dumps(self.to_dict(), default=_json_def_handler)
 
+    @staticmethod
+    def _to_dict_str(d):
+        m = None
+        if d is not None:
+            l = []
+            for k, v in d.items():
+                l.append('{}={}'.format(str(k), v))
+            m = ','.join(l)
+        return m
+
+    def to_plain_dict(self):
+        mark = self._to_dict_str(self.mark)
+        stat = self._to_dict_str(self.stat.to_dict())
+        return dict(code=self.code, name=self.name, mark=mark, stat=stat)
+
 
 class CommonParam:
-    def __init__(self, test_end_date: Optional[date] = None, test_trade_days: int = 60) -> None:
+    def __init__(self, test_end_date: Optional[Union[datetime, str]] = None, test_trade_days: Optional[int] = 60) -> None:
         if test_end_date is None:
-            test_end_date = datetime.now().date()
+            test_end_date = datetime.now()
+        if test_end_date is not None and type(test_end_date) == type(''):
+            r = None
+            for fmt in ['%Y-%m-%d', '%Y%m%d']:
+                try:
+                    r = datetime.strptime(test_end_date, fmt)
+                    break
+                except:
+                    pass
+            test_end_date = datetime.now() if r is None else r
+
+        test_end_date = datetime(
+            test_end_date.year, test_end_date.month, test_end_date.day, 0, 0, 0)
         self.test_end_date = test_end_date
         self.test_trade_days = test_trade_days
 
@@ -114,7 +147,7 @@ class Strategy(ABC):
     def json_def_handler(obj):
         return _json_def_handler(obj)
 
-    async def run(self, typ, code, name) -> Optional[str]:
+    async def run(self, typ: StrategyType, code: str, name: str) -> Optional[str]:
         """
         由runner调用，不要重写
         """
@@ -131,7 +164,8 @@ class Strategy(ABC):
         s.from_json(js)
         return s
 
-    def help(self) -> str:
+    @staticmethod
+    def help() -> str:
         return ""
 
     def name(self) -> str:

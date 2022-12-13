@@ -1,11 +1,14 @@
 use std::{collections::HashMap, sync::Arc};
 
 use bson::doc;
-use futures::future::join_all;
+use futures::future::{join, join_all};
 use hiq_data::store::Loader;
 
-use crate::{Error, Result, Strategy, StrategyResult, StrategyType};
-use tokio::{sync::broadcast, task::JoinHandle};
+use crate::{Error, ProgressFunc, Result, Strategy, StrategyResult, StrategyType};
+use tokio::{
+    sync::{broadcast, mpsc},
+    task::JoinHandle,
+};
 
 pub fn strategy_to_data_type(typ: StrategyType) -> hiq_data::store::DataType {
     match typ {
@@ -24,12 +27,15 @@ pub async fn run(
     concurrent: usize,
     mut shutdown_rx: broadcast::Receiver<()>,
     the_codes: Option<HashMap<StrategyType, Vec<(String, String)>>>,
+    progress_func: Option<ProgressFunc>,
 ) -> Result<Option<HashMap<StrategyType, Vec<StrategyResult>>>> {
     let (shutdown_tx, _) = broadcast::channel(1);
     let types = strategy.accept();
     let mut test_codes = HashMap::new();
+    let mut total = 0;
     if let Some(the_codes) = the_codes {
         for (k, v) in the_codes.into_iter() {
+            total += v.len();
             let codes = split_code(v, concurrent);
             test_codes.insert(k, codes);
         }
@@ -38,7 +44,10 @@ pub async fn run(
             let codes = loader
                 .load_info(strategy_to_data_type(typ), doc! {}, doc! {}, None)
                 .await
-                .map_err(|e| Error::Custom(format!("query bond info error: {:?}", e)))?;
+                .map_err(|e| Error::Custom(format!("query info error: {:?}", e)))?;
+
+            total += codes.len();
+
             let codes = split_code(codes, concurrent);
 
             if !codes.is_empty() {
@@ -46,6 +55,16 @@ pub async fn run(
             }
         }
     }
+
+    let (progress_tx, progress_rx, progress_func) = if let Some(progress_func) = progress_func {
+        let (progress_tx, progress_rx) = mpsc::unbounded_channel();
+
+        let progress_func = Arc::new(progress_func);
+
+        (Some(progress_tx), Some(progress_rx), Some(progress_func))
+    } else {
+        (None, None, None)
+    };
 
     let mut handlers = HashMap::new();
     for (typ, codes_vec) in test_codes.into_iter() {
@@ -55,7 +74,8 @@ pub async fn run(
             let l = loader.clone();
             let rx = shutdown_tx.subscribe();
             log::info!("spawn task: {:?}", &typ);
-            let h = tokio::spawn(run_task(typ, s, l, codes, rx));
+            let tx = progress_tx.clone();
+            let h = tokio::spawn(run_task(typ, s, l, codes, rx, tx));
             handler.push(h);
         }
         handlers.insert(typ, handler);
@@ -66,8 +86,16 @@ pub async fn run(
         g_handlers.push(h);
     }
     let mut ret_map = HashMap::new();
+
+    let p_handler = tokio::spawn(progress_task(
+        total,
+        progress_func,
+        shutdown_tx.subscribe(),
+        progress_rx,
+    ));
+
     tokio::select! {
-        rest = join_all(g_handlers) => {
+        (rest, _) = join(join_all(g_handlers), p_handler) => {
             log::info!("join_all done");
             for res in rest.into_iter() {
                 let res = res.map_err(|e| Error::Custom(format!("join error: {}", e.to_string())))?;
@@ -146,16 +174,58 @@ async fn join_group(
     rs
 }
 
+async fn progress_task(
+    total: usize,
+    progress_func: Option<Arc<ProgressFunc>>,
+    mut shutdown_rx: broadcast::Receiver<()>,
+    progress_rx: Option<mpsc::UnboundedReceiver<(String, String)>>,
+) {
+    if progress_func.is_none() || progress_rx.is_none() {
+        return;
+    }
+    let progress_func = progress_func.unwrap();
+    let mut progress_rx = progress_rx.unwrap();
+
+    log::info!("progress task with {} codes", total);
+    let mut current: usize = 0;
+    for _ in 0..total {
+        tokio::select! {
+            rs = progress_rx.recv() => {
+                current+=1;
+                if let Some(rs) = rs {
+                    let p = (((current * 100) as f32 / total as f32) * 100.0).round() / 100.0;
+                    let (code, name) = rs;
+                    progress_func(code.as_str(), name.as_str(), total, current, p);
+                } else {
+                    log::error!("progress_rx receive None");
+                    break;
+                }
+
+            }
+            _ = shutdown_rx.recv() => {
+                log::info!("run task receive shutdown signal");
+                break;
+            }
+        }
+    }
+}
+
 async fn run_task(
     typ: StrategyType,
     strategy: Arc<Box<dyn Strategy>>,
     loader: Arc<Box<dyn Loader>>,
     codes: Vec<(String, String)>,
     mut shutdown_rx: broadcast::Receiver<()>,
+    progress_tx: Option<mpsc::UnboundedSender<(String, String)>>,
 ) -> Result<Option<Vec<StrategyResult>>> {
     log::info!("run task with {} codes", codes.len());
     let mut rs_vec = Vec::new();
     for (code, name) in codes {
+        if let Some(tx) = &progress_tx {
+            tx.send((code.clone(), name.clone())).map_err(|e| {
+                Error::Custom(format!("send progress signal error x: {}", e.to_string()))
+            })?;
+        }
         tokio::select! {
             res = strategy
             .test(loader.clone(), typ, code.clone(), name.clone()) => {
@@ -175,6 +245,7 @@ async fn run_task(
             }
         }
     }
+
     if rs_vec.is_empty() {
         Ok(None)
     } else {
@@ -195,6 +266,9 @@ fn split_code(codes: Vec<(String, String)>, count: usize) -> Vec<Vec<(String, St
         }
         result.push(task_vec);
         task_vec = Vec::new();
+    }
+    if task_vec.len() > 0 {
+        result.push(task_vec);
     }
     result
 }
@@ -253,7 +327,7 @@ mod tests {
                     message
                 ))
             })
-            .level(log::LevelFilter::Debug)
+            .level(log::LevelFilter::Error)
             .chain(std::io::stdout())
             .apply()
             .unwrap();
@@ -271,11 +345,23 @@ mod tests {
                 let mut strategy: Box<dyn Strategy> = Box::new(TestStrategy {});
                 let loader = Arc::new(loader);
 
-                strategy.prepare(loader.clone(), Some(Default::default()), None).await.unwrap();
-                let strategy = Arc::new(strategy);
-                let result = run(strategy, loader, 5, tx.subscribe(), None)
+                strategy
+                    .prepare(loader.clone(), Some(Default::default()), None)
                     .await
                     .unwrap();
+                let strategy = Arc::new(strategy);
+                let result = run(
+                    strategy,
+                    loader,
+                    5,
+                    tx.subscribe(),
+                    None,
+                    Some(Box::new(|code, name, t, c, p| {
+                        print!("\rprocessing: {}({}) {}/{}({})%", name, code, c, t, p)
+                    })),
+                )
+                .await
+                .unwrap();
                 log::info!("result: {:?}", result);
             });
     }

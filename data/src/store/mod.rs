@@ -4,7 +4,7 @@ use std::{
     sync::Arc,
 };
 
-use chrono::{Duration, NaiveDate};
+use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
 use hiq_fetch::{BondInfo, FundInfo, StockInfo};
 use mongodb::bson::Document;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ use crate::{
     syncer::Syncer,
     types::HiqSyncDest,
     types::{HiqSyncDataType, HiqSyncDestType},
-    Result,
+    Error, Result,
 };
 
 use async_trait::async_trait;
@@ -374,6 +374,22 @@ pub trait Loader: Sync + Send {
             DataType::Industry => self.load_stock_industry_daily(filter, sort, limit).await?,
         };
         Ok(data)
+    }
+    #[inline]
+    fn naive_date_to_datetime_str(&self, naive_date: &NaiveDate) -> Result<String> {
+        let dt = NaiveDateTime::new(*naive_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+
+        self.naive_date_time_to_datetime_str(&dt)
+    }
+
+    #[inline]
+    fn naive_date_time_to_datetime_str(&self, naive_date_time: &NaiveDateTime) -> Result<String> {
+        let value = serde_json::to_value(naive_date_time)
+            .map_err(|e| Error::Custom(format!("to_value error: {}", e.to_string())))?;
+        let s = value
+            .as_str()
+            .ok_or(Error::Custom("as_str as_str error".to_owned()))?;
+        Ok(s.to_owned())
     }
 }
 

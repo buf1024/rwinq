@@ -2,13 +2,14 @@ use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use anyhow::Context;
 use argh::FromArgs;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use hiq_data::{
     store::{get_loader, Loader},
     HiqSyncDest,
 };
 use hiq_strategy::{
-    fit, get_strategy, run, strategies, CommonParam, Strategy, StrategyType, Symbol, SYMBOL_NAME,
+    fit, get_strategy, run, strategies, CommonParam, ProgressFunc, Strategy, StrategyType, Symbol,
+    SYMBOL_NAME,
 };
 use tokio::{signal, sync::broadcast};
 
@@ -111,13 +112,19 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     if s.function == "run".to_string() {
+        let func: Option<ProgressFunc> = if s.level.as_str() == "error" {
+            Some(Box::new(progress))
+        } else {
+            None
+        };
         tokio::select! {
             rs = run(
                 Arc::new(strategy),
                 loader,
                 s.concurrent,
                 shutdown_tx.subscribe(),
-                None
+                None,
+                func
             ) => {
                 if rs.is_err() {
                     println!("run strategy error: {:?}", rs.err());
@@ -125,13 +132,13 @@ async fn main() -> anyhow::Result<()> {
                 }
                 let rs = rs.unwrap();
                 if let Some(rs) = rs {
-                    println!("run strategy result:");
+                    println!("\nrun strategy result:");
                     for (k, v) in rs {
                         println!("type: {:?}", k);
                         println!("result: {:?}", v);
                     }
                 } else {
-                    println!("run strategy with no result!");
+                    println!("\nrun strategy with no result!");
                 }
             },
             _ = signal::ctrl_c() => {
@@ -272,9 +279,12 @@ fn build_cmm_params(params: &HashMap<String, String>) -> anyhow::Result<Option<C
             }
         }
         let date = date.unwrap();
-        test_end_date = Some(date);
+        test_end_date = Some(NaiveDateTime::new(
+            date,
+            NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+        ));
     }
-    let mut test_trade_days = None;
+    let mut test_trade_days = Some(60);
     if params.contains_key(&String::from("test_trade_days")) {
         let s = params.get(&String::from("test_trade_days")).unwrap();
         let days = s.parse::<i64>();
@@ -308,6 +318,14 @@ fn build_strategy_params(params: &HashMap<String, String>) -> Option<HashMap<Str
         Some(map)
     }
 }
+
+fn progress(code: &str, name: &str, total: usize, current: usize, progress: f32) {
+    print!(
+        "\r>> processing: {}({}) {}/{}({})%       ",
+        name, code, current, total, progress
+    )
+}
+
 #[derive(FromArgs, PartialEq, Debug)]
 /// HiqStrategy command.
 struct HiqStrategy {
@@ -316,7 +334,7 @@ struct HiqStrategy {
     version: bool,
 
     /// 日志级别，默认info
-    #[argh(option, short = 'l', default = "String::from(\"info\")")]
+    #[argh(option, short = 'l', default = "String::from(\"error\")")]
     level: String,
 
     /// 并发获取数据任务数，默认为1

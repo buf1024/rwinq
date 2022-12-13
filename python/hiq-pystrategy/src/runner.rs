@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use hiq_strategy::{
     store::{get_loader, Loader},
-    CommonParam, HiqSyncDest, Strategy, StrategyResult, StrategyType,
+    CommonParam, HiqSyncDest, ProgressFunc, Strategy, StrategyResult, StrategyType,
 };
 use pyo3::{
     exceptions::PyException,
@@ -133,6 +133,33 @@ fn extract(
     }
 }
 
+fn progress_callback(py_callback: Option<PyObject>) -> Option<ProgressFunc> {
+    if py_callback.is_none() {
+        return None;
+    }
+    let py_callback = py_callback.unwrap();
+    return Some(Box::new(
+        move |code: &str, name: &str, total: usize, current: usize, progress: f32| {
+            Python::with_gil(|py| {
+                let args = PyTuple::new(
+                    py,
+                    &[
+                        code.into_py(py),
+                        name.into_py(py),
+                        total.into_py(py),
+                        current.into_py(py),
+                        progress.into_py(py),
+                    ],
+                );
+                let r = py_callback.call1(py, args);
+                if r.is_err() {
+                    log::error!("call python process callback error: {:?}", r);
+                }
+            })
+        },
+    ));
+}
+
 #[pyclass]
 pub(crate) struct Runner {
     loader: Arc<Box<dyn Loader>>,
@@ -161,12 +188,14 @@ impl Runner {
         py: Python<'a>,
         py_strategy: PyObject,
         the_codes: Option<PyObject>,
+        py_callback: Option<PyObject>,
     ) -> PyResult<&'a PyAny> {
         let loader = self.loader.clone();
         let concurrent = self.concurrent;
         let shutdown_rx = self.shutdown_tx.subscribe();
         let prepare = py_strategy.getattr(py, "prepare")?;
         let run = py_strategy.getattr(py, "run")?;
+
         let locals = pyo3_asyncio::tokio::get_current_locals(py)?;
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let the_codes = extract(the_codes)?;
@@ -184,9 +213,16 @@ impl Runner {
             let strategy: Arc<Box<dyn Strategy>> = Arc::new(Box::new(strategy));
 
             log::info!("start run strategy");
-            let data = hiq_strategy::run(strategy, loader, concurrent, shutdown_rx, the_codes)
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?;
+            let data = hiq_strategy::run(
+                strategy,
+                loader,
+                concurrent,
+                shutdown_rx,
+                the_codes,
+                progress_callback(py_callback),
+            )
+            .await
+            .map_err(|e| PyException::new_err(e.to_string()))?;
             log::info!("done run strategy");
             if let Some(data) = data {
                 let m: HashMap<_, _> = data
@@ -214,7 +250,7 @@ impl Runner {
         py_strategy: PyObject,
         code: String,
         name: String,
-        typ: i32
+        typ: i32,
     ) -> PyResult<&'a PyAny> {
         let loader = self.loader.clone();
         let shutdown_rx = self.shutdown_tx.subscribe();

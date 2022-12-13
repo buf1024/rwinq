@@ -26,7 +26,8 @@ class RightSide(BaseStrategy):
         self.min_volume_chg_pct = -10.0
         self.min_amount_chg_pct = -10.0
 
-    def help(self) -> str:
+    @staticmethod
+    def help() -> str:
         return '  名称: 右侧策略(基于日线)\n' + \
                '  说明: 选择右侧温和上涨的标的。\n' + \
                '       \n' + \
@@ -74,9 +75,9 @@ class RightSide(BaseStrategy):
 
         stat = self.stat_result(kdata, hit, hit_max)
         mark = {}
-        mark[kdata[hit]['trade_date']] = json.dumps(
+        mark[kdata[hit]['trade_date'].date()] = json.dumps(
             kdata[hit], default=self.json_def_handler)
-        mark[kdata[hit_max]['trade_date']] = json.dumps(
+        mark[kdata[hit_max]['trade_date'].date()] = json.dumps(
             kdata[hit_max], default=self.json_def_handler)
 
         return StrategyResult(code=code, name=name, mark=mark, stat=stat)

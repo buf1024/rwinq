@@ -7,7 +7,7 @@ use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, StockFetch, HTTP_CMM_HEADER};
 use async_trait::async_trait;
 use calamine::{open_workbook_auto_from_rs, DataType, Reader};
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveTime, TimeZone};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use hiq_common::{
     BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockIndex,
     StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot,
@@ -128,12 +128,15 @@ impl StockFetch for HiqStockFetch {
                 .filter(|item| item.de_list == "-")
                 .map(|item| {
                     let code = to_std_code(MarketType::Stock, item.code);
+                    let listing_date = NaiveDate::parse_from_str(item.list_date, "%Y%m%d").unwrap();
+                    let listing_date =
+                        NaiveDateTime::new(listing_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
                     StockInfo {
                         code: code.clone(),
                         name: item.name.to_owned(),
                         block: block_name.to_owned(),
                         is_margin: margin_codes.contains(&code),
-                        listing_date: NaiveDate::parse_from_str(item.list_date, "%Y%m%d").unwrap(),
+                        listing_date,
                     }
                 })
                 .collect();
@@ -149,8 +152,12 @@ impl StockFetch for HiqStockFetch {
         // 板块	公司全称	英文名称	注册地址	A股代码	A股简称	A股上市日期	A股总股本	A股流通股本	B股代码
         // 	B股简称	B股上市日期	B股总股本	B股流通股本	地 区	省    份	城     市	所属行业	公司网址
         // 2712
-        let mut workbook = open_workbook_auto_from_rs(Cursor::new(&*resp))
-            .map_err(|e| Error::Custom(format!("Open shenzhen stock info xlsx stream error: {}!", e.to_string())))?;
+        let mut workbook = open_workbook_auto_from_rs(Cursor::new(&*resp)).map_err(|e| {
+            Error::Custom(format!(
+                "Open shenzhen stock info xlsx stream error: {}!",
+                e.to_string()
+            ))
+        })?;
 
         if let Some(Ok(range)) = workbook.worksheet_range("A股列表") {
             let tmp_vec: Vec<_> = range
@@ -166,16 +173,16 @@ impl StockFetch for HiqStockFetch {
                 .map(|row| {
                     // 0 板块 4 A股代码 5 A股简称 6 A股上市日期
                     let code = to_std_code(MarketType::Stock, &self.get_cell(&row[4]));
+                    let listing_date =
+                        NaiveDate::parse_from_str(&self.get_cell(&row[6]), "%Y-%m-%d").unwrap();
+                    let listing_date =
+                        NaiveDateTime::new(listing_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
                     StockInfo {
                         code: code.clone(),
                         name: self.get_cell(&row[5]),
                         block: self.get_cell(&row[0]),
                         is_margin: margin_codes.contains(&code),
-                        listing_date: NaiveDate::parse_from_str(
-                            &self.get_cell(&row[6]),
-                            "%Y-%m-%d",
-                        )
-                        .unwrap(),
+                        listing_date,
                     }
                 })
                 .collect();
@@ -262,7 +269,7 @@ impl StockFetch for HiqStockFetch {
         date: Option<NaiveDate>,
     ) -> Result<HashMap<String, StockIndex>> {
         let index_date = if let Some(d) = date {
-            d
+            NaiveDateTime::new(d, NaiveTime::from_hms_opt(0, 0, 0).unwrap())
         } else {
             let trade_date = fetch_trade_date().await?;
             let mut n = Local::now().naive_local().date();
@@ -271,7 +278,7 @@ impl StockFetch for HiqStockFetch {
                 n = n.add(Duration::days(-1));
                 n_i32 = n.year() as i32 * 10000 + n.month() as i32 * 100 + n.day() as i32;
             }
-            n
+            NaiveDateTime::new(n, NaiveTime::from_hms_opt(0, 0, 0).unwrap())
         };
 
         let mut data = HashMap::new();
@@ -587,68 +594,72 @@ impl StockFetch for HiqStockFetch {
             let tmp_vec: Vec<_> = result
                 .data
                 .iter()
-                .map(|item| StockYJBB {
-                    year,
-                    season,
-                    season_date: NaiveDate::parse_from_str(item.season_date, "%Y-%m-%d 00:00:00")
-                        .unwrap(),
-                    code: to_std_code(MarketType::Stock, item.code),
-                    name: item.name.to_owned(),
-                    mg_sy: if item.mg_sy.is_none() {
-                        0.0
-                    } else {
-                        item.mg_sy.unwrap()
-                    },
-                    yysr: if item.yysr.is_none() {
-                        0.0
-                    } else {
-                        item.yysr.unwrap()
-                    },
-                    yysr_tbzz: if item.yysr_tbzz.is_none() {
-                        0.0
-                    } else {
-                        item.yysr_tbzz.unwrap()
-                    },
-                    yysr_jdhbzz: if item.yysr_jdhbzz.is_none() {
-                        0.0
-                    } else {
-                        item.yysr_jdhbzz.unwrap()
-                    },
-                    jlr: if item.jlr.is_none() {
-                        0.0
-                    } else {
-                        item.jlr.unwrap()
-                    },
-                    jlr_tbzz: if item.jlr_tbzz.is_none() {
-                        0.0
-                    } else {
-                        item.jlr_tbzz.unwrap()
-                    },
-                    jlr_jdhbzz: if item.jlr_jdhbzz.is_none() {
-                        0.0
-                    } else {
-                        item.jlr_jdhbzz.unwrap()
-                    },
-                    mg_jzc: if item.mg_jzc.is_none() {
-                        0.0
-                    } else {
-                        item.mg_jzc.unwrap()
-                    },
-                    jzc_syl: if item.mg_jzc.is_none() {
-                        0.0
-                    } else {
-                        item.mg_jzc.unwrap()
-                    },
-                    mg_jy_xjl: if item.mg_jy_xjl.is_none() {
-                        0.0
-                    } else {
-                        item.mg_jy_xjl.unwrap()
-                    },
-                    xs_mll: if item.xs_mll.is_none() {
-                        0.0
-                    } else {
-                        item.xs_mll.unwrap()
-                    },
+                .map(|item| {
+                    let season_date =
+                        NaiveDateTime::parse_from_str(item.season_date, "%Y-%m-%d %H:%M:%S")
+                            .unwrap();
+                    StockYJBB {
+                        year,
+                        season,
+                        season_date,
+                        code: to_std_code(MarketType::Stock, item.code),
+                        name: item.name.to_owned(),
+                        mg_sy: if item.mg_sy.is_none() {
+                            0.0
+                        } else {
+                            item.mg_sy.unwrap()
+                        },
+                        yysr: if item.yysr.is_none() {
+                            0.0
+                        } else {
+                            item.yysr.unwrap()
+                        },
+                        yysr_tbzz: if item.yysr_tbzz.is_none() {
+                            0.0
+                        } else {
+                            item.yysr_tbzz.unwrap()
+                        },
+                        yysr_jdhbzz: if item.yysr_jdhbzz.is_none() {
+                            0.0
+                        } else {
+                            item.yysr_jdhbzz.unwrap()
+                        },
+                        jlr: if item.jlr.is_none() {
+                            0.0
+                        } else {
+                            item.jlr.unwrap()
+                        },
+                        jlr_tbzz: if item.jlr_tbzz.is_none() {
+                            0.0
+                        } else {
+                            item.jlr_tbzz.unwrap()
+                        },
+                        jlr_jdhbzz: if item.jlr_jdhbzz.is_none() {
+                            0.0
+                        } else {
+                            item.jlr_jdhbzz.unwrap()
+                        },
+                        mg_jzc: if item.mg_jzc.is_none() {
+                            0.0
+                        } else {
+                            item.mg_jzc.unwrap()
+                        },
+                        jzc_syl: if item.mg_jzc.is_none() {
+                            0.0
+                        } else {
+                            item.mg_jzc.unwrap()
+                        },
+                        mg_jy_xjl: if item.mg_jy_xjl.is_none() {
+                            0.0
+                        } else {
+                            item.mg_jy_xjl.unwrap()
+                        },
+                        xs_mll: if item.xs_mll.is_none() {
+                            0.0
+                        } else {
+                            item.xs_mll.unwrap()
+                        },
+                    }
                 })
                 .collect();
 
@@ -705,7 +716,7 @@ impl StockFetch for HiqStockFetch {
                 .map(|item| StockMargin {
                     code: to_std_code(MarketType::Stock, item.code),
                     name: item.name.to_owned(),
-                    trade_date: NaiveDate::parse_from_str(item.trade_date, "%Y-%m-%d 00:00:00")
+                    trade_date: NaiveDateTime::parse_from_str(item.trade_date, "%Y-%m-%d %H:%M:%S")
                         .unwrap(),
                     close: item.close.unwrap_or(0.0),
                     chg_pct: item.chg_pct.unwrap_or(0.0),
@@ -722,11 +733,11 @@ impl StockFetch for HiqStockFetch {
                     rz_rq_ye: item.rz_rq_ye.unwrap_or(0.0),
                     rz_rq_ye_cz: item.rz_rq_ye_cz.unwrap_or(0.0),
                 })
-                .filter(|item| item.trade_date >= s && item.trade_date <= e)
+                .filter(|item| item.trade_date.date() >= s && item.trade_date.date() <= e)
                 .collect();
             if tmp_vec.len() > 0 {
                 let (newest, oldest) = (&tmp_vec[0], &tmp_vec[tmp_vec.len() - 1]);
-                let is_break = if newest.trade_date >= e && oldest.trade_date <= s {
+                let is_break = if newest.trade_date.date() >= e && oldest.trade_date.date() <= s {
                     true
                 } else {
                     false
@@ -766,7 +777,9 @@ impl StockFetch for HiqStockFetch {
         let resp = self.client.get(req_url).send().await?.text().await?;
 
         let json: XuQiuStockRtQuot = serde_json::from_str(&resp)?;
-        let data = json.data.ok_or(Error::Custom("Error fetch quotation".to_string()))?;
+        let data = json
+            .data
+            .ok_or(Error::Custom("Error fetch quotation".to_string()))?;
 
         let data: Vec<_> = data
             .iter()

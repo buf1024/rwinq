@@ -1,13 +1,20 @@
-use std::{sync::Arc, collections::HashMap};
+use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use bson::doc;
 use hiq_data::store::Loader;
 
-use crate::{Result, Error, Strategy, StrategyResult, StrategyType, strategy_to_data_type, stat_result};
+use crate::{
+    stat_result, strategy_to_data_type, Error, Result, Strategy, StrategyResult, StrategyType,
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct ExamStrategy {}
+impl Default for ExamStrategy {
+    fn default() -> Self {
+        Self {}
+    }
+}
 #[async_trait]
 impl Strategy for ExamStrategy {
     fn name(&self) -> String {

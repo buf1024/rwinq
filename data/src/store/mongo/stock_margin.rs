@@ -89,7 +89,7 @@ impl Syncer for StockMarginSyncer {
             let start = bar
                 .map(|b| {
                     let cache = self.cache.read().unwrap();
-                    Some(cache.next_trade_date(&(b.trade_date)))
+                    Some(cache.next_trade_date(&(b.trade_date.date())))
                 })
                 .unwrap_or(Some(
                     NaiveDate::parse_from_str(DATA_DEF_START_DATE, "%Y-%m-%d").unwrap(),

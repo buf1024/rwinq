@@ -4,7 +4,7 @@ use crate::fund::FundFetch;
 use crate::util::to_std_code;
 use crate::{Error, HeaderValue, Market, MarketType, Result, HTTP_CMM_HEADER};
 use async_trait::async_trait;
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, TimeZone};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use hiq_common::{Bar, BarFreq, FundBar, FundInfo, FundNet};
 use reqwest::header::REFERER;
 use reqwest::Client;
@@ -208,15 +208,21 @@ impl FundFetch for HiqFundFetch {
             data = js_data
                 .list
                 .iter()
-                .map(|item| FundNet {
-                    code: code.to_string(),
-                    name: name.to_string(),
-                    trade_date: NaiveDate::parse_from_str(item.trade_date, "%Y-%m-%d").unwrap(),
-                    net: item.net.parse().unwrap_or(0.0),
-                    net_acc: item.net_acc.parse().unwrap_or(0.0),
-                    chg_pct: item.chg_pct.parse().unwrap_or(0.0),
-                    apply_status: item.apply_status.to_string(),
-                    redeem_status: item.redeem_status.to_string(),
+                .map(|item| {
+                    let trade_date =
+                        NaiveDate::parse_from_str(item.trade_date, "%Y-%m-%d").unwrap();
+                    let trade_date =
+                        NaiveDateTime::new(trade_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                    FundNet {
+                        code: code.to_string(),
+                        name: name.to_string(),
+                        trade_date,
+                        net: item.net.parse().unwrap_or(0.0),
+                        net_acc: item.net_acc.parse().unwrap_or(0.0),
+                        chg_pct: item.chg_pct.parse().unwrap_or(0.0),
+                        apply_status: item.apply_status.to_string(),
+                        redeem_status: item.redeem_status.to_string(),
+                    }
                 })
                 .collect();
         }

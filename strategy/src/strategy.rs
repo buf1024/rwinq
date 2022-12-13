@@ -3,7 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
-use chrono::NaiveDate;
+use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime};
 use hiq_data::{store::Loader, Bar};
 use serde::{Deserialize, Serialize};
 
@@ -28,16 +28,43 @@ pub struct StrategyResult {
     pub stat: Option<Stat>,
 }
 
+impl StrategyResult {
+    pub fn new(
+        code: String,
+        name: String,
+        mark: Option<HashMap<NaiveDate, String>>,
+        stat: Option<Stat>,
+    ) -> Self {
+        Self {
+            code,
+            name,
+            mark,
+            stat,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct CommonParam {
-    pub test_end_date: Option<NaiveDate>,
+    pub test_end_date: Option<NaiveDateTime>,
     pub test_trade_days: Option<i64>,
+}
+
+impl CommonParam {
+    pub fn new(test_end_date: Option<NaiveDateTime>, test_trade_days: Option<i64>) -> Self {
+        Self {
+            test_end_date,
+            test_trade_days,
+        }
+    }
 }
 
 impl Default for CommonParam {
     fn default() -> Self {
+        let n = Local::now().date_naive();
+        let n = NaiveDateTime::new(n, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
         Self {
-            test_end_date: Default::default(),
+            test_end_date: Some(n),
             test_trade_days: Some(60),
         }
     }
@@ -74,7 +101,7 @@ pub trait Strategy: Sync + Send {
 }
 
 pub fn stat_result(data: &Vec<Bar>, hit: usize, hit_max: usize) -> Result<Stat> {
-    if hit >= data.len() || hit_max > data.len() || hit_max < hit{
+    if hit >= data.len() || hit_max > data.len() || hit_max < hit {
         return Err(crate::Error::Custom(format!(
             "hit={} or hit_max={}, out of range(0~{}) or invalid",
             hit,
@@ -143,8 +170,4 @@ pub fn stat_result(data: &Vec<Bar>, hit: usize, hit_max: usize) -> Result<Stat> 
     Ok(stat)
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_strategy() {}
-}
+pub type ProgressFunc = Box<dyn Fn(&str, &str, usize, usize, f32) -> () + Sync + Send>;

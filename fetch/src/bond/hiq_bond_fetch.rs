@@ -5,6 +5,7 @@ use crate::util::to_std_code;
 use crate::{Market, MarketType, Result, HTTP_CMM_HEADER};
 use async_trait::async_trait;
 use chrono::naive::NaiveDate;
+use chrono::NaiveDateTime;
 use hiq_common::{BarFreq, BondBar, BondInfo};
 use reqwest::Client;
 
@@ -23,8 +24,7 @@ impl HiqBondFetch {
 #[async_trait]
 impl BondFetch for HiqBondFetch {
     /// 获取可转债基本信息
-    async fn fetch_bond_info(&self) -> Result<Vec<BondInfo>>
-    {
+    async fn fetch_bond_info(&self) -> Result<Vec<BondInfo>> {
         let mut data = Vec::new();
 
         let mut page_num: i64 = 1;
@@ -63,13 +63,15 @@ impl BondFetch for HiqBondFetch {
                 .iter()
                 .filter(|f| f.listing_date.is_some() && f.delist_date.is_none())
                 .map(|item| {
-                    let listing_date = &item.listing_date.unwrap()[0..10];
+                    let listing_date = item.listing_date.unwrap();
+                    let listing_date =
+                        NaiveDateTime::parse_from_str(listing_date, "%Y-%m-%d %H:%M:%S").unwrap();
                     BondInfo {
                         code: to_std_code(MarketType::Bond, item.code),
                         name: item.name.to_owned(),
                         stock_code: to_std_code(MarketType::Stock, item.stock_code),
                         stock_name: item.stock_name.to_owned(),
-                        listing_date: listing_date.parse::<NaiveDate>().unwrap(),
+                        listing_date,
                         is_delist: 0,
                     }
                 })
@@ -98,8 +100,7 @@ impl BondFetch for HiqBondFetch {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
-    ) -> Result<BondBar>
-    {
+    ) -> Result<BondBar> {
         let market_code = if code.starts_with("sz") {
             // 深圳市场
             format!("{}.{}", Market::SZ as i32, &code[2..])

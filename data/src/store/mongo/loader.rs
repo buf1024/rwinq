@@ -274,6 +274,7 @@ impl Loader for MongoLoader {
 #[cfg(test)]
 mod tests {
 
+    use chrono::NaiveDate;
     use mongodb::bson::doc;
 
     use crate::store::mongo::MongoLoader;
@@ -296,12 +297,17 @@ mod tests {
     async fn test_loader() -> Result<(), Box<dyn std::error::Error>> {
         let mut loader = MongoLoader::new("mongodb://localhost:27017".to_owned());
         loader.init().await?;
+
+        let info = loader.load_stock_info(doc!{}, doc!{}, Some(1)).await?;
+
+        println!("info: {:?}", info);
+
+        let nd = NaiveDate::parse_from_str("2022-12-12", "%Y-%m-%d").unwrap();
         let data = loader
             .load_stock_daily(
-                doc! {"close":
-                {"$gt": 100}, "trade_date": {"$gte": "2022-12-01"}},
-                doc! {},
-                Some(1),
+                doc! {"code": "sz001219", "trade_date": {"$lte": loader.naive_date_to_datetime_str(&nd)?}},
+                doc! {"trade_date": -1},
+                Some(2),
             )
             .await?;
         println!("data: {:?}", data);

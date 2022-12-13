@@ -1,7 +1,7 @@
 //! 股票基本数据
 
 use crate::{Bar, BarFreq};
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 /// 股票基本信息
@@ -16,7 +16,7 @@ pub struct StockInfo {
     /// 是否融资融券标的
     pub is_margin: bool,
     /// 上市日期
-    pub listing_date: NaiveDate,
+    pub listing_date: NaiveDateTime,
 }
 
 /// 股票k线基本信息
@@ -40,7 +40,7 @@ pub struct StockIndex {
     /// 股票简称
     pub name: String,
     /// 市值日期
-    pub trade_date: NaiveDate,
+    pub trade_date: NaiveDateTime,
     /// 股价
     pub price: f32,
     /// pe
@@ -131,7 +131,7 @@ pub struct StockYJBB {
     /// 季度，1~4
     pub season: u16,
     /// 季度时间
-    pub season_date: NaiveDate,
+    pub season_date: NaiveDateTime,
     /// 代码
     pub code: String,
     /// 简称
@@ -168,7 +168,7 @@ pub struct StockMargin {
     /// 简称
     pub name: String,
     /// 交易日期
-    pub trade_date: NaiveDate,
+    pub trade_date: NaiveDateTime,
     /// 收盘价(元)(SPJ)
     pub close: f32,
     /// 涨跌幅(%)(ZDF):
