@@ -47,7 +47,12 @@ class Stat:
         self.hit_max = hit_max
 
     def to_dict(self):
-        return dict(hit_chg_pct=self.hit_chg_pct,
+        hit_chg_pct = []
+        for chg_pct in self.hit_chg_pct:
+            chg_pct = round(chg_pct, 2)
+            hit_chg_pct.append(chg_pct)
+
+        return dict(hit_chg_pct=hit_chg_pct,
                     start=self.start,
                     end=self.end,
                     low=self.low,
@@ -110,8 +115,11 @@ class StrategyResult:
 
     def to_plain_dict(self):
         mark = self._to_dict_str(self.mark)
-        stat = self._to_dict_str(self.stat.to_dict())
-        return dict(code=self.code, name=self.name, mark=mark, stat=stat)
+        stat = self.stat.to_dict()
+        d = dict(code=self.code, name=self.name, mark=mark)
+        d.update(stat)
+
+        return d
 
 
 class CommonParam:
