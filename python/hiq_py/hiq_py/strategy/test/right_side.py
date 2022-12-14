@@ -22,19 +22,31 @@ class RightSide(BaseStrategy):
         super().__init__(strategy_type, loader, fetch, cmm_params, params)
 
         self.min_rise_days = 3
-        self.max_shadow_pct = 20.0
-        self.min_volume_chg_pct = -10.0
-        self.min_amount_chg_pct = -10.0
+        self.max_shadow_pct = 50.0
+        self.min_test_days = 30
 
     @staticmethod
     def help() -> str:
         return '  名称: 右侧策略(基于日线)\n' + \
-               '  说明: 选择右侧温和上涨的标的。\n' + \
-               '       \n' + \
+               '  说明: 选择右侧上涨的标的\n' + \
                '  参数: min_rise_days -- 最近最小连续上涨天数(默认: 3)\n' + \
-               '        max_shadow_pct -- 上下影线最大百分比(默认: 20.0)\n' + \
-               '        min_volume_chg_pct -- 最小成交量增加百分比(默认: -10.0)\n' + \
-               '        min_amount_chg_pct -- 最小成交额增加百分比(默认: -10.0)\n'
+               '        max_shadow_pct -- 上下影线最大百分比(默认: 50.0)\n' + \
+               '        min_test_days -- 最小成交量增加百分比(默认: 30)\n'
+
+    async def prepare(self) -> bool:
+        if self.params is not None:
+            try:
+                if 'min_rise_days' in self.params:
+                    self.min_rise_days = int(self.params['min_rise_days'])
+                if 'max_shadow_pct' in self.params:
+                    self.max_shadow_pct = float(self.params['max_shadow_pct'])
+                if 'min_test_days' in self.params:
+                    self.min_test_days = int(
+                        self.params['min_test_days'])
+            except ValueError:
+                self.logger.error('策略参数不合法')
+                return False
+        return True
 
     async def test(self, typ: StrategyType, code: str, name: str) -> Optional[StrategyResult]:
         self.logger.debug(
@@ -52,17 +64,15 @@ class RightSide(BaseStrategy):
         hit_days = 0
         hit, hit_max = 0, 0
         for (index, data) in enumerate(kdata):
-            chg_pct, volume_chg_pct, amount_chg_pct = data[
-                'chg_pct'], data['volume_chg_pct'], data['amount_chg_pct']
+            chg_pct = data['chg_pct']
             open, close, high, low = data['open'], data['close'], data['high'], data['low']
 
-            _, u_shadow, _, l_shadow = self.shadow(close*(1+chg_pct/100.0),
-                                                   open, close, low, high)
+            last_close = close/(1+chg_pct/100.0)
+            _, u_shadow, _, _ = self.shadow(last_close,
+                                            open, close, low, high)
             if chg_pct > 0 and \
-                    volume_chg_pct >= self.min_volume_chg_pct and \
-                    amount_chg_pct >= self.min_amount_chg_pct and \
-                    u_shadow <= self.max_shadow_pct and \
-                    l_shadow <= self.max_shadow_pct:
+                    low < last_close and \
+                    u_shadow <= self.max_shadow_pct:
                 hit_days = hit_days + 1
                 if hit_days == self.min_rise_days:
                     hit = index
@@ -73,12 +83,29 @@ class RightSide(BaseStrategy):
         if hit_days < self.min_rise_days:
             return None
 
+        test_data = kdata[self.min_rise_days:]
+        t_close = kdata[hit]['close']
+        t_days = 0
+        t_days_index = 0
+        for (index, data) in enumerate(test_data):
+            close = data['close']
+            if t_close > close:
+                t_days_index = index
+                t_days = t_days + 1
+                continue
+            break
+        if t_days < self.min_test_days:
+            return None
+        t_days_index = t_days_index + self.min_rise_days
+        
         stat = self.stat_result(kdata, hit, hit_max)
         mark = {}
         mark[kdata[hit]['trade_date'].date()] = json.dumps(
             kdata[hit], default=self.json_def_handler)
         mark[kdata[hit_max]['trade_date'].date()] = json.dumps(
             kdata[hit_max], default=self.json_def_handler)
+        mark[kdata[t_days_index]['trade_date'].date()] = json.dumps(
+            kdata[t_days_index], default=self.json_def_handler)
 
         return StrategyResult(code=code, name=name, mark=mark, stat=stat)
 

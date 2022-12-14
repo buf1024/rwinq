@@ -9,7 +9,7 @@ import pandas as pd
 class BaseStrategy(Strategy):
     def __init__(self, strategy_type: List[int] = [StrategyType.Stock], loader: Optional[HiqLoader] = None, fetch: Optional[HiqFetch] = None, cmm_params: Optional[CommonParam] = None, params: Optional[Dict] = None) -> None:
         super().__init__(loader, fetch, cmm_params, params)
-        
+
         self.strategy_type = strategy_type
         self.logger = logging.getLogger(self.__class__.__name__)
 

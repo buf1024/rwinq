@@ -126,9 +126,11 @@ impl Strategy for RightSide {
             let (chg_pct, volume_chg_pct, amount_chg_pct) =
                 (data.chg_pct, data.volume_chg_pct, data.amount_chg_pct);
             let (open, close, high, low) = (data.open, data.close, data.high, data.low);
+            let last_close = close / (1.0 + chg_pct / 100.0);
             let (_, u_shadow, _, l_shadow) =
-                shadow(close * (1.0 + chg_pct / 100.0), open, close, low, high);
+                shadow(last_close, open, close, low, high);
             if chg_pct > 0.0
+                && low < last_close
                 && volume_chg_pct >= self.min_volume_chg_pct
                 && amount_chg_pct >= self.min_amount_chg_pct
                 && u_shadow <= self.max_shadow_pct

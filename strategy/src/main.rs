@@ -294,6 +294,7 @@ fn build_cmm_params(params: &HashMap<String, String>) -> anyhow::Result<Option<C
         let days = days.unwrap();
         test_trade_days = Some(days);
     }
+
     if test_end_date.is_none() || test_trade_days.is_none() {
         return Ok(None);
     }

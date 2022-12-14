@@ -13,7 +13,7 @@ def _progress_callback(code: str, name: str, total: int, current: int, progress:
 
 
 class HiqRunner:
-    def __init__(self, typ: str, url: str, concurrent: int):
+    def __init__(self, typ: str, url: str, concurrent: int = 50):
         self.inner = Runner(typ=typ, url=url, concurrent=concurrent)
 
     @property
