@@ -67,3 +67,12 @@ target
 .vscode
 
 python/notebook
+
+flutter/hiq/linux
+flutter/hiq/windows
+flutter/hiq/web
+flutter/hiq/macos
+flutter/hiq/android
+flutter/hiq/ios
+flutter/hiq/build
+

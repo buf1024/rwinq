@@ -4,6 +4,9 @@ use pyo3::{exceptions::PyException, prelude::*};
 mod runner;
 mod types;
 
+mod ma;
+use ma::ta_ma;
+
 use runner::Runner;
 use types::Stat;
 
@@ -28,6 +31,7 @@ fn hiq_pystrategy(_py: Python, m: &PyModule) -> PyResult<()> {
     // logging.getLogger().setLevel(logging.INFO)
     // my_module.log_something()
     m.add_function(wrap_pyfunction!(stat_result, m)?)?;
+    m.add_function(wrap_pyfunction!(ta_ma, m)?)?;
     m.add_class::<Runner>()?;
     Ok(())
 }

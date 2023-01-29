@@ -11,6 +11,8 @@ pub use runner::*;
 mod mystrategy;
 pub use mystrategy::{get_strategy, strategies};
 
+pub mod ta;
+
 pub use hiq_data::*;
 
 #[derive(Error, Debug)]

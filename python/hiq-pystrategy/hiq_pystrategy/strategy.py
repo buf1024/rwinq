@@ -115,9 +115,10 @@ class StrategyResult:
 
     def to_plain_dict(self):
         mark = self._to_dict_str(self.mark)
-        stat = self.stat.to_dict()
         d = dict(code=self.code, name=self.name, mark=mark)
-        d.update(stat)
+        if self.stat is not None:
+            stat = self.stat.to_dict()
+            d.update(stat)
 
         return d
 

@@ -1,8 +1,10 @@
 from ast import Dict
 from types import FunctionType
-from typing import Optional
+from typing import List, Optional
 from hiq_pystrategy.strategy import Strategy, StrategyType
 
+def ta_ma(bar: List[float], ma_type: int) -> List[float]:
+    pass
 
 def stat_result(data: str, hit: int, hit_max: int) -> Dict:
     pass
