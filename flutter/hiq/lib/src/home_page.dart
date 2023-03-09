@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:hiq/src/app/constants.dart';
 import 'package:hiq/src/app/iconfont.dart';
+import 'package:hiq/src/app/nav.dart';
 import 'package:hiq/src/components/nav_bar.dart';
 import 'package:hiq/src/components/status_bar.dart';
 import 'package:hiq/src/components/title_bar.dart';
-import 'package:hiq/src/views/config_view.dart';
-import 'package:hiq/src/views/data_sync_view.dart';
-import 'package:hiq/src/views/favorite_view.dart';
-import 'package:hiq/src/views/strategy_view.dart';
+import 'package:hiq/src/lock_page.dart';
+import 'package:hiq/src/views/config.dart';
+import 'package:hiq/src/views/dashboard.dart';
+import 'package:hiq/src/views/data.dart';
+import 'package:hiq/src/views/favorite.dart';
+import 'package:hiq/src/views/research.dart';
+import 'package:hiq/src/views/strategy.dart';
+import 'package:hiq/src/views/trade.dart';
+import 'package:window_manager/window_manager.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,43 +22,42 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final PageController pageController = PageController();
   late NavItem actNavItem;
   Color navColor = Colors.red;
   double navContentWidth = 120;
 
   List<NavItem> topNavTabs = [
     NavItem(
+        type: NavType.dashboard,
+        pos: NavPos.top,
+        label: '主页',
+        iconData: IconFont.home),
+    NavItem(
         type: NavType.data,
         pos: NavPos.top,
-        tooltip: '数据',
+        label: '数据',
         iconData: IconFont.data),
     NavItem(
-        type: NavType.analyze,
+        type: NavType.research,
         pos: NavPos.top,
-        tooltip: '投研',
+        label: '投研',
         iconData: IconFont.python),
     NavItem(
         type: NavType.strategy,
         pos: NavPos.top,
-        tooltip: '策略',
-        iconData: IconFont.celve_yonghucelve),
+        label: '策略',
+        iconData: IconFont.strategy),
     NavItem(
         type: NavType.favorite,
         pos: NavPos.top,
-        tooltip: '自选',
+        label: '自选',
         iconData: IconFont.favorite),
     NavItem(
         type: NavType.trade,
         pos: NavPos.top,
-        tooltip: '交易',
-        iconData: IconFont.jiaoyiguanli),
-  ];
-  List<NavItem> bottomNavTabs = [
-    NavItem(
-        type: NavType.config,
-        pos: NavPos.bottom,
-        tooltip: '配置',
-        iconData: IconFont.config),
+        label: '交易',
+        iconData: IconFont.trade),
   ];
 
   @override
@@ -62,6 +66,11 @@ class _HomePageState extends State<HomePage> {
 
     actNavItem = topNavTabs[0];
   }
+  @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +78,19 @@ class _HomePageState extends State<HomePage> {
       // backgroundColor: backgroundColor,
       body: Column(
         children: [
-          const TitleBar(
-            child: Text('the title'),
+          TitleBar(
+            child: const Text('the title'),
+            onConfigCall: () async {
+              Size size = await windowManager.getSize();
+              onShowConfigDialog(size.width - 80.0, size.height - 80.0);
+            },
+            onLockCall: () => onLockScreen(),
           ),
           Expanded(
             child: _buildBody(context),
           ),
-          const StatusBar(
-            child: Text('status'),
+          StatusBar(
+            onStatusTap: (type) => onStatusTap(type),
           )
         ],
       ),
@@ -87,38 +101,139 @@ class _HomePageState extends State<HomePage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildNavBar(context),
+        NavBar(
+          topNavTabs: topNavTabs,
+          onTap: (value) => _onNavTabTap(value),
+          actType: actNavItem.type,
+        ),
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).dividerColor,
+        ),
         Expanded(child: _buildNavContent(context))
       ],
     );
   }
 
   Widget _buildNavContent(BuildContext context) {
-    switch(actNavItem.type) {
-      case NavType.data: return const DataSyncView();
-      case NavType.strategy: return const StrategyView();
-      case NavType.analyze: return Container(child: Text('analyze'),);
-      case NavType.quotation: return Container(child: Text('quotation'),);
-      case NavType.trade: return Container(child: Text('trade'),);
-      case NavType.favorite: return const FavoriteView();
-      case NavType.config: return const ConfigView();
-    }
-  }
-
-  Widget _buildNavBar(BuildContext context) {
-    return Container(
-      width: kNavBarWidth,
-      child: NavBar(
-          topNavTabs: topNavTabs,
-          bottomNavTabs: bottomNavTabs,
-          onTap: (value) => _onNavTabTap(value),
-          actType: actNavItem.type),
+    return PageView(
+      controller: pageController,
+      // onPageChanged: (index) {
+      //   var item = topNavTabs[index];
+      //   if (item.type != actNavItem.type) {
+      //     setState(() {
+      //       actNavItem = item;
+      //     });
+      //   }
+      // },
+      physics: const NeverScrollableScrollPhysics(),
+      children: const [
+        DashboardView(),
+        DataSyncView(),
+        ResearchView(),
+        StrategyView(),
+        FavoriteView(),
+        TradeView(),
+      ],
     );
   }
 
   void _onNavTabTap(NavItem item) {
-    setState(() {
-      actNavItem = item;
-    });
+    int index = topNavTabs.indexOf(item);
+    if (index >= 0) {
+      pageController.jumpToPage(index);
+      setState(() {
+        actNavItem = item;
+      });
+    }
+  }
+
+  void onStatusTap(NavType type) async {
+    int index = topNavTabs.indexWhere((item) => item.type == type);
+    if (index >= 0) {
+      pageController.jumpToPage(index);
+      setState(() {
+        actNavItem = topNavTabs[index];
+      });
+    } else {
+      if (type == NavType.notification) {
+        Size size = await windowManager.getSize();
+        onShowNotificationDialog(size.width - 80.0, size.height - 80.0);
+      }
+    }
+  }
+
+  void onLockScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const LockPage(),
+      ),
+    );
+  }
+
+  void onShowNotificationDialog(double width, double height) {
+    onShowConfigDialog(width, height);
+  }
+
+  void onShowConfigDialog(double width, double height) {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.blue.withOpacity(0.8),
+            elevation: 2.0,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    height: 32.0,
+                    decoration: const BoxDecoration(
+                      color: Colors.orangeAccent,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(10.0),
+                          topRight: Radius.circular(10.0)),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '系统参数配置',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const Expanded(child: ConfigView()),
+                  ButtonBar(
+                    children: <Widget>[
+                      MaterialButton(
+                        color: Colors.purple,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          '取消',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      MaterialButton(
+                        color: Colors.red,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          '确定',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        });
   }
 }

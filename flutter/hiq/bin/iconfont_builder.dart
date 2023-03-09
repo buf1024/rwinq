@@ -12,6 +12,7 @@ main(List<String> args) async {
   String fontName = results["font"];
   String input = results["input"];
   String output = results["output"];
+  print(input);
 
   String result = """import 'package:flutter/widgets.dart';
 //Auto Generated file. Do not edit.
@@ -66,5 +67,5 @@ flutter:
         - asset: assets/iconfont/iconfont.ttf
 """;
   // ignore: avoid_print
-  print("done!\ninput:$input\noutput:$output\nremember to add font config to pubspec.yaml, ex:\n$tips");
+  print("done!\ninput: $input\noutput: $output\nremember to add font config to pubspec.yaml, example:\n\n$tips");
 }

@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3836436 */
-  src: url('iconfont.woff2?t=1672323908955') format('woff2'),
-       url('iconfont.woff?t=1672323908955') format('woff'),
-       url('iconfont.ttf?t=1672323908955') format('truetype');
+  src: url('iconfont.woff2?t=1678340327221') format('woff2'),
+       url('iconfont.woff?t=1678340327221') format('woff'),
+       url('iconfont.ttf?t=1678340327221') format('truetype');
 }
 
 .iconfont {
@@ -13,15 +13,47 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-xuanzhongchi:before {
+.icon-systemMode:before {
+  content: "\e610";
+}
+
+.icon-lock:before {
+  content: "\e6ba";
+}
+
+.icon-home:before {
+  content: "\e633";
+}
+
+.icon-lightMode:before {
+  content: "\e632";
+}
+
+.icon-darkMode:before {
+  content: "\e666";
+}
+
+.icon-python:before {
+  content: "\e6fd";
+}
+
+.icon-search:before {
+  content: "\e60f";
+}
+
+.icon-favorite:before {
+  content: "\e62a";
+}
+
+.icon-strategy:before {
+  content: "\e851";
+}
+
+.icon-selected:before {
   content: "\e69a";
 }
 
-.icon-celve-yonghucelve:before {
-  content: "\e614";
-}
-
-.icon-Quotation:before {
+.icon-quotation:before {
   content: "\e65a";
 }
 
@@ -37,15 +69,7 @@
   content: "\e612";
 }
 
-.icon-favorite:before {
-  content: "\e628";
-}
-
-.icon-python:before {
-  content: "\ec66";
-}
-
-.icon-jiaoyiguanli:before {
+.icon-trade:before {
   content: "\e61d";
 }
 

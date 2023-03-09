@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hiq/src/app/app_theme_data.dart';
-import 'package:hiq/src/app/constants.dart';
 import 'package:hiq/src/blocs/app_config/app_config.dart';
 import 'package:hiq/src/blocs/config_form/config_form_bloc.dart';
 import 'package:hiq/src/home_page.dart';
@@ -12,7 +11,7 @@ void main() async {
   await windowManager.ensureInitialized();
 
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(kMinWindowWidth, kMinWindowWidth),
+    size: Size(900.0, 600.0),
     // minimumSize: Size(kMinWindowWidth, kMinWindowWidth),
     center: true,
     backgroundColor: Colors.transparent,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hiq/src/app/constants.dart';
+
+const kMinNavContentWidth = 60.0;
 
 class NavContent extends StatefulWidget {
   final Widget child;
@@ -11,7 +12,7 @@ class NavContent extends StatefulWidget {
 }
 
 class _NavContentState extends State<NavContent> {
-  double width = kNavContentWidth;
+  double width = 128.0;
   @override
   Widget build(BuildContext context) {
     return Row(

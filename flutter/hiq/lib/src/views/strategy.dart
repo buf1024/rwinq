@@ -18,7 +18,7 @@ class _StrategyViewState extends State<StrategyView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text('contet')
+      child: Text('策略页面')
     );
   }
 }
