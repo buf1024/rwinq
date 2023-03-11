@@ -7,7 +7,7 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> {
+class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     // TODO: implement initState
@@ -19,4 +19,7 @@ class _DashboardViewState extends State<DashboardView> {
       child: Text('dashboard')
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

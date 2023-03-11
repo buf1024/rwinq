@@ -8,7 +8,7 @@ class DataSyncView extends StatefulWidget {
 }
 
 class _DataSyncViewState extends State<DataSyncView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   List<String> items = ['股票', '场内基金', '可转债'];
   late TabController _tabController;
   @override
@@ -270,6 +270,9 @@ class _DataSyncViewState extends State<DataSyncView>
       ],
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class SyncCardWidget extends StatelessWidget {

@@ -7,9 +7,12 @@ class ResearchView extends StatefulWidget {
   State<ResearchView> createState() => _ResearchViewState();
 }
 
-class _ResearchViewState extends State<ResearchView> {
+class _ResearchViewState extends State<ResearchView> with AutomaticKeepAliveClientMixin{
   @override
   Widget build(BuildContext context) {
     return Container(child: Text('投研页面'));
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

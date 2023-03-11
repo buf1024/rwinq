@@ -7,7 +7,7 @@ class TradeView extends StatefulWidget {
   State<TradeView> createState() => _TradeViewState();
 }
 
-class _TradeViewState extends State<TradeView> {
+class _TradeViewState extends State<TradeView> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     // TODO: implement initState
@@ -19,4 +19,7 @@ class _TradeViewState extends State<TradeView> {
       child: Text('交易页面')
     );
   }
+  
+  @override
+  bool get wantKeepAlive => true;
 }

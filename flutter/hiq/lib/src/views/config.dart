@@ -368,8 +368,8 @@ class _ConfigViewState extends State<ConfigView> {
                 },
                 child: buttonText == null
                     ? const SizedBox(
-                        height: 15,
-                        width: 15,
+                        height: 15.0,
+                        width: 15.0,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           backgroundColor: Colors.white,

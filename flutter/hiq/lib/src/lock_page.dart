@@ -1,18 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:hiq/src/app/iconfont.dart';
-import 'package:hiq/src/app/nav.dart';
-import 'package:hiq/src/components/nav_bar.dart';
-import 'package:hiq/src/components/status_bar.dart';
-import 'package:hiq/src/components/title_bar.dart';
-import 'package:hiq/src/views/config.dart';
-import 'package:hiq/src/views/dashboard.dart';
-import 'package:hiq/src/views/data.dart';
-import 'package:hiq/src/views/favorite.dart';
-import 'package:hiq/src/views/research.dart';
-import 'package:hiq/src/views/strategy.dart';
-import 'package:hiq/src/views/trade.dart';
-import 'package:path/path.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:crypto/crypto.dart';
 
 class LockPage extends StatefulWidget {
   const LockPage({super.key});
@@ -22,10 +11,22 @@ class LockPage extends StatefulWidget {
 }
 
 class _LockPageState extends State<LockPage> {
+  final TextEditingController editingController = TextEditingController();
+  final FocusNode focusNode = FocusNode();
+  bool isVisible = false;
+  String md5pass = 'e10adc3949ba59abbe56e057f20f883e';
+  String errText = '';
   @override
   void initState() {
     super.initState();
+    focusNode.requestFocus();
+  }
 
+  @override
+  void dispose() {
+    super.dispose();
+    editingController.dispose();
+    focusNode.dispose();
   }
 
   @override
@@ -33,24 +34,122 @@ class _LockPageState extends State<LockPage> {
     return Scaffold(
       // backgroundColor: backgroundColor,
       body: Center(
-        child: Column(
+        child: Row(
           children: [
-            Spacer(),
-            const Text('you are lock'),
-            ElevatedButton(onPressed: () {
-              Navigator.of(context).pop();
-              
-            }, style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.withOpacity(0.8),
-              elevation: 2.0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0))
+            const Spacer(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 250,
+                      padding: const EdgeInsets.all(2.0),
+                      child: TextField(
+                        controller: editingController,
+                        focusNode: focusNode,
+                        autofocus: true,
+                        obscureText: !isVisible,
+                        autocorrect: false,
+                        obscuringCharacter: '*',
+                        cursorWidth: 1.0,
+                        cursorColor: Colors.grey.withOpacity(0.8),
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: errText.isEmpty
+                                      ? Colors.grey.withOpacity(0.8)
+                                      : Colors.red.withOpacity(0.8)),
+                              borderRadius: BorderRadius.circular(5)),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: errText.isEmpty
+                                      ? Colors.grey.withOpacity(0.8)
+                                      : Colors.red.withOpacity(0.8)),
+                              borderRadius: BorderRadius.circular(5)),
+                          suffixIcon: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 2.0, horizontal: 6.0),
+                            child: InkWell(
+                              radius: 0,
+                              hoverColor: Colors.black.withOpacity(0),
+                              onTap: () {
+                                setState(() {
+                                  isVisible = !isVisible;
+                                });
+                              },
+                              child: Icon(
+                                isVisible
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                size: 20,
+                                color: Colors.grey.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+                        ),
+                        onSubmitted: (text) {
+                          focusNode.requestFocus();
+                          onSubmitted();
+                        },
+                        onChanged: (_) => setState(() => errText = ''),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8.0,
+                    ),
+                    ElevatedButton(
+                        onPressed: () => onSubmitted(),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.withOpacity(0.8),
+                            elevation: 2.0,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5.0))),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 14.0),
+                          child: Text(
+                            '解锁',
+                            style:
+                                TextStyle(color: Colors.white.withOpacity(0.8)),
+                          ),
+                        ))
+                  ],
+                ),
+                const SizedBox(
+                  height: 8.0,
+                ),
+                errText.isEmpty
+                    ? const SizedBox(
+                        height: 50.0,
+                      )
+                    : SizedBox(
+                        height: 50.0,
+                        child: Text(
+                          errText,
+                          style: TextStyle(
+                              color: Colors.red.withOpacity(0.8),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15.0),
+                        ),
+                      ),
+              ],
             ),
-            child: const Text('pop'))
-            ,Spacer()
+            const Spacer(),
           ],
         ),
-      )
+      ),
     );
   }
 
+  void onSubmitted() {
+    String md5sum = md5.convert(utf8.encode(editingController.text)).toString();
+    if (md5sum != md5pass) {
+      setState(() {
+        errText = '你输入的密码是不正确滴，你可以无限次数重试！';
+      });
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
 }
