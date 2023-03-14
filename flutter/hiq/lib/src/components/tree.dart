@@ -9,6 +9,7 @@ class TreeWidget extends StatefulWidget {
   ValueChanged<TreeNode>? onSelected;
 
   final bool readOnly;
+  final bool keepEmpty;
 
   bool? filteredStar;
   String? filteredText;
@@ -20,6 +21,7 @@ class TreeWidget extends StatefulWidget {
       this.onStared,
       this.onSelected,
       required this.readOnly,
+      required this.keepEmpty,
       this.filteredStar,
       this.filteredText});
 
@@ -37,15 +39,65 @@ class _TreeWidgetState extends State<TreeWidget> {
   @override
   void initState() {
     super.initState();
-    root = widget.root;
+    root = TreeNode.from(widget.root);
+    _filteredTreeNode(root);
   }
 
   @override
   void didUpdateWidget(covariant TreeWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.root != widget.root) {
-      root = widget.root;
+
+    root = TreeNode.from(widget.root);
+    _filteredTreeNode(root);
+    // if (oldWidget.root != widget.root) {
+    //   root = TreeNode.from(widget.root);
+    //   _filteredTreeNode(root);
+    // }
+    // if (oldWidget.filteredText != widget.filteredText ||
+    //     oldWidget.filteredStar != widget.filteredStar) {
+    //   root = TreeNode.from(widget.root);
+    //   _filteredTreeNode(root);
+    // }
+  }
+
+  TreeNode? _filteredTreeNode(TreeNode node) {
+    if (node.isLeaf) {
+      if (widget.filteredStar != null &&
+          widget.filteredStar! &&
+          (node.star == null || !node.star!)) {
+        return node;
+      }
+      if (widget.filteredText != null &&
+          widget.filteredText!.isNotEmpty &&
+          !node.text.contains(widget.filteredText!)) {
+        return node;
+      }
+      return null;
     }
+    if (!node.isEmpty) {
+      List<TreeNode> rmNodes = [];
+      for (var childNode in node.children!) {
+        TreeNode? rmNode = _filteredTreeNode(childNode);
+        if (rmNode != null) {
+          rmNodes.add(rmNode);
+        }
+      }
+      for (var rmNode in rmNodes) {
+        node.children!.remove(rmNode);
+      }
+      if (widget.keepEmpty) {
+        return null;
+      }
+
+      if (node.children!.isNotEmpty) {
+        return null;
+      }
+    } else {
+      if (widget.keepEmpty) {
+        return null;
+      }
+    }
+    return node;
   }
 
   @override
@@ -67,12 +119,18 @@ class _TreeWidgetState extends State<TreeWidget> {
     setState(() {
       node.hover = true;
     });
+
+    TreeNode rNode = node.data! as TreeNode;
+    rNode.hover = node.hover;
   }
 
   void _onLeave(TreeNode node) {
     setState(() {
       node.hover = false;
     });
+
+    TreeNode rNode = node.data! as TreeNode;
+    rNode.hover = node.hover;
   }
 
   BoxDecoration? _boxDecoration(TreeNode node) {
@@ -104,7 +162,9 @@ class _TreeWidgetState extends State<TreeWidget> {
 
     setState(() {});
 
-    widget.onSelected?.call(node);
+    TreeNode rNode = selectedNode!.data! as TreeNode;
+    rNode.expand = node.expand;
+    widget.onSelected?.call(rNode);
   }
 
   void _onExpandAll(bool expand) {
@@ -115,6 +175,9 @@ class _TreeWidgetState extends State<TreeWidget> {
   void _expandAll(TreeNode node, bool expand) {
     if (!node.isLeaf) {
       node.expand = expand;
+      TreeNode rNode = node.data! as TreeNode;
+      rNode.expand = node.expand;
+
       if (!node.isEmpty) {
         for (var element in node.children!) {
           _expandAll(element, expand);
@@ -125,9 +188,15 @@ class _TreeWidgetState extends State<TreeWidget> {
 
   void _onDelete(TreeNode node) {
     if (node != root) {
-      _delete(root, node);
-      setState(() {});
-      widget.onDeleted?.call(node);
+      bool isDel = _delete(root, node);
+
+      if (isDel) {
+        setState(() {});
+
+        TreeNode rNode = node.data! as TreeNode;
+        rNode.star = node.star;
+        widget.onDeleted?.call(rNode);
+      }
     }
   }
 
@@ -156,7 +225,10 @@ class _TreeWidgetState extends State<TreeWidget> {
       }
       setState(() {});
 
-      widget.onStared?.call(node);
+      TreeNode rNode = node.data! as TreeNode;
+      rNode.star = node.star;
+
+      widget.onStared?.call(rNode);
     }
   }
 
@@ -282,18 +354,6 @@ class _TreeWidgetState extends State<TreeWidget> {
   }
 
   Widget _buildTreeNode(TreeNode node, int level) {
-    if (node.isLeaf) {
-      if (widget.filteredStar != null &&
-          widget.filteredStar! &&
-          (node.star == null || !node.star!)) {
-        return Container();
-      }
-      if (widget.filteredText != null &&
-          widget.filteredText!.isNotEmpty &&
-          !node.text.contains(widget.filteredText!)) {
-        return Container();
-      }
-    }
     return node.isLeaf || (!node.isLeaf && !node.isExpand)
         ? MouseRegion(
             onEnter: (event) => _onEnter(node),
@@ -482,19 +542,30 @@ class TreeNode extends Equatable {
       this.data,
       this.expand,
       this.selected,
-      this.hover}) {
+      this.hover,
+      this.star}) {
     expand ??= false;
     selected ??= false;
     hover ??= false;
     star ??= false;
   }
 
-  void addNode(TreeNode node) {
-    if (children == null) {
-      children = [node];
-    } else {
-      children!.add(node);
+  factory TreeNode.from(TreeNode node) {
+    TreeNode n = TreeNode(
+        text: node.text,
+        data: node,
+        expand: node.expand,
+        selected: node.selected,
+        hover: node.hover,
+        star: node.star);
+
+    if (node.children != null) {
+      n.children = [];
+      for (var child in node.children!) {
+        n.children!.add(TreeNode.from(child));
+      }
     }
+    return n;
   }
 
   bool get isLeaf => children == null;
@@ -509,5 +580,6 @@ class TreeNode extends Equatable {
   bool get isEmpty => children != null && children!.isEmpty;
 
   @override
-  List<Object?> get props => [text, data, children];
+  List<Object?> get props =>
+      [text, data, children, expand, selected, hover, star];
 }

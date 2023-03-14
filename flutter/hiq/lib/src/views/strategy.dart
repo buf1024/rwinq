@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hiq/src/components/nav_bar.dart';
 import 'package:hiq/src/components/tab_title.dart';
@@ -19,6 +20,7 @@ class _StrategyViewState extends State<StrategyView>
   bool isHideTree = false;
   bool isHideStar = true;
   bool isStSearchShow = false;
+  bool isRefreshing = false;
 
   List<String> tabTitle = [];
   List<Widget> tabWidget = [];
@@ -64,7 +66,6 @@ class _StrategyViewState extends State<StrategyView>
           _buildResizeDiv(dividerColor),
           Expanded(
             child: Column(
-
               children: [
                 _buildTabTitle(),
                 Divider(
@@ -128,33 +129,61 @@ class _StrategyViewState extends State<StrategyView>
                   child: Row(
                     children: [
                       Container(
-                          padding: const EdgeInsets.only(right: 4.0),
-                          child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isHideStar = !isHideStar;
-                                });
-                              },
-                              child: const Icon(
-                                Icons.star_outline,
-                                size: 18.0,
-                              ))),
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isHideStar = !isHideStar;
+                            });
+                          },
+                          child: const Icon(
+                            Icons.star_outline,
+                            size: 18.0,
+                          ),
+                        ),
+                      ),
                       Container(
-                          padding: const EdgeInsets.only(right: 4.0),
-                          child: GestureDetector(
-                              onTap: () {},
-                              child: const Icon(
-                                Icons.add_outlined,
-                                size: 18.0,
-                              ))),
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: const Icon(
+                            Icons.add_outlined,
+                            size: 18.0,
+                          ),
+                        ),
+                      ),
                       Container(
-                          padding: const EdgeInsets.only(right: 4.0),
-                          child: GestureDetector(
-                              onTap: () {},
-                              child: const Icon(
-                                Icons.remove_outlined,
-                                size: 18.0,
-                              ))),
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: const Icon(
+                            Icons.remove_outlined,
+                            size: 18.0,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: GestureDetector(
+                          onTap: () async {
+                            if (!isRefreshing) {
+                              setState(() {
+                                isRefreshing = true;
+                              });
+                              await Future.delayed(const Duration(seconds: 3));
+                              setState(() {
+                                isRefreshing = false;
+                              });
+                            }
+                          },
+                          child: isRefreshing
+                              ? const CupertinoActivityIndicator(
+                                  radius: 8,
+                                )
+                              : const Icon(Icons.refresh,
+                                  size: 18.0, color: Colors.grey),
+                        ),
+                      ),
                       const Spacer(),
                       Container(
                           padding: const EdgeInsets.only(right: 4.0),
@@ -204,7 +233,6 @@ class _StrategyViewState extends State<StrategyView>
                             setState(() {
                               stFilteredText = value;
                             });
-                            
                           },
                         ),
                       )
@@ -227,11 +255,10 @@ class _StrategyViewState extends State<StrategyView>
             child: TreeWidget(
           root: stTree,
           readOnly: false,
+          keepEmpty: stFilteredText.isEmpty,
           filteredText: stFilteredText,
           onStared: (node) {
-            setState(() {
-              
-            });
+            setState(() {});
           },
         )),
         isHideStar
@@ -257,6 +284,7 @@ class _StrategyViewState extends State<StrategyView>
                         child: TreeWidget(
                           root: stTree,
                           readOnly: true,
+                          keepEmpty: false,
                           filteredStar: true,
                         ),
                       )
@@ -290,8 +318,6 @@ class _StrategyViewState extends State<StrategyView>
       ),
     );
   }
-
-
 
   @override
   bool get wantKeepAlive => true;
