@@ -40,6 +40,7 @@ class _TreeWidgetState extends State<TreeWidget> {
   void initState() {
     super.initState();
     root = TreeNode.from(widget.root);
+    selectedNode = _selectedTreeNode(root);
     _filteredTreeNode(root);
   }
 
@@ -48,6 +49,7 @@ class _TreeWidgetState extends State<TreeWidget> {
     super.didUpdateWidget(oldWidget);
 
     root = TreeNode.from(widget.root);
+    selectedNode = _selectedTreeNode(root);
     _filteredTreeNode(root);
     // if (oldWidget.root != widget.root) {
     //   root = TreeNode.from(widget.root);
@@ -58,6 +60,21 @@ class _TreeWidgetState extends State<TreeWidget> {
     //   root = TreeNode.from(widget.root);
     //   _filteredTreeNode(root);
     // }
+  }
+
+  TreeNode? _selectedTreeNode(TreeNode node) {
+    if (node.selected != null && node.selected!) {
+      return node;
+    }
+    if (!node.isLeaf && !node.isEmpty) {
+      for (var childNode in node.children!) {
+        TreeNode? selectedNode = _selectedTreeNode(childNode);
+        if (selectedNode != null) {
+          return selectedNode;
+        }
+      }
+    }
+    return null;
   }
 
   TreeNode? _filteredTreeNode(TreeNode node) {
@@ -148,6 +165,9 @@ class _TreeWidgetState extends State<TreeWidget> {
   void _onSelected(TreeNode node, bool tryExpand) {
     if (selectedNode != null) {
       selectedNode!.selected = false;
+
+      TreeNode rNode = selectedNode!.data! as TreeNode;
+      rNode.selected = false;
     }
 
     selectedNode = node;
@@ -163,7 +183,8 @@ class _TreeWidgetState extends State<TreeWidget> {
     setState(() {});
 
     TreeNode rNode = selectedNode!.data! as TreeNode;
-    rNode.expand = node.expand;
+    rNode.expand = selectedNode!.expand;
+    rNode.selected = selectedNode!.selected;
     widget.onSelected?.call(rNode);
   }
 
@@ -529,6 +550,7 @@ class _TreeWidgetState extends State<TreeWidget> {
 class TreeNode extends Equatable {
   List<TreeNode>? children;
   final String text;
+  final String path;
   Object? data;
 
   bool? expand = false;
@@ -538,6 +560,7 @@ class TreeNode extends Equatable {
 
   TreeNode(
       {required this.text,
+      required this.path,
       this.children,
       this.data,
       this.expand,
@@ -553,6 +576,7 @@ class TreeNode extends Equatable {
   factory TreeNode.from(TreeNode node) {
     TreeNode n = TreeNode(
         text: node.text,
+        path: node.path,
         data: node,
         expand: node.expand,
         selected: node.selected,
@@ -579,7 +603,9 @@ class TreeNode extends Equatable {
 
   bool get isEmpty => children != null && children!.isEmpty;
 
+  String get key => path == '/' ? '$path$text' : '$path/$text';
+
   @override
   List<Object?> get props =>
-      [text, data, children, expand, selected, hover, star];
+      [text, path, data, children, expand, selected, hover, star];
 }

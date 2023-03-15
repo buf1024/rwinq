@@ -377,68 +377,69 @@ class _FavoriteViewState extends State<FavoriteView>
 
   Widget _table() {
     return Padding(
-        padding: const EdgeInsets.all(1),
-        child: DataTable2(
-          columnSpacing: 12,
-          horizontalMargin: 12,
-          dividerThickness:
-              1, // this one will be ignored if [border] is set above
-          bottomMargin: 10,
-          minWidth: 900,
-          sortColumnIndex: 4,
-          sortAscending: true,
-          sortArrowIcon: Icons.keyboard_arrow_up, // custom arrow
-          sortArrowAnimationDuration: const Duration(milliseconds: 500),
-          dataRowHeight: 20.0,
-          headingRowHeight: 30.0,
-          fixedLeftColumns: 1,
-          headingRowColor: MaterialStateProperty.resolveWith(
-              (states) => Colors.grey.withOpacity(0.8)),
-          columns: [
-            DataColumn2(
-                label: Container(
-              decoration: BoxDecoration(color: Colors.grey.withOpacity(0.8)),
-              child: const Text('id'),
-            )),
-            DataColumn2(label: Text('代码')),
-            DataColumn2(label: Text('名称'), fixedWidth: 50.0),
-            DataColumn2(label: Text('id')),
-            DataColumn2(label: Text('code')),
-            DataColumn2(label: Text('这个是名称')),
-            DataColumn2(label: Text('id')),
-            DataColumn2(label: Text('code')),
-            DataColumn2(label: Text('这个是名称')),
-            DataColumn2(label: Text('id')),
-            DataColumn2(label: Text('code')),
-            DataColumn2(label: Text('这个是名称')),
-          ],
-          rows: [
-            ...List.generate(100, (v) => v).map(
-              (e) {
-                return DataRow2(
-                  color: e.isEven
-                      ? MaterialStateProperty.all(
-                          Colors.lightBlue.withOpacity(0.8))
-                      : null,
-                  cells: [
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                    DataCell(Text('#$e 天神我才')),
-                  ],
-                );
-              },
-            ).toList()
-          ],
-        ));
+      padding: const EdgeInsets.all(1),
+      child: DataTable2(
+        columnSpacing: 12,
+        horizontalMargin: 12,
+        dividerThickness:
+            1, // this one will be ignored if [border] is set above
+        bottomMargin: 10,
+        minWidth: 900,
+        sortColumnIndex: 4,
+        sortAscending: true,
+        sortArrowIcon: Icons.keyboard_arrow_up, // custom arrow
+        sortArrowAnimationDuration: const Duration(milliseconds: 500),
+        dataRowHeight: 20.0,
+        headingRowHeight: 30.0,
+        fixedLeftColumns: 1,
+        headingRowColor: MaterialStateProperty.resolveWith(
+            (states) => Colors.grey.withOpacity(0.8)),
+        columns: [
+          DataColumn2(
+              label: Container(
+            decoration: BoxDecoration(color: Colors.grey.withOpacity(0.8)),
+            child: const Text('id'),
+          )),
+          DataColumn2(label: Text('代码')),
+          DataColumn2(label: Text('名称'), fixedWidth: 50.0),
+          DataColumn2(label: Text('id')),
+          DataColumn2(label: Text('code')),
+          DataColumn2(label: Text('这个是名称')),
+          DataColumn2(label: Text('id')),
+          DataColumn2(label: Text('code')),
+          DataColumn2(label: Text('这个是名称')),
+          DataColumn2(label: Text('id')),
+          DataColumn2(label: Text('code')),
+          DataColumn2(label: Text('这个是名称')),
+        ],
+        rows: [
+          ...List.generate(100, (v) => v).map(
+            (e) {
+              return DataRow2(
+                color: e.isEven
+                    ? MaterialStateProperty.all(
+                        Colors.lightBlue.withOpacity(0.8))
+                    : null,
+                cells: [
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                  DataCell(Text('#$e 天神我才')),
+                ],
+              );
+            },
+          ).toList()
+        ],
+      ),
+    );
   }
 
   @override
