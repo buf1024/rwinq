@@ -41,6 +41,15 @@ class _LockPageState extends State<LockPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Text.rich(
+                //   TextSpan(children: [TextSpan(text: '勇于承认错误才是生存下去第一要素！')]),
+                // ),
+                // Text.rich(
+                //   TextSpan(children: [TextSpan(text: '出现亏损时必须无情！')]),
+                // ),
+                const SizedBox(
+                  height: 5.0,
+                ),
                 Row(
                   children: [
                     Container(

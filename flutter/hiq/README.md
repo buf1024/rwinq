@@ -1,16 +1,7 @@
-# hiq
+# Trouble Shoot
 
-A new Flutter project.
+- Flutter widget只要不显示在界面上，就会销毁了，所以保存实例起来是没用的，都会销毁，状态不会保存下来。
 
-## Getting Started
+    如果要保存下来，需要用PageView之类的形式，并且widget要with AutomaticKeepAliveClientMixin这个Mixin。但这个Mixin只有用于类似PageView才有用。又或者使用IndexStack之类的组件。又或者使用状态管理。
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 由下至上传递状态用Notification，由上至下传递状态用InheritedWidget

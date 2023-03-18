@@ -10,7 +10,7 @@ import 'package:hiq/src/views/dashboard.dart';
 import 'package:hiq/src/views/data.dart';
 import 'package:hiq/src/views/favorite.dart';
 import 'package:hiq/src/views/research.dart';
-import 'package:hiq/src/views/strategy.dart';
+import 'package:hiq/src/views/strategy/strategy.dart';
 import 'package:hiq/src/views/trade.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -22,7 +22,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final PageController pageController = PageController();
+  final PageController pageController = PageController(keepPage: true);
   late NavItem actNavItem;
   Color navColor = Colors.red;
   double navContentWidth = 120;
@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           TitleBar(
-            child: const Text('the title'),
+            child: const Text('HiQ'),
             onConfigCall: () async {
               Size size = await windowManager.getSize();
               onShowConfigDialog(size.width - 80.0, size.height - 80.0);
@@ -119,14 +119,6 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNavContent(BuildContext context) {
     return PageView(
       controller: pageController,
-      // onPageChanged: (index) {
-      //   var item = topNavTabs[index];
-      //   if (item.type != actNavItem.type) {
-      //     setState(() {
-      //       actNavItem = item;
-      //     });
-      //   }
-      // },
       physics: const NeverScrollableScrollPhysics(),
       children: const [
         DashboardView(),
