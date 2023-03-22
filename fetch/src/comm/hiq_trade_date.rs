@@ -99,6 +99,30 @@ pub async fn fetch_prev_trade_date(date: &NaiveDate) -> Result<i32> {
     Err(Error::Custom("date is to old ...".to_string()))
 }
 
+/// 获取某日是否交易日
+pub async fn fetch_is_trade_date(date: &NaiveDate) -> Result<bool> {
+    let date_i32: i32 = date.format("%Y%m%d").to_string().parse().unwrap();
+    let (first, last) = {
+        let cache = CACHE_TRADE_DATE.read().unwrap();
+        let (min, max) = (cache.iter().next(), cache.iter().rev().next());
+        if min.is_some() && max.is_some() {
+            (*min.unwrap(), *max.unwrap())
+        } else {
+            (0, 0)
+        }
+    };
+    if (first == 0 || last == 0) || (date_i32 < first || date_i32 > last) {
+        fetch_trade_date().await?;
+    }
+
+    let cache = CACHE_TRADE_DATE.read().unwrap();
+    
+    if cache.contains(&date_i32) {
+        return Ok(true);
+    }
+    Ok(false)
+}
+
 const JS_CODE: &'static str = r###"
 function d(t) {
     var e, i, n, r, a, o, s, l = (arguments,
@@ -405,8 +429,30 @@ mod tests {
     use chrono::NaiveDate;
 
     use crate::comm::hiq_trade_date::{
-        fetch_next_trade_date, fetch_prev_trade_date, fetch_trade_date,
+        fetch_next_trade_date, fetch_prev_trade_date, fetch_trade_date,fetch_is_trade_date
     };
+
+    #[test]
+    fn test_fetch_is_trade_date() {
+        tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+
+            let date1 = NaiveDate::parse_from_str("20230322", "%Y%m%d").unwrap();
+
+            let data1 = fetch_is_trade_date(&date1).await;
+
+            let date2 = NaiveDate::parse_from_str("20230325", "%Y%m%d").unwrap();
+
+            let data2 = fetch_is_trade_date(&date2).await;
+
+            assert!(data2.is_ok());
+
+            println!("date1: {}, date2: {}", data1.unwrap(), data2.unwrap());
+        })
+    }
 
     #[test]
     fn test_fetch_trade_date() {

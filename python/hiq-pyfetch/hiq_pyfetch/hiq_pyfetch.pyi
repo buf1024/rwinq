@@ -20,6 +20,12 @@ async def fetch_prev_trade_date(d: date) -> int:
 def block_fetch_prev_trade_date(d: date) -> int:
     pass
 
+async def fetch_is_trade_date(d: date) -> bool:
+    pass
+
+def block_fetch_is_trade_date(d: date) -> bool:
+    pass
+
 
 def to_std_code(int, str) -> str:
     pass

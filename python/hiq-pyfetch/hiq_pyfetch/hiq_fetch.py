@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import List, Dict, Union, Optional, Set
 
-from hiq_pyfetch.hiq_pyfetch import BlockBondFetch, BlockFundFetch, BlockStockFetch, BondFetch, FundFetch, StockFetch, block_fetch_next_trade_date, block_fetch_prev_trade_date, fetch_next_trade_date, fetch_prev_trade_date, fetch_trade_date, block_fetch_trade_date
+from hiq_pyfetch.hiq_pyfetch import BlockBondFetch, BlockFundFetch, BlockStockFetch, BondFetch, FundFetch, StockFetch, block_fetch_next_trade_date, block_fetch_prev_trade_date, fetch_next_trade_date, fetch_is_trade_date, block_fetch_is_trade_date, fetch_prev_trade_date, fetch_trade_date, block_fetch_trade_date
 
 import pandas as pd
 
@@ -35,6 +35,10 @@ class HiqFetch:
     async def fetch_prev_trade_date(d) -> datetime:
         data = await fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
+    
+    @staticmethod
+    async def fetch_is_trade_date(d) -> bool:
+        return await fetch_is_trade_date(d)
 
     # bond
     async def fetch_bond_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
@@ -193,6 +197,10 @@ class MyBlockFetch:
     def fetch_prev_trade_date(d) -> date:
         data = block_fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
+    
+    @staticmethod
+    def fetch_is_trade_date(d) -> bool:
+        return block_fetch_is_trade_date(d)
 
     # bond
     def fetch_bond_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:

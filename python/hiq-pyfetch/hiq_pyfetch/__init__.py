@@ -25,6 +25,7 @@ hiq_fetch = HiqFetch()
 fetch_trade_date = hiq_fetch.fetch_trade_date
 fetch_next_trade_date = hiq_fetch.fetch_next_trade_date
 fetch_prev_trade_date = hiq_fetch.fetch_prev_trade_date
+fetch_is_trade_date = hiq_fetch.fetch_is_trade_date
 
 # bond
 fetch_bond_info = hiq_fetch.fetch_bond_info
@@ -56,6 +57,9 @@ fetch_stock_rt_quot = hiq_fetch.fetch_stock_rt_quot
 my_block_fetch = MyBlockFetch()
 
 block_fetch_trade_date = my_block_fetch.fetch_trade_date
+block_fetch_next_trade_date = my_block_fetch.fetch_next_trade_date
+block_fetch_prev_trade_date = my_block_fetch.fetch_prev_trade_date
+block_fetch_is_trade_date = my_block_fetch.fetch_is_trade_date
 
 # bond
 block_fetch_bond_info = my_block_fetch.fetch_bond_info
