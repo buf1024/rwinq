@@ -18,6 +18,7 @@ pub struct Bar {
     /// 简称
     pub name: String,
     /// 交易时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub trade_date: NaiveDateTime,
     /// 开盘价
     pub open: f32,

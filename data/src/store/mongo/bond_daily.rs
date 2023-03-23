@@ -39,6 +39,7 @@ impl<'a> AsyncFunc for BondDailyAsyncFunc<'a> {
                 self.freq,
                 self.start,
                 self.end,
+                true
             )
             .await?;
         let bar = data.bars;

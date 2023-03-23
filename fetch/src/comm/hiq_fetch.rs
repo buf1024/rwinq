@@ -43,6 +43,7 @@ pub(crate) async fn fetch_bar(
     freq: BarFreq,
     start: Option<NaiveDate>,
     end: Option<NaiveDate>,
+    skip_rt: bool,
 ) -> Result<Vec<Bar>> {
     let mut first_date: Option<i32> = None;
     let mut start_str = "0".to_owned();
@@ -53,18 +54,20 @@ pub(crate) async fn fetch_bar(
     }
 
     let mut n = Local::now().naive_local();
-    // 当日的不准
-    if n.hour() < 15 && matches!(freq, BarFreq::Daily) {
-        let mut minus_day = true;
-        if let Some(e) = end {
-            if n.date() > e {
-                minus_day = false;
-                let d_str = format!("{} 00:00:00", e.format("%Y%m%d"));
-                n = NaiveDateTime::parse_from_str(&d_str, "%Y%m%d %H:%M:%S").unwrap();
+    if skip_rt {
+        // 当日的不准
+        if n.hour() < 15 && matches!(freq, BarFreq::Daily) {
+            let mut minus_day = true;
+            if let Some(e) = end {
+                if n.date() > e {
+                    minus_day = false;
+                    let d_str = format!("{} 00:00:00", e.format("%Y%m%d"));
+                    n = NaiveDateTime::parse_from_str(&d_str, "%Y%m%d %H:%M:%S").unwrap();
+                }
             }
-        }
-        if minus_day {
-            n = n.add(Duration::days(-1))
+            if minus_day {
+                n = n.add(Duration::days(-1))
+            }
         }
     }
     let mut data = Vec::new();

@@ -80,8 +80,9 @@ impl StockFetch for HiqStockFetch {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockBar> {
-        self.fetch_stock_bar(code, name, freq, start, end).await
+        self.fetch_stock_bar(code, name, freq, start, end, skip_rt).await
     }
 
     /// 获取股票基本信息
@@ -238,6 +239,7 @@ impl StockFetch for HiqStockFetch {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockBar> {
         let market_code = if code.starts_with("sh") {
             // 上海市场
@@ -252,7 +254,7 @@ impl StockFetch for HiqStockFetch {
             freq.unwrap()
         };
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end).await?;
+        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
         let (stock_name, bars) = to_bar_ds(name, bars);
         let stock_bar = StockBar {
             code: code.to_owned(),
@@ -439,11 +441,12 @@ impl StockFetch for HiqStockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockIndustryBar> {
         let market_code = format!("90.{}", code);
         let freq = BarFreq::Daily;
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end).await?;
+        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
         let (stock_name, bars) = to_bar_ds(name, bars);
         let industry_bar = StockIndustryBar {
             code: code.to_owned(),
@@ -541,11 +544,12 @@ impl StockFetch for HiqStockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockConceptBar> {
         let market_code = format!("90.{}", code);
         let freq = BarFreq::Daily;
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end).await?;
+        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
         let (stock_name, bars) = to_bar_ds(name, bars);
         let industry_bar = StockConceptBar {
             code: code.to_owned(),
@@ -906,7 +910,7 @@ mod tests {
                 // let end = start.clone();
                 let fetch = HiqStockFetch::new();
                 let data = fetch
-                    .fetch_stock_bar("sz301200", None, None, Some(start), None)
+                    .fetch_stock_bar("sz301200", None, None, Some(start), None, false)
                     .await;
                 assert!(data.is_ok());
 
@@ -989,7 +993,7 @@ mod tests {
             .block_on(async {
                 let fetch = HiqStockFetch::new();
                 let data = fetch
-                    .fetch_stock_industry_daily("BK1044", None, None, None)
+                    .fetch_stock_industry_daily("BK1044", None, None, None, true)
                     .await;
                 assert!(data.is_ok());
                 let data = data.unwrap();
@@ -1052,7 +1056,7 @@ mod tests {
             .block_on(async {
                 let fetch = HiqStockFetch::new();
                 let data = fetch
-                    .fetch_stock_concept_daily("BK0969", None, None, None)
+                    .fetch_stock_concept_daily("BK0969", None, None, None, true)
                     .await;
                 assert!(data.is_ok());
                 let data = data.unwrap();

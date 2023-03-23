@@ -237,6 +237,7 @@ impl FundFetch for HiqFundFetch {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<FundBar> {
         let market_code = if code.starts_with("sz") {
             format!("{}.{}", Market::SZ as i32, &code[2..])
@@ -249,7 +250,7 @@ impl FundFetch for HiqFundFetch {
             freq.unwrap()
         };
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end).await?;
+        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
         let bond_bar = FundBar {
             code: code.to_owned(),
             name: name.unwrap_or("").to_owned(),
@@ -363,6 +364,7 @@ mod tests {
                         None,
                         Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
                         Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                        true,
                     )
                     .await;
                 if data.is_err() {

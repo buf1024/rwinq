@@ -18,6 +18,7 @@ pub struct BondInfo {
     /// 上市时间
     /// 1. 没上市的可转债不会返回
     /// 2. 上市时间大于当前交易日，仅代表已经确认上市时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub listing_date: NaiveDateTime,
     /// 是否已经退市 0, 1
     pub is_delist: u8,

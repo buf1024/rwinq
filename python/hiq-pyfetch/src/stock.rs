@@ -46,6 +46,7 @@ impl StockFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
@@ -58,7 +59,7 @@ impl StockFetch {
                 None
             };
             let bar: StockBar = fetch
-                .fetch_stock_bar(&code[..], name, fr, start, end)
+                .fetch_stock_bar(&code[..], name, fr, start, end, skip_rt)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into();
@@ -97,6 +98,7 @@ impl StockFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
@@ -109,7 +111,7 @@ impl StockFetch {
                 None
             };
             let bar: StockBar = fetch
-                .fetch_stock_bar(&code[..], name, fr, start, end)
+                .fetch_stock_bar(&code[..], name, fr, start, end, skip_rt)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into();
@@ -175,13 +177,14 @@ impl StockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
         let name = name.map(String::from);
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let bar: StockIndustryBar = fetch
-                .fetch_stock_industry_daily(&code[..], name.as_deref(), start, end)
+                .fetch_stock_industry_daily(&code[..], name.as_deref(), start, end, skip_rt)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into();
@@ -229,13 +232,14 @@ impl StockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
         let name = name.map(String::from);
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let bar: StockConceptBar = fetch
-                .fetch_stock_concept_daily(&code[..], name.as_deref(), start, end)
+                .fetch_stock_concept_daily(&code[..], name.as_deref(), start, end, skip_rt)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into();
@@ -322,6 +326,7 @@ impl BlockStockFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<StockBar> {
         let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {
             Some(v.into())
@@ -329,7 +334,10 @@ impl BlockStockFetch {
             None
         };
         Ok(runtime()?
-            .block_on(self.fetch.fetch_stock_bar(code, name, fr, start, end))
+            .block_on(
+                self.fetch
+                    .fetch_stock_bar(code, name, fr, start, end, skip_rt),
+            )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
     }
@@ -356,6 +364,7 @@ impl BlockStockFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<StockBar> {
         let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {
             Some(v.into())
@@ -363,7 +372,10 @@ impl BlockStockFetch {
             None
         };
         Ok(runtime()?
-            .block_on(self.fetch.fetch_stock_bar(code, name, fr, start, end))
+            .block_on(
+                self.fetch
+                    .fetch_stock_bar(code, name, fr, start, end, skip_rt),
+            )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
     }
@@ -406,11 +418,12 @@ impl BlockStockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<StockIndustryBar> {
         Ok(runtime()?
             .block_on(
                 self.fetch
-                    .fetch_stock_industry_daily(code, name, start, end),
+                    .fetch_stock_industry_daily(code, name, start, end, skip_rt),
             )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
@@ -444,9 +457,13 @@ impl BlockStockFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<StockConceptBar> {
         Ok(runtime()?
-            .block_on(self.fetch.fetch_stock_concept_daily(code, name, start, end))
+            .block_on(
+                self.fetch
+                    .fetch_stock_concept_daily(code, name, start, end, skip_rt),
+            )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
     }

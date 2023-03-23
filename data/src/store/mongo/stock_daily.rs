@@ -29,7 +29,14 @@ impl<'a> AsyncFunc for StockDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<HiqSyncData>> {
         let data = self
             .fetch
-            .fetch_stock_bar(self.code, Some(self.name), self.freq, self.start, self.end)
+            .fetch_stock_bar(
+                self.code,
+                Some(self.name),
+                self.freq,
+                self.start,
+                self.end,
+                true,
+            )
             .await?;
         let bar = data.bars;
         if bar.is_none() {

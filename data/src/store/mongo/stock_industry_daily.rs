@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
-use chrono::{ NaiveDate};
+use chrono::NaiveDate;
 use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, options::FindOptions, Client};
 use tokio::sync::mpsc;
@@ -31,7 +31,7 @@ impl<'a> AsyncFunc for StockIndustryDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<HiqSyncData>> {
         let data = self
             .fetch
-            .fetch_stock_industry_daily(self.code, Some(self.name), self.start, self.end)
+            .fetch_stock_industry_daily(self.code, Some(self.name), self.start, self.end, true)
             .await?;
         let bar = data.bars;
         if bar.is_none() {

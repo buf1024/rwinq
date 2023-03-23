@@ -30,6 +30,7 @@ pub trait BondFetch: Sync + Send {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<BondBar>
     {
         Err(Error::NotImpl("fetch_bond_bar".to_string()))

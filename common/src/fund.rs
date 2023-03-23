@@ -21,6 +21,7 @@ pub struct FundNet {
     /// 简称
     pub name: String,
     /// 净值日期
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub trade_date: NaiveDateTime,
     /// 净值
     pub net: f32,

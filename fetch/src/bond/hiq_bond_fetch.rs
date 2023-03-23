@@ -100,6 +100,7 @@ impl BondFetch for HiqBondFetch {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<BondBar> {
         let market_code = if code.starts_with("sz") {
             // 深圳市场
@@ -113,7 +114,7 @@ impl BondFetch for HiqBondFetch {
             freq.unwrap()
         };
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end).await?;
+        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
         let bond_bar = BondBar {
             code: code.to_owned(),
             name: name.to_owned(),
@@ -168,6 +169,7 @@ mod tests {
                         Some(BarFreq::Weekly),
                         None,
                         None,
+                        true
                     )
                     .await
                     .unwrap();

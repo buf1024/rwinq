@@ -34,6 +34,7 @@ pub trait FundFetch: Sync + Send {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<FundBar> {
         Err(Error::NotImpl("fetch_fund_bar".to_string()))
     }

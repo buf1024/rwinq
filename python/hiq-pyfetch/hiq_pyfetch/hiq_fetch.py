@@ -25,17 +25,17 @@ class HiqFetch:
             data = pd.DataFrame(data)
         data.columns = ['trade_date']
         return data
-    
+
     @staticmethod
     async def fetch_next_trade_date(d) -> datetime:
         data = await fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
-    
+
     @staticmethod
     async def fetch_prev_trade_date(d) -> datetime:
         data = await fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
-    
+
     @staticmethod
     async def fetch_is_trade_date(d) -> bool:
         return await fetch_is_trade_date(d)
@@ -49,10 +49,11 @@ class HiqFetch:
                              stock_code: str, stock_name: str,
                              freq: Optional[int] = None,
                              start: Optional[date] = None, end: Optional[date] = None,
-                             to_frame=True, ) -> Dict:
+                             skip_rt: bool = True,
+                             to_frame = True, ) -> Dict:
         data = await self.bond_fetch.fetch_bond_bar(code=code, name=name,
                                                     stock_code=stock_code, stock_name=stock_name,
-                                                    freq=freq, start=start, end=end)
+                                                    freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -71,9 +72,10 @@ class HiqFetch:
     async def fetch_fund_bar(self, *, code: str, name: Optional[str] = None,
                              freq: Optional[int] = None,
                              start: Optional[date] = None, end: Optional[date] = None,
+                             skip_rt: bool = True,
                              to_frame=True) -> Dict:
         data = await self.fund_fetch.fetch_fund_bar(code=code, name=name,
-                                                    freq=freq, start=start, end=end)
+                                                    freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -84,10 +86,11 @@ class HiqFetch:
 
     async def fetch_index_bar(self, code: str, name: Optional[str] = None,
                               freq: Optional[int] = None,
-                              start: Optional[date] = None, end: Optional[date] = None,
+                              start: Optional[date] = None, end: Optional[date] = None,skip_rt: bool = True,
                               to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_bar(code=code, name=name,
-                                                      freq=freq, start=start, end=end)
+                                                      freq=freq, start=start, end=end,
+                                                      skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -105,9 +108,11 @@ class HiqFetch:
     async def fetch_stock_bar(self, *, code: str, name: Optional[str] = None,
                               freq: Optional[int] = None,
                               start: Optional[date] = None, end: Optional[date] = None,
+                              skip_rt: bool = True,
                               to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_bar(code=code, name=name,
-                                                      freq=freq, start=start, end=end)
+                                                      freq=freq, start=start, end=end, 
+                                                      skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -129,10 +134,11 @@ class HiqFetch:
 
     async def fetch_stock_industry_daily(self, code: str, name: Optional[str] = None,
                                          start: Optional[date] = None, end: Optional[date] = None,
+                                         skip_rt: bool = True,
                                          to_frame=True) -> Union[Dict, pd.DataFrame]:
 
         data = await self.stock_fetch.fetch_stock_industry_daily(code=code, name=name,
-                                                                 start=start, end=end)
+                                                                 start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -147,9 +153,10 @@ class HiqFetch:
 
     async def fetch_stock_concept_daily(self, *, code: str, name: Optional[str] = None,
                                         start: Optional[date] = None, end: Optional[date] = None,
+                                        skip_rt: bool = True,
                                         to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_industry_daily(code=code, name=name,
-                                                                 start=start, end=end)
+                                                                 start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -187,17 +194,17 @@ class MyBlockFetch:
             data = pd.DataFrame(data)
         data.columns = ['trade_date']
         return data
-    
+
     @staticmethod
     def fetch_next_trade_date(d) -> date:
         data = block_fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
-    
+
     @staticmethod
     def fetch_prev_trade_date(d) -> date:
         data = block_fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
-    
+
     @staticmethod
     def fetch_is_trade_date(d) -> bool:
         return block_fetch_is_trade_date(d)
@@ -211,10 +218,11 @@ class MyBlockFetch:
                        stock_code: str, stock_name: str,
                        freq: Optional[int] = None,
                        start: Optional[date] = None, end: Optional[date] = None,
+                       skip_rt: bool = True,
                        to_frame=True, ) -> Dict:
         data = self.bond_fetch.fetch_bond_bar(code=code, name=name,
                                               stock_code=stock_code, stock_name=stock_name,
-                                              freq=freq, start=start, end=end)
+                                              freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -233,9 +241,10 @@ class MyBlockFetch:
     def fetch_fund_bar(self, *, code: str, name: Optional[str] = None,
                        freq: Optional[int] = None,
                        start: Optional[date] = None, end: Optional[date] = None,
+                       skip_rt: bool = True,
                        to_frame=True) -> Dict:
         data = self.fund_fetch.fetch_fund_bar(code=code, name=name,
-                                              freq=freq, start=start, end=end)
+                                              freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -247,9 +256,10 @@ class MyBlockFetch:
     def fetch_index_bar(self, code: str, name: Optional[str] = None,
                         freq: Optional[int] = None,
                         start: Optional[date] = None, end: Optional[date] = None,
+                        skip_rt: bool = True,
                         to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = self.stock_fetch.fetch_stock_bar(code=code, name=name,
-                                                freq=freq, start=start, end=end)
+                                                freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -267,9 +277,10 @@ class MyBlockFetch:
     def fetch_stock_bar(self, *, code: str, name: Optional[str] = None,
                         freq: Optional[int] = None,
                         start: Optional[date] = None, end: Optional[date] = None,
+                        skip_rt: bool = True,
                         to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = self.stock_fetch.fetch_stock_bar(code=code, name=name,
-                                                freq=freq, start=start, end=end)
+                                                freq=freq, start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -291,10 +302,11 @@ class MyBlockFetch:
 
     def fetch_stock_industry_daily(self, code: str, name: Optional[str] = None,
                                    start: Optional[date] = None, end: Optional[date] = None,
+                                   skip_rt: bool = True,
                                    to_frame=True) -> Union[Dict, pd.DataFrame]:
 
         data = self.stock_fetch.fetch_stock_industry_daily(code=code, name=name,
-                                                           start=start, end=end)
+                                                           start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
@@ -309,9 +321,10 @@ class MyBlockFetch:
 
     def fetch_stock_concept_daily(self, *, code: str, name: Optional[str] = None,
                                   start: Optional[date] = None, end: Optional[date] = None,
+                                  skip_rt: bool = True,
                                   to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = self.stock_fetch.fetch_stock_industry_daily(code=code, name=name,
-                                                           start=start, end=end)
+                                                           start=start, end=end, skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 

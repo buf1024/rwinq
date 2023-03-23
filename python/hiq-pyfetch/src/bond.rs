@@ -43,6 +43,7 @@ impl BondFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let code = code.to_owned();
         let name = name.to_owned();
@@ -66,6 +67,7 @@ impl BondFetch {
                     fr,
                     start,
                     end,
+                    skip_rt,
                 )
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
@@ -107,6 +109,7 @@ impl BlockBondFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<BondBar> {
         let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {
             Some(v.into())
@@ -116,7 +119,7 @@ impl BlockBondFetch {
         Ok(runtime()?
             .block_on(
                 self.fetch
-                    .fetch_bond_bar(code, name, stock_code, stock_name, fr, start, end),
+                    .fetch_bond_bar(code, name, stock_code, stock_name, fr, start, end, skip_rt),
             )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())

@@ -65,6 +65,7 @@ impl FundFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
@@ -77,7 +78,7 @@ impl FundFetch {
             };
             let name = name.as_deref();
             let bar: FundBar = fetch
-                .fetch_fund_bar(&code[..], name, fr, start, end)
+                .fetch_fund_bar(&code[..], name, fr, start, end, skip_rt)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into();
@@ -132,6 +133,7 @@ impl BlockFundFetch {
         freq: Option<i32>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> PyResult<FundBar> {
         let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {
             Some(v.into())
@@ -139,7 +141,10 @@ impl BlockFundFetch {
             None
         };
         Ok(runtime()?
-            .block_on(self.fetch.fetch_fund_bar(code, name, fr, start, end))
+            .block_on(
+                self.fetch
+                    .fetch_fund_bar(code, name, fr, start, end, skip_rt),
+            )
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
     }

@@ -26,6 +26,7 @@ pub trait StockFetch: Sync + Send {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockBar> {
         Err(Error::NotImpl("fetch_index_bar".to_string()))
     }
@@ -45,6 +46,7 @@ pub trait StockFetch: Sync + Send {
         freq: Option<BarFreq>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockBar> {
         Err(Error::NotImpl("fetch_stock_bar".to_string()))
     }
@@ -78,6 +80,7 @@ pub trait StockFetch: Sync + Send {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockIndustryBar> {
         Err(Error::NotImpl("fetch_stock_industry_daily".to_string()))
     }
@@ -103,6 +106,7 @@ pub trait StockFetch: Sync + Send {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
+        skip_rt: bool,
     ) -> Result<StockConceptBar> {
         Err(Error::NotImpl("fetch_stock_concept_daily".to_string()))
     }

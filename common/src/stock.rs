@@ -16,6 +16,7 @@ pub struct StockInfo {
     /// 是否融资融券标的
     pub is_margin: bool,
     /// 上市日期
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub listing_date: NaiveDateTime,
 }
 
@@ -40,6 +41,7 @@ pub struct StockIndex {
     /// 股票简称
     pub name: String,
     /// 市值日期
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub trade_date: NaiveDateTime,
     /// 股价
     pub price: f32,
@@ -131,6 +133,7 @@ pub struct StockYJBB {
     /// 季度，1~4
     pub season: u16,
     /// 季度时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub season_date: NaiveDateTime,
     /// 代码
     pub code: String,
@@ -168,6 +171,7 @@ pub struct StockMargin {
     /// 简称
     pub name: String,
     /// 交易日期
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub trade_date: NaiveDateTime,
     /// 收盘价(元)(SPJ)
     pub close: f32,
@@ -205,6 +209,7 @@ pub struct StockRtQuot {
     /// 代码
     pub code: String,
     /// 行情时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
     pub time: NaiveDateTime,
     /// 昨收价
     pub last_close: f32,

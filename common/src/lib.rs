@@ -13,3 +13,20 @@ pub use fund::*;
 
 pub mod stock;
 pub use stock::*;
+
+pub fn naive_dt_serialize<S>(ndt: &chrono::NaiveDateTime, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let dt = chrono::DateTime::<chrono::Utc>::from_utc(*ndt, chrono::Utc);
+
+    bson::serde_helpers::serialize_chrono_datetime_as_bson_datetime(&dt, s)
+}
+
+pub fn naive_dt_deserialize<'de, D>(deserializer: D) -> Result<chrono::NaiveDateTime, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let dt = bson::serde_helpers::deserialize_chrono_datetime_from_bson_datetime(deserializer)?;
+    Ok(dt.naive_local())
+}
