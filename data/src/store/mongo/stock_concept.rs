@@ -83,7 +83,7 @@ impl Syncer for StockConceptSyncer {
                 TAB_STOCK_CONCEPT,
                 len
             );
-            insert_many(self.client.clone(), TAB_STOCK_CONCEPT, &info, true).await?;
+            insert_many(self.client.clone(), TAB_STOCK_CONCEPT, &info, false).await?;
             log::info!(
                 "done save {}({}) {}, size={}",
                 elm.name.as_str(),
