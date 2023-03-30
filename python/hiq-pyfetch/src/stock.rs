@@ -103,6 +103,7 @@ impl StockFetch {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
         let name = name.map(String::from);
+    
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let name = name.as_deref();
             let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {

@@ -70,6 +70,7 @@ pub(crate) async fn fetch_bar(
             }
         }
     }
+
     let mut data = Vec::new();
     if let Some(s) = &start {
         if s > &n.date() {
@@ -172,15 +173,24 @@ pub(crate) async fn fetch_bar(
     }
     if let Some(first_date) = first_date {
         if data.len() > 0 {
-            let first = data.get(0).unwrap();
-            let (y, m, d) = (
-                first.trade_date.year(),
-                first.trade_date.month(),
-                first.trade_date.day(),
-            );
-            let date = y * 10000 + m as i32 * 100 + d as i32;
-            if first_date == date {
-                data = data.into_iter().skip(1).collect();
+            let mut skip = 0;
+            for i in 0..data.len() {
+                let first = data.get(i).unwrap();
+                let (y, m, d) = (
+                    first.trade_date.year(),
+                    first.trade_date.month(),
+                    first.trade_date.day(),
+                );
+                let date = y * 10000 + m as i32 * 100 + d as i32;
+                if first_date == date {
+                    //data = data.into_iter().skip(1).collect();
+                    skip = skip + 1;
+                } else {
+                    break;
+                }
+            }
+            if skip > 0 {
+                data = data.into_iter().skip(skip).collect();
             }
         }
     }
