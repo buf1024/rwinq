@@ -338,3 +338,28 @@ impl IntoPy<PyObject> for StockRtQuot {
         dict.into()
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StockHotRank {
+    pub(crate) inner: hiq_common::StockHotRank,
+}
+
+impl From<hiq_common::StockHotRank> for StockHotRank {
+    fn from(inner: hiq_common::StockHotRank) -> Self {
+        Self { inner }
+    }
+}
+
+impl IntoPy<PyObject> for StockHotRank {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        let dict = PyDict::new(py);
+        dict.set_item("code", self.inner.code).unwrap();
+        dict.set_item("market_all_count", self.inner.market_all_count)
+            .unwrap();
+        dict.set_item("rank", self.inner.rank).unwrap();
+        dict.set_item("rank_chang", self.inner.rank_chang).unwrap();
+        dict.set_item("calc_time", self.inner.calc_time).unwrap();
+
+        dict.into()
+    }
+}

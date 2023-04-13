@@ -264,6 +264,55 @@ pub(crate) struct EastStockMarginData<'a> {
     pub rz_rq_ye_cz: Option<f64>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockHotRankResult<'a> {
+    // #[serde(borrow)]
+    // #[serde(rename(deserialize = "globalId"))]
+    // pub global_id: &'a str,
+    // #[serde(borrow)]
+    // pub message: &'a str,
+    // pub status: i32,
+    // pub code: i32,
+    #[serde(borrow)]
+    pub data: EastStockHotRankData<'a>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockHotRankData<'a> {
+    // #[serde(borrow)]
+    // #[serde(rename(deserialize = "marketType"))]
+    // pub market_type: &'a str,
+
+    #[serde(rename(deserialize = "marketAllCount"))]
+    pub market_all_count: i32,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "calcTime"))]
+    pub calc_time: &'a str,
+
+    // #[serde(borrow)]
+    // #[serde(rename(deserialize = "innerCode"))]
+    // pub inner_code: &'a str,
+
+    // #[serde(borrow)]
+    // #[serde(rename(deserialize = "srcSecurityCode"))]
+    // pub src_security_code: &'a str,
+
+    pub rank: i32,
+
+    #[serde(rename(deserialize = "rankChange"))]
+    pub rank_change: i32,
+
+    // #[serde(rename(deserialize = "hisRankChange"))]
+    // pub his_rank_change: i32,
+
+    // #[serde(rename(deserialize = "hisRankChange_rank"))]
+    // pub his_rank_change_rank: i32,
+
+    // pub flag: i32,
+
+}
+
 /// stock_rt_quot
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct XuQiuStockRtQuot<'a> {

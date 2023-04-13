@@ -51,6 +51,7 @@ fetch_stock_concept_detail = hiq_fetch.fetch_stock_concept_detail
 fetch_stock_concept_daily = hiq_fetch.fetch_stock_concept_daily
 fetch_stock_yjbb = hiq_fetch.fetch_stock_yjbb
 fetch_stock_margin = hiq_fetch.fetch_stock_margin
+fetch_stock_hot_rank = hiq_fetch.fetch_stock_hot_rank
 fetch_stock_rt_quot = hiq_fetch.fetch_stock_rt_quot
 
 
@@ -85,4 +86,5 @@ block_fetch_stock_concept_detail = my_block_fetch.fetch_stock_concept_detail
 block_fetch_stock_concept_daily = my_block_fetch.fetch_stock_concept_daily
 block_fetch_stock_yjbb = my_block_fetch.fetch_stock_yjbb
 block_fetch_stock_margin = my_block_fetch.fetch_stock_margin
+block_fetch_stock_hot_rank = my_block_fetch.fetch_stock_hot_rank
 block_fetch_stock_rt_quot = my_block_fetch.fetch_stock_rt_quot

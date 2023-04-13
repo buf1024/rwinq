@@ -3,7 +3,7 @@ use crate::{
     StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot, StockYJBB,
 };
 use chrono::NaiveDate;
-use hiq_pycommon::runtime;
+use hiq_pycommon::{runtime, StockHotRank};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use std::{
@@ -103,7 +103,7 @@ impl StockFetch {
         let fetch = self.fetch.clone();
         let code = code.to_owned();
         let name = name.map(String::from);
-    
+
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let name = name.as_deref();
             let fr: Option<hiq_fetch::BarFreq> = if let Some(v) = freq {
@@ -278,6 +278,19 @@ impl StockFetch {
                 .into_iter()
                 .map(StockMargin::from)
                 .collect::<Vec<_>>())
+        })
+    }
+    /// 热股排名
+    fn fetch_stock_hot_rank<'a>(&self, py: Python<'a>, code: &str) -> PyResult<&'a PyAny> {
+        let fetch = self.fetch.clone();
+        let code = code.to_owned();
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let hot_rank: StockHotRank = fetch
+                .fetch_stock_hot_rank(&code[..])
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?
+                .into();
+            Ok(hot_rank)
         })
     }
     /// 实时行情
@@ -490,6 +503,13 @@ impl BlockStockFetch {
             .into_iter()
             .map(StockMargin::from)
             .collect())
+    }
+    /// 热股排名
+    fn fetch_stock_hot_rank(&self, code: &str) -> PyResult<StockHotRank> {
+        Ok(runtime()?
+            .block_on(self.fetch.fetch_stock_hot_rank(code))
+            .map_err(|e| PyException::new_err(e.to_string()))?
+            .into())
     }
     /// 实时行情
     fn fetch_stock_rt_quot(&self, code: Vec<&str>) -> PyResult<HashMap<String, StockRtQuot>> {

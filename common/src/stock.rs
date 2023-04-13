@@ -238,3 +238,19 @@ pub struct StockRtQuot {
     /// 是否交易
     pub is_trading: bool,
 }
+
+/// 热门股票基本信息
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StockHotRank {
+    /// 代码
+    pub code: String,
+    /// 股票总数
+    pub market_all_count: i32,
+    /// 当前排名
+    pub rank: i32,
+    /// 当前排名变更
+    pub rank_chang: i32,
+    /// 计算时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    pub calc_time: NaiveDateTime,
+}

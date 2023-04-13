@@ -168,6 +168,9 @@ class StockFetch:
 
     async def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
         pass
+    
+    async def fetch_stock_hot_rank(self, code: str) -> Dict:
+        pass
 
     async def fetch_stock_rt_quot(self, code: List[str]) -> Dict[str, Dict]:
         pass
@@ -228,6 +231,9 @@ class BlockStockFetch:
         pass
 
     def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
+        pass
+    
+    def fetch_stock_hot_rank(self, code: str) -> Dict:
         pass
 
     def fetch_stock_rt_quot(self, code: List[str]) -> Dict[str, Dict]:

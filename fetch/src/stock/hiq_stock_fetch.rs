@@ -9,7 +9,7 @@ use async_trait::async_trait;
 use calamine::{open_workbook_auto_from_rs, DataType, Reader};
 use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use hiq_common::{
-    BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockIndex,
+    BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockHotRank, StockIndex,
     StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot,
     StockYJBB,
 };
@@ -18,6 +18,8 @@ use reqwest::Client;
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::ops::Add;
+
+use super::hiq_stock_info::EastStockHotRankResult;
 
 pub struct HiqStockFetch {
     client: Client,
@@ -82,7 +84,8 @@ impl StockFetch for HiqStockFetch {
         end: Option<NaiveDate>,
         skip_rt: bool,
     ) -> Result<StockBar> {
-        self.fetch_stock_bar(code, name, freq, start, end, skip_rt).await
+        self.fetch_stock_bar(code, name, freq, start, end, skip_rt)
+            .await
     }
 
     /// 获取股票基本信息
@@ -827,6 +830,36 @@ impl StockFetch for HiqStockFetch {
 
         Ok(data.into_iter().collect())
     }
+
+    /// 股票排名
+    async fn fetch_stock_hot_rank(&self, code: &str) -> Result<StockHotRank> {
+        let req_url = "https://emappdata.eastmoney.com/stockrank/getCurrentLatest";
+
+        let mut map = HashMap::new();
+        map.insert("appId", "appId01");
+        map.insert("globalId", "786e4c21-70dc-435a-93bb-38");
+        map.insert("srcSecurityCode", code);
+
+        let resp = self
+            .client
+            .post(req_url)
+            .json(&map)
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        let json: EastStockHotRankResult = serde_json::from_str(&resp)?;
+        let data = json.data;
+
+        Ok(StockHotRank {
+            code: code.into(),
+            market_all_count: data.market_all_count,
+            rank: data.rank,
+            rank_chang: data.rank_change,
+            calc_time: NaiveDateTime::parse_from_str(data.calc_time, "%Y-%m-%d %H:%M:%S").unwrap(),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -1107,6 +1140,23 @@ mod tests {
                 data.iter().enumerate().for_each(|(i, item)| {
                     println!("data[{}]={:?}", i, item);
                 });
+            })
+    }
+
+    #[test]
+    fn test_fetch_stock_hot_rank() {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let fetch = HiqStockFetch::new();
+
+                let data = fetch.fetch_stock_hot_rank("sz300468").await;
+                assert!(data.is_ok());
+                let data = data.unwrap();
+
+                println!("data={:?}", data);
             })
     }
 

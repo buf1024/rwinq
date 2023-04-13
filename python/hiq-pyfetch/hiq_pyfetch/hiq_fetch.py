@@ -50,7 +50,7 @@ class HiqFetch:
                              freq: Optional[int] = None,
                              start: Optional[date] = None, end: Optional[date] = None,
                              skip_rt: bool = True,
-                             to_frame = True, ) -> Dict:
+                             to_frame=True, ) -> Dict:
         data = await self.bond_fetch.fetch_bond_bar(code=code, name=name,
                                                     stock_code=stock_code, stock_name=stock_name,
                                                     freq=freq, start=start, end=end, skip_rt=skip_rt)
@@ -86,7 +86,7 @@ class HiqFetch:
 
     async def fetch_index_bar(self, code: str, name: Optional[str] = None,
                               freq: Optional[int] = None,
-                              start: Optional[date] = None, end: Optional[date] = None,skip_rt: bool = True,
+                              start: Optional[date] = None, end: Optional[date] = None, skip_rt: bool = True,
                               to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_bar(code=code, name=name,
                                                       freq=freq, start=start, end=end,
@@ -111,7 +111,7 @@ class HiqFetch:
                               skip_rt: bool = True,
                               to_frame=True) -> Union[Dict, pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_bar(code=code, name=name,
-                                                      freq=freq, start=start, end=end, 
+                                                      freq=freq, start=start, end=end,
                                                       skip_rt=skip_rt)
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
@@ -169,6 +169,17 @@ class HiqFetch:
                                  to_frame=True) -> Union[List[Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,
                                   await self.stock_fetch.fetch_stock_margin(code, start, end))
+
+    async def fetch_stock_hot_rank(self, *, code: Union[str, list],
+                                   to_frame=True) -> Union[Dict, pd.DataFrame]:
+        codes = code
+        if type(code) == type(''):
+            codes = [code]
+        datas = []
+        for code in codes:
+            data = await self.stock_fetch.fetch_stock_hot_rank(code=code)
+            datas.append(data)
+        return self._to_dataframe(to_frame, data=datas)
 
     async def fetch_stock_rt_quot(self, *, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,
@@ -337,6 +348,17 @@ class MyBlockFetch:
                            to_frame=True) -> Union[List[Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,
                                   self.stock_fetch.fetch_stock_margin(code, start, end))
+
+    def fetch_stock_hot_rank(self, *, code: Union[str, list],
+                             to_frame=True) -> Union[Dict, pd.DataFrame]:
+        codes = code
+        if type(code) == type(''):
+            codes = [code]
+        datas = []
+        for code in codes:
+            data = self.stock_fetch.fetch_stock_hot_rank(code=code)
+            datas.append(data)
+        return self._to_dataframe(to_frame, data=datas)
 
     def fetch_stock_rt_quot(self, *, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,

@@ -128,4 +128,8 @@ pub trait StockFetch: Sync + Send {
     async fn fetch_stock_rt_quot(&self, code: Vec<&str>) -> Result<HashMap<String, StockRtQuot>> {
         Err(Error::NotImpl("fetch_stock_rt_quot".to_string()))
     }
+    /// 股票排名
+    async fn fetch_stock_hot_rank(&self, code: &str) -> Result<StockHotRank> {
+        Err(Error::NotImpl("fetch_stock_hot_rank".to_string()))
+    }
 }
