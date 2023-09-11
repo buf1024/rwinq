@@ -9,8 +9,8 @@ version = "0.1.0"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-async-trait = "0.1.58"
-bson = "2.4.0"
-libc = "0.2.138"
+async-trait = "0.1.73"
+bson = "2.7.0"
+libc = "0.2.147"
 
-hiq_strategy = {path = "../../../strategy"}
+rwqstrategy = { path = "../../../strategy" }

@@ -2,21 +2,21 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::{BarFreq, StockFetch};
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::{BarFreq, StockFetch};
 use tokio::sync::mpsc;
 
 use crate::{
-    store::{mongo::service::query_one, HiqCache, DATA_DEF_START_DATE, TAB_INDEX_DAILY},
+    store::{mongo::service::query_one, Cache, DATA_DEF_START_DATE, TAB_INDEX_DAILY},
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use super::service::insert_many;
 
 struct IndexDailyAsyncFunc<'a> {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     freq: Option<BarFreq>,
@@ -26,7 +26,7 @@ struct IndexDailyAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for IndexDailyAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_index_bar(
@@ -42,19 +42,19 @@ impl<'a> AsyncFunc for IndexDailyAsyncFunc<'a> {
         if bar.is_none() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::IndexBar(bar.unwrap())))
+            Ok(Some(SyncData::IndexBar(bar.unwrap())))
         }
     }
 }
 
 pub(crate) struct IndexDailySyncer {
-    fetch: Arc<dyn StockFetch>,
-    cache: Arc<RwLock<HiqCache>>,
+    fetch: Arc<StockFetch>,
+    cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl IndexDailySyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -65,7 +65,7 @@ impl IndexDailySyncer {
 
 #[async_trait]
 impl Syncer for IndexDailySyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         let data = {
             let mut data = Vec::new();
             let cache_info = self.cache.read().unwrap();
@@ -83,7 +83,7 @@ impl Syncer for IndexDailySyncer {
                 info.code.as_str(),
                 TAB_INDEX_DAILY
             );
-            let bar: Option<hiq_fetch::Bar> = query_one(
+            let bar: Option<rwqfetch::Bar> = query_one(
                 self.client.clone(),
                 TAB_INDEX_DAILY,
                 doc! {"code": info.code.as_str()},
@@ -145,8 +145,8 @@ impl Syncer for IndexDailySyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::IndexBar(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::IndexBar(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

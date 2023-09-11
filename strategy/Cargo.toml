@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "hiq_strategy"
+name = "rwqstrategy"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,18 +8,18 @@ version = "0.1.0"
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-anyhow = "1.0.66"
-argh = "0.1.9"
-async-trait = "0.1.58"
-bson = {version = "2.4.0", features = ["chrono-0_4", "serde_with"]}
-chrono = {version = "0.4.23", features = ["serde"]}
-fern = "0.6.1"
+anyhow = "1.0.75"
+argh = "0.1.12"
+async-trait = "0.1.73"
+bson = { version = "2.7.0", features = ["chrono-0_4", "serde_with"] }
+chrono = { version = "0.4.28", features = ["serde"] }
+fern = "0.6.2"
 futures = "0.3"
-log = "0.4.17"
-thiserror = "1.0.37"
-tokio = {version = "1.21.2", features = ["full"]}
-libloading = "0.7.4"
-libc = "0.2.138"
-serde = {version = "1.0.147", features = ["derive"]}
-serde_json = "1.0.89"
-hiq_data = {path = "../data"}
+log = "0.4.20"
+thiserror = "1.0.47"
+tokio = { version = "1.32.0", features = ["full"] }
+libloading = "0.8.0"
+libc = "0.2.147"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.105"
+rwqdata = { path = "../data" }

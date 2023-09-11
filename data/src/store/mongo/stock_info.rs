@@ -5,21 +5,21 @@ use mongodb::Client;
 use tokio::sync::mpsc;
 
 use crate::{
-    store::{HiqCache, TAB_STOCK_INFO},
+    store::{Cache, TAB_STOCK_INFO},
     syncer::{retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use super::service::insert_many;
 
 struct StockInfoAsyncFunc {
-    cache: Arc<RwLock<HiqCache>>,
+    cache: Arc<RwLock<Cache>>,
 }
 
 #[async_trait]
 impl AsyncFunc for StockInfoAsyncFunc {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = {
             let mut data = Vec::new();
             let cache_info = self.cache.read().unwrap();
@@ -30,24 +30,24 @@ impl AsyncFunc for StockInfoAsyncFunc {
             }
             data
         };
-        Ok(Some(HiqSyncData::StockInfo(data)))
+        Ok(Some(SyncData::StockInfo(data)))
     }
 }
 
 pub(crate) struct StockInfoSyncer {
-    cache: Arc<RwLock<HiqCache>>,
+    cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl StockInfoSyncer {
-    pub fn new(client: Client, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
         Self { client, cache }
     }
 }
 
 #[async_trait]
 impl Syncer for StockInfoSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         let func = StockInfoAsyncFunc {
             cache: self.cache.clone(),
         };
@@ -60,8 +60,8 @@ impl Syncer for StockInfoSyncer {
         }
         Ok(())
     }
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockInfo(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockInfo(info) = data {
             let elm = info.get(0).unwrap();
             let len = info.len();
             log::info!(

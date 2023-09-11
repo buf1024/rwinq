@@ -18,10 +18,10 @@ impl Store for MysqlStore {
     async fn init(&self) -> Result<()> {
         todo!()
     }
-    fn syncer_types(&self) -> Result<Vec<HiqSyncDataType>> {
+    fn syncer_types(&self) -> Result<Vec<SyncDataType>> {
         todo!()
     }
-    fn syncer(&self, typ: &HiqSyncDataType) -> Result<Arc<Box<dyn Syncer>>> {
+    fn syncer(&self, typ: &SyncDataType) -> Result<Arc<Box<dyn Syncer>>> {
         todo!()
     }
 } */

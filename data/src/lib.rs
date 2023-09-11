@@ -23,7 +23,7 @@ pub enum Error {
     NotImpl(String),
     /// 获取远程数据错误
     #[error("Fetch error")]
-    FetchError(#[from] hiq_fetch::Error),
+    FetchError(#[from] rwqfetch::Error),
     /// 获取远程数据超时
     #[error("{0}")]
     FetchTimeout(String),
@@ -39,7 +39,7 @@ pub enum Error {
 /// 模块定义结果状态
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub use sync::HiqSync;
+pub use sync::Sync;
 pub use types::*;
 
-pub use hiq_fetch::*;
+pub use rwqfetch::*;

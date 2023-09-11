@@ -2,22 +2,22 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
     store::{
         mongo::service::{insert_many, query, query_one},
-        HiqCache, DATA_DEF_START_DATE, TAB_STOCK_CONCEPT, TAB_STOCK_CONCEPT_DAILY,
+        Cache, DATA_DEF_START_DATE, TAB_STOCK_CONCEPT, TAB_STOCK_CONCEPT_DAILY,
     },
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 struct StockConceptDailyAsyncFunc<'a> {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -26,7 +26,7 @@ struct StockConceptDailyAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for StockConceptDailyAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_stock_concept_daily(self.code, Some(self.name), self.start, self.end, true)
@@ -35,19 +35,19 @@ impl<'a> AsyncFunc for StockConceptDailyAsyncFunc<'a> {
         if bar.is_none() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::StockConceptBar(bar.unwrap())))
+            Ok(Some(SyncData::StockConceptBar(bar.unwrap())))
         }
     }
 }
 
 pub(crate) struct StockConceptDailySyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
-    cache: Arc<RwLock<HiqCache>>,
+    cache: Arc<RwLock<Cache>>,
 }
 
 impl StockConceptDailySyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -58,8 +58,8 @@ impl StockConceptDailySyncer {
 
 #[async_trait]
 impl Syncer for StockConceptDailySyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
-        let mut concept: Vec<hiq_fetch::StockConcept> =
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
+        let mut concept: Vec<rwqfetch::StockConcept> =
             query(self.client.clone(), TAB_STOCK_CONCEPT, doc! {}, None).await?;
         if concept.is_empty() {
             concept = self.fetch.fetch_stock_concept().await?;
@@ -72,7 +72,7 @@ impl Syncer for StockConceptDailySyncer {
                 info.code.as_str(),
                 TAB_STOCK_CONCEPT_DAILY
             );
-            let bar: Option<hiq_fetch::Bar> = query_one(
+            let bar: Option<rwqfetch::Bar> = query_one(
                 self.client.clone(),
                 TAB_STOCK_CONCEPT_DAILY,
                 doc! {"code": info.code.as_str()},
@@ -133,8 +133,8 @@ impl Syncer for StockConceptDailySyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockConceptBar(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockConceptBar(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

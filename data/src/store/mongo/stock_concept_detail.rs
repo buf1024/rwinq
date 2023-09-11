@@ -1,52 +1,52 @@
 use std::{collections::HashSet, sync::Arc};
 
 use async_trait::async_trait;
-use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, Client};
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
     store::mongo::service::{insert_many, query},
     syncer::{retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use crate::store::{TAB_STOCK_CONCEPT, TAB_STOCK_CONCEPT_DETAIL};
 
 struct StockConceptDetailAsyncFunc<'a> {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
 }
 
 #[async_trait]
 impl<'a> AsyncFunc for StockConceptDetailAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_stock_concept_detail(Some(self.code), Some(self.name))
             .await?;
 
-        Ok(Some(HiqSyncData::StockConceptDetail(data)))
+        Ok(Some(SyncData::StockConceptDetail(data)))
     }
 }
 
 pub(crate) struct StockConceptDetailSyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockConceptDetailSyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
         Self { client, fetch }
     }
 }
 
 #[async_trait]
 impl Syncer for StockConceptDetailSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
-        let mut concept: Vec<hiq_fetch::StockConcept> =
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
+        let mut concept: Vec<rwqfetch::StockConcept> =
             query(self.client.clone(), TAB_STOCK_CONCEPT, doc! {}, None).await?;
         if concept.is_empty() {
             concept = self.fetch.fetch_stock_concept().await?;
@@ -67,8 +67,8 @@ impl Syncer for StockConceptDetailSyncer {
             let code = info.code.as_str();
             let data = retry(func).await?;
             if let Some(data) = data {
-                if let HiqSyncData::StockConceptDetail(info) = data {
-                    let db_data: Vec<hiq_fetch::StockConceptDetail> = query(
+                if let SyncData::StockConceptDetail(info) = data {
+                    let db_data: Vec<rwqfetch::StockConceptDetail> = query(
                         self.client.clone(),
                         TAB_STOCK_CONCEPT_DETAIL,
                         doc! {"code": code},
@@ -87,11 +87,10 @@ impl Syncer for StockConceptDetailSyncer {
                     };
 
                     if data.len() > 0 {
-                        tx.send(HiqSyncData::StockConceptDetail(data))
-                            .map_err(|e| {
-                                log::error!("send data error {:?}", e);
-                                Error::Custom(format!("send data error {:?}", e))
-                            })?;
+                        tx.send(SyncData::StockConceptDetail(data)).map_err(|e| {
+                            log::error!("send data error {:?}", e);
+                            Error::Custom(format!("send data error {:?}", e))
+                        })?;
                     }
                 }
             }
@@ -106,8 +105,8 @@ impl Syncer for StockConceptDetailSyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockConceptDetail(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockConceptDetail(info) = data {
             let elm = info.get(0).unwrap();
             let len = info.len();
             log::info!(

@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use bson::doc;
-use hiq_data::store::Loader;
+use rwqdata::store::Loader;
 
 use crate::{
     stat_result, strategy_to_data_type, Error, Result, Strategy, StrategyResult, StrategyType,

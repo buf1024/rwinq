@@ -2,21 +2,21 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::{BarFreq, BondFetch};
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::{BarFreq, BondFetch};
 use tokio::sync::mpsc;
 
 use crate::{
-    store::{mongo::service::query_one, HiqCache, DATA_DEF_START_DATE, TAB_BOND_DAILY},
+    store::{mongo::service::query_one, Cache, DATA_DEF_START_DATE, TAB_BOND_DAILY},
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use super::service::insert_many;
 
 struct BondDailyAsyncFunc<'a> {
-    fetch: Arc<dyn BondFetch>,
+    fetch: Arc<BondFetch>,
     code: &'a str,
     name: &'a str,
     stock_code: &'a str,
@@ -28,7 +28,7 @@ struct BondDailyAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for BondDailyAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_bond_bar(
@@ -39,26 +39,26 @@ impl<'a> AsyncFunc for BondDailyAsyncFunc<'a> {
                 self.freq,
                 self.start,
                 self.end,
-                true
+                true,
             )
             .await?;
         let bar = data.bars;
         if bar.is_none() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::BondBar(bar.unwrap())))
+            Ok(Some(SyncData::BondBar(bar.unwrap())))
         }
     }
 }
 
 pub(crate) struct BondDailySyncer {
-    fetch: Arc<dyn BondFetch>,
-    cache: Arc<RwLock<HiqCache>>,
+    fetch: Arc<BondFetch>,
+    cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl BondDailySyncer {
-    pub fn new(client: Client, fetch: Arc<dyn BondFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<BondFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -69,7 +69,7 @@ impl BondDailySyncer {
 
 #[async_trait]
 impl Syncer for BondDailySyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         let data = {
             let mut data = Vec::new();
             let cache_info = self.cache.read().unwrap();
@@ -87,7 +87,7 @@ impl Syncer for BondDailySyncer {
                 info.code.as_str(),
                 TAB_BOND_DAILY
             );
-            let bar: Option<hiq_fetch::Bar> = query_one(
+            let bar: Option<rwqfetch::Bar> = query_one(
                 self.client.clone(),
                 TAB_BOND_DAILY,
                 doc! {"code": info.code.as_str()},
@@ -151,8 +151,8 @@ impl Syncer for BondDailySyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::BondBar(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::BondBar(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

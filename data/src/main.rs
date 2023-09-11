@@ -1,13 +1,13 @@
 use anyhow::Context;
 use argh::FromArgs;
-use hiq_data::{HiqSync, HiqSyncDataType, HiqSyncDest};
+use rwqdata::{Sync, SyncDataType, SyncDest};
 use std::str::FromStr;
 
 use tokio::{signal, sync::broadcast};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let s: HiqDataSync = argh::from_env();
+    let s: DataSync = argh::from_env();
     if s.version {
         println!("{}", env!("CARGO_PKG_VERSION"));
         return Ok(());
@@ -21,8 +21,8 @@ async fn main() -> anyhow::Result<()> {
     log::info!("logger is ready");
     if let Some(cmd) = s.cmd {
         let res = match cmd {
-            HiqDataSubCommandEnum::Sync(x) => sync_cmd(x).await,
-            HiqDataSubCommandEnum::Build(x) => build_index(x).await,
+            DataSubCommandEnum::Sync(x) => sync_cmd(x).await,
+            DataSubCommandEnum::Build(x) => build_index(x).await,
         };
         if res.is_err() {
             log::error!("run cmd error: {:?}", res);
@@ -66,11 +66,11 @@ async fn build_index(cmd: BuildIndexCommand) -> anyhow::Result<()> {
             return Err(anyhow::anyhow!("invalid dest format"));
         }
         let (source, url) = (*s.get(0).unwrap(), *s.get(1).unwrap());
-        let di = HiqSyncDest::try_from((source.to_string(), url.to_string()))
-            .with_context(|| format!("failed to convert to HiqSyncDest, ({}, {})", source, url))?;
+        let di = SyncDest::try_from((source.to_string(), url.to_string()))
+            .with_context(|| format!("failed to convert to SyncDest, ({}, {})", source, url))?;
 
         let funcs = None;
-        let (_, s) = hiq_data::store::get_store(&di, true, 0, &funcs, false)
+        let (_, s) = rwqdata::store::get_store(&di, true, 0, &funcs, false)
             .await
             .with_context(|| format!("failed to get store"))?;
 
@@ -91,20 +91,20 @@ async fn sync_cmd(cmd: SyncCommand) -> anyhow::Result<()> {
             return Err(anyhow::anyhow!("invalid dest format"));
         }
         let (source, url) = (*s.get(0).unwrap(), *s.get(1).unwrap());
-        let di = HiqSyncDest::try_from((source.to_string(), url.to_string()))
-            .with_context(|| format!("failed to convert to HiqSyncDest, ({}, {})", source, url))?;
+        let di = SyncDest::try_from((source.to_string(), url.to_string()))
+            .with_context(|| format!("failed to convert to SyncDest, ({}, {})", source, url))?;
         dest.push(di);
     }
     let mut funcs = Vec::new();
 
     for e in cmd.funcs.into_iter() {
-        let dt = HiqSyncDataType::try_from(e.as_str())
-            .with_context(|| format!("failed to convert to HiqSyncDest, {}", e))?;
+        let dt = SyncDataType::try_from(e.as_str())
+            .with_context(|| format!("failed to convert to SyncDest, {}", e))?;
         funcs.push(dt)
     }
     let funcs = if funcs.len() > 0 { Some(funcs) } else { None };
     let (shutdown_tx, _) = broadcast::channel(1);
-    let mut s = HiqSync::new(dest, shutdown_tx.subscribe(), funcs);
+    let mut s = Sync::new(dest, shutdown_tx.subscribe(), funcs);
     tokio::select! {
         res = s.sync(cmd.skip_basic, cmd.concurrent, cmd.split_count) => {
             log::info!("sync done, result: {:?}", res);
@@ -122,7 +122,7 @@ fn set_logger(level: &str) -> anyhow::Result<()> {
     let level = log::LevelFilter::from_str(level_str.as_str())
         .with_context(|| format!("invalid log level {}", level_str))?;
     fern::Dispatch::new()
-        .filter(|f| f.target().starts_with("hiq"))
+        .filter(|f| f.target().starts_with("rwinq"))
         .format(|out, message, record| {
             out.finish(format_args!(
                 "{}[{}] {}",
@@ -138,8 +138,8 @@ fn set_logger(level: &str) -> anyhow::Result<()> {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// HiqDataSync command.
-struct HiqDataSync {
+/// DataSync command.
+struct DataSync {
     /// 版本号
     #[argh(switch, short = 'v')]
     version: bool,
@@ -149,12 +149,12 @@ struct HiqDataSync {
     level: String,
 
     #[argh(subcommand)]
-    cmd: Option<HiqDataSubCommandEnum>,
+    cmd: Option<DataSubCommandEnum>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
-enum HiqDataSubCommandEnum {
+enum DataSubCommandEnum {
     Sync(SyncCommand),
     Build(BuildIndexCommand),
 }

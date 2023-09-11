@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime};
-use hiq_data::{store::Loader, Bar};
+use rwqdata::{store::Loader, Bar};
 use serde::{Deserialize, Serialize};
 
 use crate::{Result, StrategyType};
@@ -65,7 +65,7 @@ impl Default for CommonParam {
         let n = NaiveDateTime::new(n, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
         Self {
             test_end_date: Some(n),
-            test_trade_days: Some(60)
+            test_trade_days: Some(60),
         }
     }
 }

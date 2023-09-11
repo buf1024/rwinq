@@ -115,7 +115,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::BondInfo>> {
+    ) -> Result<Vec<rwqfetch::BondInfo>> {
         self.query(TAB_BOND_INFO, filter, sort, limit).await
     }
     async fn load_bond_daily(
@@ -123,7 +123,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_BOND_DAILY, filter, sort, limit).await
     }
 
@@ -132,7 +132,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::FundInfo>> {
+    ) -> Result<Vec<rwqfetch::FundInfo>> {
         self.query(TAB_FUND_INFO, filter, sort, limit).await
     }
     async fn load_fund_daily(
@@ -140,7 +140,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_FUND_DAILY, filter, sort, limit).await
     }
     async fn load_fund_net(
@@ -148,7 +148,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::FundNet>> {
+    ) -> Result<Vec<rwqfetch::FundNet>> {
         self.query(TAB_FUND_NET, filter, sort, limit).await
     }
 
@@ -157,7 +157,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockInfo>> {
+    ) -> Result<Vec<rwqfetch::StockInfo>> {
         self.query(TAB_INDEX_INFO, filter, sort, limit).await
     }
 
@@ -166,7 +166,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_INDEX_DAILY, filter, sort, limit).await
     }
 
@@ -175,7 +175,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockInfo>> {
+    ) -> Result<Vec<rwqfetch::StockInfo>> {
         self.query(TAB_STOCK_INFO, filter, sort, limit).await
     }
 
@@ -184,7 +184,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_STOCK_DAILY, filter, sort, limit).await
     }
 
@@ -193,7 +193,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndex>> {
+    ) -> Result<Vec<rwqfetch::StockIndex>> {
         self.query(TAB_STOCK_INDEX, filter, sort, limit).await
     }
     async fn load_stock_industry(
@@ -201,7 +201,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndustry>> {
+    ) -> Result<Vec<rwqfetch::StockIndustry>> {
         self.query(TAB_STOCK_INDUSTRY, filter, sort, limit).await
     }
 
@@ -210,7 +210,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_STOCK_INDUSTRY_DAILY, filter, sort, limit)
             .await
     }
@@ -219,7 +219,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndustryDetail>> {
+    ) -> Result<Vec<rwqfetch::StockIndustryDetail>> {
         self.query(TAB_STOCK_INDUSTRY_DETAIL, filter, sort, limit)
             .await
     }
@@ -229,7 +229,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockConcept>> {
+    ) -> Result<Vec<rwqfetch::StockConcept>> {
         self.query(TAB_STOCK_CONCEPT, filter, sort, limit).await
     }
 
@@ -238,7 +238,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         self.query(TAB_STOCK_CONCEPT_DAILY, filter, sort, limit)
             .await
     }
@@ -247,7 +247,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockConceptDetail>> {
+    ) -> Result<Vec<rwqfetch::StockConceptDetail>> {
         self.query(TAB_STOCK_CONCEPT_DETAIL, filter, sort, limit)
             .await
     }
@@ -257,7 +257,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockYJBB>> {
+    ) -> Result<Vec<rwqfetch::StockYJBB>> {
         self.query(TAB_STOCK_YJBB, filter, sort, limit).await
     }
 
@@ -266,7 +266,7 @@ impl Loader for MongoLoader {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockMargin>> {
+    ) -> Result<Vec<rwqfetch::StockMargin>> {
         self.query(TAB_STOCK_MARGIN, filter, sort, limit).await
     }
 }
@@ -298,7 +298,7 @@ mod tests {
         let mut loader = MongoLoader::new("mongodb://localhost:27017".to_owned());
         loader.init().await?;
 
-        let info = loader.load_stock_info(doc!{}, doc!{}, Some(1)).await?;
+        let info = loader.load_stock_info(doc! {}, doc! {}, Some(1)).await?;
 
         println!("info: {:?}", info);
 

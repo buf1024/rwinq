@@ -1,0 +1,230 @@
+:py:mod:`pywqfetch.fetch`
+=========================
+
+.. py:module:: pywqfetch.fetch
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pywqfetch.fetch.Fetch
+   pywqfetch.fetch.BlockFetch
+
+
+
+
+.. py:class:: Fetch
+
+
+   .. py:method:: fetch_trade_date(to_frame=True) -> Union[Set[int], pandas.DataFrame]
+      :staticmethod:
+      :async:
+
+      获取交易日期
+
+      :param to_frame: 结果是否转换为`pd.DataFrame`格式。 默认: True。
+      :type to_frame: bool, optional
+
+      :returns: to_frame 为 False时，返回Set， 否则返回`pd.DataFrame`
+      :rtype: Union[Set[int], pd.DataFrame]
+
+      >>> import pywqfetch as fetch
+      >>> await fetch.fetch_trade_date(to_frame=True)
+              trade_date
+          0       20120104
+          ...          ...
+          8068    20021231
+
+          [8069 rows x 1 columns]
+
+
+   .. py:method:: fetch_next_trade_date(d) -> datetime.datetime
+      :staticmethod:
+      :async:
+
+
+   .. py:method:: fetch_prev_trade_date(d) -> datetime.datetime
+      :staticmethod:
+      :async:
+
+
+   .. py:method:: fetch_is_trade_date(d) -> bool
+      :staticmethod:
+      :async:
+
+
+   .. py:method:: fetch_bond_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_bond_bar(*, code: str, name: str, stock_code: str, stock_name: str, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Dict
+      :async:
+
+
+   .. py:method:: fetch_fund_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_fund_net(*, code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_fund_bar(*, code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Dict
+      :async:
+
+
+   .. py:method:: fetch_index_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_index_bar(code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_is_margin(*, to_frame=True) -> Union[Set[str], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_bar(*, code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_index(*, index_date=None, to_frame=True) -> Union[Dict[str, Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_industry(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_industry_detail(*, code: Optional[str] = None, name: Optional[str] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_industry_daily(code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_concept(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_concept_detail(*, code: Optional[str] = None, name: Optional[str] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_concept_daily(*, code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_yjbb(*, year: int, season: int, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_margin(*, code: str, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_hot_rank(*, code: Union[str, list], to_frame=True) -> Union[Dict, pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: fetch_stock_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pandas.DataFrame]
+      :async:
+
+
+
+.. py:class:: BlockFetch
+
+
+   .. py:method:: fetch_trade_date(to_frame=True) -> Union[Set[int], pandas.DataFrame]
+      :staticmethod:
+
+      阻塞版本, 同 :func:`~pywqfetch.Fetch.fetch_trade_date`
+
+
+   .. py:method:: fetch_next_trade_date(d) -> datetime.date
+      :staticmethod:
+
+
+   .. py:method:: fetch_prev_trade_date(d) -> datetime.date
+      :staticmethod:
+
+
+   .. py:method:: fetch_is_trade_date(d) -> bool
+      :staticmethod:
+
+
+   .. py:method:: fetch_bond_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_bond_bar(*, code: str, name: str, stock_code: str, stock_name: str, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Dict
+
+
+   .. py:method:: fetch_fund_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_fund_net(*, code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_fund_bar(*, code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Dict
+
+
+   .. py:method:: fetch_index_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_index_bar(code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_info(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_is_margin(*, to_frame=True) -> Union[Set[str], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_bar(*, code: str, name: Optional[str] = None, freq: Optional[int] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_index(*, index_date=None, to_frame=True) -> Union[Dict[str, Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_industry(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_industry_detail(*, code: Optional[str] = None, name: Optional[str] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_industry_daily(code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_concept(*, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_concept_detail(*, code: Optional[str] = None, name: Optional[str] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_concept_daily(*, code: str, name: Optional[str] = None, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, skip_rt: bool = True, to_frame=True) -> Union[Dict, pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_yjbb(*, year: int, season: int, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_margin(*, code: str, start: Optional[datetime.date] = None, end: Optional[datetime.date] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_hot_rank(*, code: Union[str, list], to_frame=True) -> Union[Dict, pandas.DataFrame]
+
+
+   .. py:method:: fetch_stock_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pandas.DataFrame]
+
+
+

@@ -1,5 +1,5 @@
 [package]
-name = "hiq_common"
+name = "rwqcmm"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,6 @@ edition = "2021"
 crate-type = ["lib", "staticlib", "cdylib", ]
 
 [dependencies]
-serde = { version = "1.0.147", features = ["derive"] }
-chrono = { version = "0.4.23", features = ["serde"] }
-bson = {version = "2.6.1", features = ["chrono-0_4"]}
+serde = { version = "1.0.188", features = ["derive"] }
+chrono = { version = "0.4.28", features = ["serde"] }
+bson = {version = "2.7.0", features = ["chrono-0_4"]}

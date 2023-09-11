@@ -2,28 +2,27 @@
 //! 这里获取的数据是最基本的数据，不排除以后会新增其他类型的数据。  
 //! 数据的来源不一定是固定一个地方。  
 //! 需要注意的是，获取数据时，如果并发获取，需要要限制并发数量，否则可能会被封ip  
-
 use once_cell::sync::Lazy;
 use reqwest::header::{
     HeaderMap, HeaderValue, ACCEPT, ACCEPT_ENCODING, CACHE_CONTROL, CONNECTION, PRAGMA, USER_AGENT,
 };
 use thiserror::Error;
 
-mod bond;
+pub mod bond;
 pub use bond::*;
 
-mod stock;
+pub mod stock;
 pub use stock::*;
 
-mod fund;
+pub mod fund;
 pub use fund::*;
 
-mod comm;
+pub mod comm;
 pub use comm::*;
 
-mod util;
+pub mod util;
 
-pub use hiq_common::*;
+pub use rwqcmm::*;
 
 pub use util::to_std_code;
 
@@ -73,10 +72,11 @@ pub enum Market {
 }
 
 /// 市场交易类型： 可转债，etf基金，股票
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum MarketType {
     Bond = 0,
     Fund = 1,
+    #[default]
     Stock = 2,
 }
 
@@ -92,9 +92,10 @@ impl From<i32> for MarketType {
 }
 
 /// 复权方式
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum AdjustFactor {
     NFQ = 0,
     QFQ = 1,
+    #[default]
     HFQ = 2,
 }

@@ -2,22 +2,22 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::FundFetch;
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::FundFetch;
 use tokio::sync::mpsc;
 
 use crate::{
     store::{
         mongo::service::{insert_many, query_one},
-        HiqCache, DATA_DEF_START_DATE, TAB_FUND_NET,
+        Cache, DATA_DEF_START_DATE, TAB_FUND_NET,
     },
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 struct FundNetAsyncFunc<'a> {
-    fetch: Arc<dyn FundFetch>,
+    fetch: Arc<FundFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -26,7 +26,7 @@ struct FundNetAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for FundNetAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_fund_net(self.code, Some(self.name), self.start, self.end)
@@ -34,19 +34,19 @@ impl<'a> AsyncFunc for FundNetAsyncFunc<'a> {
         if data.is_empty() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::FundNet(data)))
+            Ok(Some(SyncData::FundNet(data)))
         }
     }
 }
 
 pub(crate) struct FundNetSyncer {
-    fetch: Arc<dyn FundFetch>,
-    cache: Arc<RwLock<HiqCache>>,
+    fetch: Arc<FundFetch>,
+    cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl FundNetSyncer {
-    pub fn new(client: Client, fetch: Arc<dyn FundFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<FundFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -57,7 +57,7 @@ impl FundNetSyncer {
 
 #[async_trait]
 impl Syncer for FundNetSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         let data = {
             let mut data = Vec::new();
             let cache_info = self.cache.read().unwrap();
@@ -69,7 +69,7 @@ impl Syncer for FundNetSyncer {
             data
         };
         for info in data.iter() {
-            let bar: Option<hiq_fetch::FundNet> = query_one(
+            let bar: Option<rwqfetch::FundNet> = query_one(
                 self.client.clone(),
                 TAB_FUND_NET,
                 doc! {"code": info.code.as_str()},
@@ -130,8 +130,8 @@ impl Syncer for FundNetSyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::FundNet(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::FundNet(info) = data {
             let elm = info.get(0).unwrap();
             let len = info.len();
             log::info!(

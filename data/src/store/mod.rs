@@ -5,14 +5,14 @@ use std::{
 };
 
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
-use hiq_fetch::{BondInfo, FundInfo, StockInfo};
 use mongodb::bson::Document;
+use rwqfetch::{BondInfo, FundInfo, StockInfo};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     syncer::Syncer,
-    types::HiqSyncDest,
-    types::{HiqSyncDataType, HiqSyncDestType},
+    types::SyncDest,
+    types::{SyncDataType, SyncDestType},
     Error, Result,
 };
 
@@ -37,15 +37,15 @@ use self::mongo::MongoLoader;
 /// `funcs` 过滤的同步类型，None则全部同步
 /// `try_init` 是否初始化
 pub async fn get_store(
-    dest: &HiqSyncDest,
+    dest: &SyncDest,
     skip_basic: bool,
     split_count: usize,
-    funcs: &Option<Vec<HiqSyncDataType>>,
+    funcs: &Option<Vec<SyncDataType>>,
     try_init: bool,
-) -> Result<(HiqSyncDestType, Box<dyn Store>)> {
+) -> Result<(SyncDestType, Box<dyn Store>)> {
     match dest {
-        HiqSyncDest::File(_) => todo!(),
-        HiqSyncDest::MongoDB(url) => {
+        SyncDest::File(_) => todo!(),
+        SyncDest::MongoDB(url) => {
             let mut store: Box<dyn Store> = Box::new(MongoStore::new(
                 (*url).clone(),
                 skip_basic,
@@ -55,11 +55,11 @@ pub async fn get_store(
             if try_init {
                 store.init().await?;
             }
-            Ok((HiqSyncDestType::MongoDB, store))
+            Ok((SyncDestType::MongoDB, store))
         }
-        HiqSyncDest::MySQL(_) => todo!(),
-        HiqSyncDest::ClickHouse(_) => todo!(),
-        // HiqSyncDest::ClickHouse(url) => (HiqSyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
+        SyncDest::MySQL(_) => todo!(),
+        SyncDest::ClickHouse(_) => todo!(),
+        // SyncDest::ClickHouse(url) => (SyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
     }
 }
 
@@ -67,21 +67,21 @@ pub async fn get_store(
 /// `dest`: 目标数据源  
 /// `try_init` 是否初始化
 pub async fn get_loader(
-    dest: &HiqSyncDest,
+    dest: &SyncDest,
     try_init: bool,
-) -> Result<(HiqSyncDestType, Box<dyn Loader>)> {
+) -> Result<(SyncDestType, Box<dyn Loader>)> {
     match dest {
-        HiqSyncDest::File(_) => todo!(),
-        HiqSyncDest::MongoDB(url) => {
+        SyncDest::File(_) => todo!(),
+        SyncDest::MongoDB(url) => {
             let mut loader = MongoLoader::new((*url).clone());
             if try_init {
                 loader.init().await?;
             }
-            Ok((HiqSyncDestType::MongoDB, Box::new(loader)))
+            Ok((SyncDestType::MongoDB, Box::new(loader)))
         }
-        HiqSyncDest::MySQL(_) => todo!(),
-        HiqSyncDest::ClickHouse(_) => todo!(),
-        // HiqSyncDest::ClickHouse(url) => (HiqSyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
+        SyncDest::MySQL(_) => todo!(),
+        SyncDest::ClickHouse(_) => todo!(),
+        // SyncDest::ClickHouse(url) => (SyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
     }
 }
 
@@ -100,7 +100,7 @@ pub trait Store: Sync + Send {
     fn syncer(&self) -> Result<Vec<Arc<Box<dyn Syncer>>>>;
 }
 
-pub(crate) struct HiqCache {
+pub(crate) struct Cache {
     trade_date: Option<BTreeSet<i32>>,
     index_info: Option<HashMap<String, StockInfo>>,
     stock_info: Option<HashMap<String, StockInfo>>,
@@ -108,7 +108,7 @@ pub(crate) struct HiqCache {
     fund_info: Option<HashMap<String, FundInfo>>,
 }
 
-impl HiqCache {
+impl Cache {
     pub fn new() -> Self {
         Self {
             trade_date: None,
@@ -196,120 +196,120 @@ pub trait Loader: Sync + Send {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::BondInfo>>;
+    ) -> Result<Vec<rwqfetch::BondInfo>>;
     async fn load_bond_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
 
     async fn load_fund_info(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::FundInfo>>;
+    ) -> Result<Vec<rwqfetch::FundInfo>>;
     async fn load_fund_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
     async fn load_fund_net(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::FundNet>>;
+    ) -> Result<Vec<rwqfetch::FundNet>>;
 
     async fn load_index_info(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockInfo>>;
+    ) -> Result<Vec<rwqfetch::StockInfo>>;
 
     async fn load_index_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
 
     async fn load_stock_info(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockInfo>>;
+    ) -> Result<Vec<rwqfetch::StockInfo>>;
 
     async fn load_stock_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
 
     async fn load_stock_index(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndex>>;
+    ) -> Result<Vec<rwqfetch::StockIndex>>;
     async fn load_stock_industry(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndustry>>;
+    ) -> Result<Vec<rwqfetch::StockIndustry>>;
 
     async fn load_stock_industry_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
     async fn load_stock_industry_detail(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockIndustryDetail>>;
+    ) -> Result<Vec<rwqfetch::StockIndustryDetail>>;
 
     async fn load_stock_concept(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockConcept>>;
+    ) -> Result<Vec<rwqfetch::StockConcept>>;
 
     async fn load_stock_concept_daily(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>>;
+    ) -> Result<Vec<rwqfetch::Bar>>;
     async fn load_stock_concept_detail(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockConceptDetail>>;
+    ) -> Result<Vec<rwqfetch::StockConceptDetail>>;
 
     async fn load_stock_yjbb(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockYJBB>>;
+    ) -> Result<Vec<rwqfetch::StockYJBB>>;
 
     async fn load_stock_margin(
         &self,
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::StockMargin>>;
+    ) -> Result<Vec<rwqfetch::StockMargin>>;
 
     async fn load_info(
         &self,
@@ -364,7 +364,7 @@ pub trait Loader: Sync + Send {
         filter: Document,
         sort: Document,
         limit: Option<i64>,
-    ) -> Result<Vec<hiq_fetch::Bar>> {
+    ) -> Result<Vec<rwqfetch::Bar>> {
         let data: Vec<_> = match typ {
             DataType::Bond => self.load_bond_daily(filter, sort, limit).await?,
             DataType::Fund => self.load_fund_daily(filter, sort, limit).await?,
@@ -395,7 +395,7 @@ pub trait Loader: Sync + Send {
 
 pub const DATA_DEF_START_DATE: &'static str = "2010-01-01";
 
-pub const DATABASE: &'static str = "hiq";
+pub const DATABASE: &'static str = "rwinq";
 
 pub const TAB_TRADE_DATE: &'static str = "trade_date";
 

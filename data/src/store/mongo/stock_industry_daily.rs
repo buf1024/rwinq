@@ -2,24 +2,24 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
     store::{
         mongo::service::{insert_many, query, query_one},
-        HiqCache, DATA_DEF_START_DATE,
+        Cache, DATA_DEF_START_DATE,
     },
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use crate::store::{TAB_STOCK_INDUSTRY, TAB_STOCK_INDUSTRY_DAILY};
 
 struct StockIndustryDailyAsyncFunc<'a> {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -28,7 +28,7 @@ struct StockIndustryDailyAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for StockIndustryDailyAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_stock_industry_daily(self.code, Some(self.name), self.start, self.end, true)
@@ -37,19 +37,19 @@ impl<'a> AsyncFunc for StockIndustryDailyAsyncFunc<'a> {
         if bar.is_none() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::StockIndustryBar(bar.unwrap())))
+            Ok(Some(SyncData::StockIndustryBar(bar.unwrap())))
         }
     }
 }
 
 pub(crate) struct StockIndustryDailySyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
-    cache: Arc<RwLock<HiqCache>>,
+    cache: Arc<RwLock<Cache>>,
 }
 
 impl StockIndustryDailySyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -60,8 +60,8 @@ impl StockIndustryDailySyncer {
 
 #[async_trait]
 impl Syncer for StockIndustryDailySyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
-        let mut industry: Vec<hiq_fetch::StockIndustry> =
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
+        let mut industry: Vec<rwqfetch::StockIndustry> =
             query(self.client.clone(), TAB_STOCK_INDUSTRY, doc! {}, None).await?;
         if industry.is_empty() {
             industry = self.fetch.fetch_stock_industry().await?;
@@ -80,7 +80,7 @@ impl Syncer for StockIndustryDailySyncer {
                 info.code.as_str(),
                 TAB_STOCK_INDUSTRY_DAILY
             );
-            let bar: Option<hiq_fetch::Bar> = query_one(
+            let bar: Option<rwqfetch::Bar> = query_one(
                 self.client.clone(),
                 TAB_STOCK_INDUSTRY_DAILY,
                 doc! {"code": info.code.as_str()},
@@ -143,8 +143,8 @@ impl Syncer for StockIndustryDailySyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockIndustryBar(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockIndustryBar(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

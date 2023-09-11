@@ -2,51 +2,53 @@ use std::{collections::HashSet, sync::Arc};
 
 use async_trait::async_trait;
 use chrono::{Datelike, Local};
-use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
-    store::{mongo::service::{insert_many, query, query_one}, TAB_STOCK_YJBB},
+    store::{
+        mongo::service::{insert_many, query, query_one},
+        TAB_STOCK_YJBB,
+    },
     syncer::{retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
-
 struct StockYJBBAsyncFunc {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     year: u16,
     season: u16,
 }
 
 #[async_trait]
 impl AsyncFunc for StockYJBBAsyncFunc {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self.fetch.fetch_stock_yjbb(self.year, self.season).await?;
         if data.is_empty() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::StockYJBB(data)))
+            Ok(Some(SyncData::StockYJBB(data)))
         }
     }
 }
 
 pub(crate) struct StockYJBBSyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockYJBBSyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
         Self { client, fetch }
     }
 }
 
 #[async_trait]
 impl Syncer for StockYJBBSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
-        let yjbb: Option<hiq_fetch::StockYJBB> = query_one(
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
+        let yjbb: Option<rwqfetch::StockYJBB> = query_one(
             self.client.clone(),
             TAB_STOCK_YJBB,
             doc! {},
@@ -97,8 +99,8 @@ impl Syncer for StockYJBBSyncer {
             };
             let data = retry(func).await?;
             if let Some(data) = data {
-                if let HiqSyncData::StockYJBB(info) = data {
-                    let db_data: Vec<hiq_fetch::StockYJBB> = query(
+                if let SyncData::StockYJBB(info) = data {
+                    let db_data: Vec<rwqfetch::StockYJBB> = query(
                         self.client.clone(),
                         TAB_STOCK_YJBB,
                         doc! {"year": year as i32, "season": season as i32},
@@ -117,7 +119,7 @@ impl Syncer for StockYJBBSyncer {
                     };
 
                     if data.len() > 0 {
-                        tx.send(HiqSyncData::StockYJBB(data)).map_err(|e| {
+                        tx.send(SyncData::StockYJBB(data)).map_err(|e| {
                             log::error!("send data error {:?}", e);
                             Error::Custom(format!("send data error {:?}", e))
                         })?;
@@ -135,8 +137,8 @@ impl Syncer for StockYJBBSyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockYJBB(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockYJBB(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

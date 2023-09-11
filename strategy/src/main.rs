@@ -3,11 +3,11 @@ use std::{collections::HashMap, str::FromStr, sync::Arc};
 use anyhow::Context;
 use argh::FromArgs;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
-use hiq_data::{
+use rwqdata::{
     store::{get_loader, Loader},
-    HiqSyncDest,
+    SyncDest,
 };
-use hiq_strategy::{
+use rwqstrategy::{
     fit, get_strategy, run, strategies, CommonParam, ProgressFunc, Strategy, StrategyType, Symbol,
     SYMBOL_NAME,
 };
@@ -15,7 +15,7 @@ use tokio::{signal, sync::broadcast};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let s: HiqStrategy = argh::from_env();
+    let s: StrategyCli = argh::from_env();
     if s.version {
         println!("{}", env!("CARGO_PKG_VERSION"));
         return Ok(());
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
 
     if let Some(h) = s.cmd {
         match h {
-            HiqHelpCommandEnum::Help(s) => {
+            HelpCommandEnum::Help(s) => {
                 if let Some(path) = &s.path {
                     let res = build_dll_strategy(path);
                     if res.is_err() {
@@ -192,7 +192,7 @@ fn set_logger(level: &str) -> anyhow::Result<()> {
     let level = log::LevelFilter::from_str(level_str.as_str())
         .with_context(|| format!("invalid log level {}", level_str))?;
     fern::Dispatch::new()
-        .filter(|f| f.target().starts_with("hiq"))
+        .filter(|f| f.target().starts_with("rwinq"))
         .format(|out, message, record| {
             out.finish(format_args!(
                 "{}[{}] {}",
@@ -226,7 +226,7 @@ async fn build_loader(org_s: &str) -> anyhow::Result<Arc<Box<dyn Loader>>> {
         return Err(anyhow::anyhow!("invalid dest format"));
     }
     let (k, v) = (*s.get(0).unwrap(), *s.get(1).unwrap());
-    let dest = HiqSyncDest::try_from((String::from(k), String::from(v)))
+    let dest = SyncDest::try_from((String::from(k), String::from(v)))
         .with_context(|| format!("try from ({}, {}) error", k, v))?;
     let (_, loader) = get_loader(&dest, true)
         .await
@@ -328,8 +328,8 @@ fn progress(code: &str, name: &str, total: usize, current: usize, progress: f32)
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// HiqStrategy command.
-struct HiqStrategy {
+/// StrategyCli command.
+struct StrategyCli {
     /// 版本号
     #[argh(switch, short = 'v')]
     version: bool,
@@ -379,11 +379,11 @@ struct HiqStrategy {
     params: Vec<String>,
 
     #[argh(subcommand)]
-    cmd: Option<HiqHelpCommandEnum>,
+    cmd: Option<HelpCommandEnum>,
 }
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
-enum HiqHelpCommandEnum {
+enum HelpCommandEnum {
     Help(HelpCommand),
 }
 

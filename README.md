@@ -1,3 +1,5 @@
+rwinq 是Rust Winer quatitative
+
 python 版本的 bbq trader 执行效率太慢，用rust改写，并增加gui操作界面。
 
 

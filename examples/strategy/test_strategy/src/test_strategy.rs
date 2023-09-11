@@ -1,9 +1,8 @@
-
 use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use bson::doc;
-use hiq_strategy::{
+use rwqstrategy::{
     stat_result, store::Loader, strategy_to_data_type, Error, Result, Strategy, StrategyResult,
     StrategyType,
 };
@@ -46,8 +45,14 @@ impl Strategy for TestStrategy {
             let mut mark = HashMap::new();
             let data0 = data.get(0).unwrap();
             let data1 = data.get(1).unwrap();
-            mark.insert(data0.trade_date.date(), format!("data0 marker: {:?}", data0));
-            mark.insert(data1.trade_date.date(), format!("data1 marker: {:?}", data1));
+            mark.insert(
+                data0.trade_date.date(),
+                format!("data0 marker: {:?}", data0),
+            );
+            mark.insert(
+                data1.trade_date.date(),
+                format!("data1 marker: {:?}", data1),
+            );
 
             let rs = StrategyResult {
                 code,

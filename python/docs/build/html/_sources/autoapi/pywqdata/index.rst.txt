@@ -1,0 +1,421 @@
+:py:mod:`pywqdata`
+==================
+
+.. py:module:: pywqdata
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   loader/index.rst
+   mongo/index.rst
+   pywqdata/index.rst
+   sync/index.rst
+
+
+Package Contents
+----------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   pywqdata.Loader
+   pywqdata.MongoLoader
+   pywqdata.BlockMongoLoader
+   pywqdata.MySync
+   pywqdata.MyBlockSync
+   pywqdata.Dest
+   pywqdata.Funcs
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   pywqdata.get_loader
+
+
+
+.. py:class:: Loader(url: str)
+
+
+   Bases: :py:obj:`abc.ABC`
+
+   .. autoapi-inheritance-diagram:: pywqdata.Loader
+      :parts: 1
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: to_dataframe(to_frame, data)
+      :staticmethod:
+
+
+   .. py:method:: json_def_handler(obj)
+      :staticmethod:
+
+
+   .. py:method:: load_bond_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_bond_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_net(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_index_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_index_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_index(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_yjbb(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_margin(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+
+.. py:class:: MongoLoader(url: str)
+
+
+   Bases: :py:obj:`pywqdata.loader.Loader`
+
+   .. autoapi-inheritance-diagram:: pywqdata.MongoLoader
+      :parts: 1
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: load_bond_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_bond_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_fund_net(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_index_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_index_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_index(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_industry_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_concept_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_yjbb(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+   .. py:method:: load_stock_margin(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+      :async:
+
+
+
+.. py:class:: BlockMongoLoader(url: str)
+
+
+   Bases: :py:obj:`pywqdata.loader.BlockLoader`
+
+   .. autoapi-inheritance-diagram:: pywqdata.BlockMongoLoader
+      :parts: 1
+
+   Helper class that provides a standard way to create an ABC using
+   inheritance.
+
+   .. py:method:: to_dataframe(to_frame, data)
+      :staticmethod:
+
+
+   .. py:method:: load_bond_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_bond_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_fund_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_fund_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_fund_net(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_index_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_index_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_info(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_index(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_industry(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_industry_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_industry_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_concept(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_concept_daily(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_concept_detail(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_yjbb(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+   .. py:method:: load_stock_margin(*, filter: Optional[Dict] = {}, sort: Optional[Dict] = {}, limit: Optional[int] = None, to_frame=True) -> Union[List[Dict], pandas.DataFrame]
+
+
+
+.. py:class:: MySync(dest: Dest, funcs: Optional[List[int]] = None)
+
+
+   .. py:method:: sync(skip_basic=False, task_count=4, split_count=5)
+      :async:
+
+
+   .. py:method:: shutdown()
+
+
+
+.. py:class:: MyBlockSync(dest: Dest, funcs: Optional[List[int]] = None)
+
+
+   .. py:method:: sync(skip_basic=False, task_count=4, split_count=5)
+
+
+   .. py:method:: shutdown()
+
+
+
+.. py:class:: Dest(*, file: Optional[str] = None, mongo: Optional[str] = None, mysql: Optional[str] = None, clickhouse: Optional[str] = None)
+
+
+   .. py:method:: to_list() -> Optional[List[Tuple]]
+
+
+
+.. py:class:: Funcs
+
+
+   .. py:attribute:: TradeDate
+      :value: 1
+
+      
+
+   .. py:attribute:: IndexInfo
+      :value: 2
+
+      
+
+   .. py:attribute:: IndexDaily
+      :value: 3
+
+      
+
+   .. py:attribute:: StockInfo
+      :value: 4
+
+      
+
+   .. py:attribute:: StockBar
+      :value: 5
+
+      
+
+   .. py:attribute:: StockIndex
+      :value: 6
+
+      
+
+   .. py:attribute:: StockIndustry
+      :value: 7
+
+      
+
+   .. py:attribute:: StockIndustryDetail
+      :value: 8
+
+      
+
+   .. py:attribute:: StockIndustryBar
+      :value: (9,)
+
+      
+
+   .. py:attribute:: StockConcept
+      :value: (10,)
+
+      
+
+   .. py:attribute:: StockConceptDetail
+      :value: 11
+
+      
+
+   .. py:attribute:: StockConceptBar
+      :value: (12,)
+
+      
+
+   .. py:attribute:: StockYJBB
+      :value: 13
+
+      
+
+   .. py:attribute:: StockMargin
+      :value: 14
+
+      
+
+   .. py:attribute:: FundInfo
+      :value: 15
+
+      
+
+   .. py:attribute:: FundNet
+      :value: 16
+
+      
+
+   .. py:attribute:: FundBar
+      :value: 17
+
+      
+
+   .. py:attribute:: BondInfo
+      :value: 18
+
+      
+
+   .. py:attribute:: BondBar
+      :value: 19
+
+      
+
+
+.. py:function:: get_loader(typ: str, url: str, block: bool = False) -> Optional[loader.Loader]
+
+

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pywqfetch.pywqfetch &mdash; pywinq 1.0.0 文档</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=34088549"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../../_static/translations.js?v=beaddf03"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pywinq
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pywinq</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">模块代码</a></li>
+          <li class="breadcrumb-item"><a href="../pywqfetch.html">pywqfetch</a></li>
+      <li class="breadcrumb-item active">pywqfetch.pywqfetch</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>pywqfetch.pywqfetch 源代码</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+
+
+<div class="viewcode-block" id="fetch_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.fetch_trade_date">[文档]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_trade_date</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="block_fetch_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.block_fetch_trade_date">[文档]</a>
+<span class="k">def</span> <span class="nf">block_fetch_trade_date</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_next_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.fetch_next_trade_date">[文档]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_next_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="block_fetch_next_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.block_fetch_next_trade_date">[文档]</a>
+<span class="k">def</span> <span class="nf">block_fetch_next_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_prev_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.fetch_prev_trade_date">[文档]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_prev_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="block_fetch_prev_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.block_fetch_prev_trade_date">[文档]</a>
+<span class="k">def</span> <span class="nf">block_fetch_prev_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="fetch_is_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.fetch_is_trade_date">[文档]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_is_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="block_fetch_is_trade_date">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.block_fetch_is_trade_date">[文档]</a>
+<span class="k">def</span> <span class="nf">block_fetch_is_trade_date</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="to_std_code">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.to_std_code">[文档]</a>
+<span class="k">def</span> <span class="nf">to_std_code</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="BondFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BondFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">BondFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BondFetch.fetch_bond_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BondFetch.fetch_bond_info">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_bond_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BondFetch.fetch_bond_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BondFetch.fetch_bond_bar">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_bond_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">stock_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stock_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                             <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BlockBondFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockBondFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">BlockBondFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BlockBondFetch.fetch_bond_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockBondFetch.fetch_bond_info">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_bond_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockBondFetch.fetch_bond_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockBondFetch.fetch_bond_bar">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_bond_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">stock_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stock_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                             <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FundFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.FundFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">FundFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="FundFetch.fetch_fund_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.FundFetch.fetch_fund_info">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_fund_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FundFetch.fetch_fund_net">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.FundFetch.fetch_fund_net">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_fund_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                             <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FundFetch.fetch_fund_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.FundFetch.fetch_fund_bar">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_fund_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                             <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                             <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                             <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BlockFundFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockFundFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">BlockFundFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BlockFundFetch.fetch_fund_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockFundFetch.fetch_fund_info">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_fund_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockFundFetch.fetch_fund_net">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockFundFetch.fetch_fund_net">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_fund_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                       <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockFundFetch.fetch_fund_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockFundFetch.fetch_fund_bar">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_fund_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                       <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                       <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                       <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">],</span>
+                       <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StockFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">StockFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="StockFetch.fetch_index_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_index_info">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_index_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_index_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_index_bar">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_index_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_info">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_is_margin">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_is_margin">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_is_margin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_bar">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_index">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_index">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_industry">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_industry">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_industry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_industry_detail">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_industry_detail">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_industry_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_industry_daily">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_industry_daily">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_industry_daily</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                         <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_concept">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_concept">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_concept_detail">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_concept_detail">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_concept_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_concept_daily">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_concept_daily">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_concept_daily</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_yjbb">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_yjbb">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_yjbb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">season</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_margin">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_margin">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_margin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="StockFetch.fetch_stock_hot_rank">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_hot_rank">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_hot_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StockFetch.fetch_stock_rt_quot">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.StockFetch.fetch_stock_rt_quot">[文档]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_stock_rt_quot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BlockStockFetch">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch">[文档]</a>
+<span class="k">class</span> <span class="nc">BlockStockFetch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_index_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_index_info">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_index_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_index_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_index_bar">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_index_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_info">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_info">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_is_margin">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_is_margin">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_is_margin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_bar">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_bar">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_index">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_index">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_industry">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_industry">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_industry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_industry_detail">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_industry_detail">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_industry_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_industry_daily">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_industry_daily">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_industry_daily</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_concept">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_concept">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_concept</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_concept_detail">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_concept_detail">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_concept_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_concept_daily">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_concept_daily">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_concept_daily</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">skip_rt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_yjbb">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_yjbb">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_yjbb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">season</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_margin">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_margin">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_margin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_hot_rank">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_hot_rank">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_hot_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BlockStockFetch.fetch_stock_rt_quot">
+<a class="viewcode-back" href="../../autoapi/pywqfetch/pywqfetch/index.html#pywqfetch.BlockStockFetch.fetch_stock_rt_quot">[文档]</a>
+    <span class="k">def</span> <span class="nf">fetch_stock_rt_quot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+        <span class="k">pass</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2023, buf1024@gmail.com。</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

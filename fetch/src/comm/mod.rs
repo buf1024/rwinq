@@ -1,8 +1,8 @@
-mod hiq_fetch;
-mod hiq_info;
-mod hiq_trade_date;
+mod fetch;
+mod trans_info;
+mod trade_date;
 
-pub(crate) use self::hiq_fetch::*;
-pub(crate) use hiq_info::*;
+pub(crate) use self::fetch::*;
+pub(crate) use trans_info::*;
 
-pub use hiq_trade_date::*;
+pub use trade_date::*;

@@ -1,18 +1,17 @@
 [workspace]
+resolver = "2"
 members = [
   "common",
   "fetch",
   "data",
   "strategy",
-  "python/hiq-pycommon",
-  "python/hiq-pyfetch",
-  "python/hiq-pydata",
-  "python/hiq-pystrategy",
+  "python/pywqcommon",
+  "python/pywqfetch",
+  "python/pywqdata",
+  "python/pywqstrategy",
   "examples/strategy/test_strategy",
 ]
-# exclude = [
-#     "python/hiq-pyfetch"
-# ]
+
 
 [profile.release]
 codegen-units = 1
@@ -20,3 +19,15 @@ lto = true
 opt-level = "z"
 panic = "abort"
 strip = true
+
+[profile.dev]
+panic = "abort"
+
+[profile.bench]
+debug = 1
+
+[profile.minimal]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1

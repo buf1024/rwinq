@@ -7,32 +7,32 @@ use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::{broadcast, mpsc};
 
 use crate::store::get_store;
-use crate::types::HiqSyncDataType;
+use crate::types::SyncDataType;
 use crate::{
     store::Store,
     syncer::Syncer,
-    types::{HiqSyncData, HiqSyncDest, HiqSyncDestType},
+    types::{SyncData, SyncDest, SyncDestType},
     Error, Result,
 };
 
 /// 数据同步
-pub struct HiqSync {
-    dest: Vec<HiqSyncDest>,
+pub struct Sync {
+    dest: Vec<SyncDest>,
     shutdown: broadcast::Receiver<()>,
-    funcs: Option<Vec<HiqSyncDataType>>,
-    store: Option<HashMap<HiqSyncDestType, Arc<Box<dyn Store>>>>,
+    funcs: Option<Vec<SyncDataType>>,
+    store: Option<HashMap<SyncDestType, Arc<Box<dyn Store>>>>,
     is_init: bool,
 }
 
-impl HiqSync {
+impl Sync {
     /// 构造对象  
     /// `dest` 数据源，需保证数据源正确，否则后续`init`会报错  
     /// `shutdown·` 停止信号  
     /// `funcs` 同步的条目类型，如果为`None`，则全部同步
     pub fn new(
-        dest: Vec<HiqSyncDest>,
+        dest: Vec<SyncDest>,
         shutdown: broadcast::Receiver<()>,
-        funcs: Option<Vec<HiqSyncDataType>>,
+        funcs: Option<Vec<SyncDataType>>,
     ) -> Self {
         Self {
             dest,
@@ -42,7 +42,7 @@ impl HiqSync {
             is_init: false,
         }
     }
-    /// 初始化 
+    /// 初始化
     /// `skip_basic` 初始化数据是否从远程获取，true在从数据库获取, false则从远程获取    
     /// `split_count` 代码切分份数，同一份数据在同一个task里处理  
     pub async fn init(&mut self, skip_basic: bool, split_count: usize) -> Result<()> {
@@ -59,7 +59,7 @@ impl HiqSync {
         }
         Ok(())
     }
-    /// 初始化 
+    /// 初始化
     /// `skip_basic` 初始化数据是否从远程获取，true在从数据库获取, false则从远程获取    
     /// `split_count` 代码切分份数，同一份数据在同一个task里处理  
     /// `task_count` 远程获取数据启动的task数量，代表并发获取， task_count不宜过大，可能被封
@@ -98,7 +98,7 @@ impl HiqSync {
 }
 
 async fn sync_task(
-    store_typ: HiqSyncDestType,
+    store_typ: SyncDestType,
     store: Arc<Box<dyn Store>>,
     mut shutdown_rx: broadcast::Receiver<()>,
     task_count: usize,
@@ -177,7 +177,7 @@ async fn sync_task(
 async fn fetch_task(
     syncer_index: Vec<usize>,
     store: Arc<Box<dyn Store>>,
-    tx_map: HashMap<usize, UnboundedSender<HiqSyncData>>,
+    tx_map: HashMap<usize, UnboundedSender<SyncData>>,
     mut shutdown_rx: broadcast::Receiver<()>,
 ) -> Result<()> {
     let syncer = store.syncer()?;
@@ -191,7 +191,7 @@ async fn fetch_task(
                 break;
             }
         }
-        tx.send(HiqSyncData::Done).map_err(|e| {
+        tx.send(SyncData::Done).map_err(|e| {
             log::error!("send data error {:?}", e);
             Error::Custom(format!("send data error {:?}", e))
         })?;
@@ -200,10 +200,10 @@ async fn fetch_task(
 }
 
 async fn save_task(
-    store_typ: HiqSyncDestType,
+    store_typ: SyncDestType,
     index: usize,
     syncer: Arc<Box<dyn Syncer>>,
-    mut rx: mpsc::UnboundedReceiver<HiqSyncData>,
+    mut rx: mpsc::UnboundedReceiver<SyncData>,
     mut shutdown_rx: broadcast::Receiver<()>,
 ) -> Result<()> {
     log::info!("store({:?})#{} save task start", &store_typ, index);
@@ -211,7 +211,7 @@ async fn save_task(
     loop {
         let data = rx.recv().await;
         if let Some(d) = data {
-            if matches!(d, HiqSyncData::Done) {
+            if matches!(d, SyncData::Done) {
                 break;
             }
             tokio::select! {
@@ -232,15 +232,15 @@ async fn save_task(
 
 #[cfg(test)]
 mod tests {
-    use crate::types::{HiqSyncDataType, HiqSyncDest};
+    use crate::types::{SyncDataType, SyncDest};
 
-    use super::HiqSync;
+    use super::Sync;
     use tokio::sync::broadcast;
 
     #[test]
     fn test() {
         fern::Dispatch::new()
-            .filter(|f| f.target().starts_with("hiq_data"))
+            .filter(|f| f.target().starts_with("rwqdata"))
             .format(|out, message, record| {
                 out.finish(format_args!(
                     "{}[{}][{}] {}",
@@ -261,14 +261,14 @@ mod tests {
             .unwrap()
             .block_on(async {
                 let (_, rx) = broadcast::channel(1);
-                let mut s = HiqSync::new(
+                let mut s = Sync::new(
                     vec![
-                        HiqSyncDest::MongoDB("mongodb://localhost:27017".into()),
-                        // HiqSyncDest::ClickHouse("abc".into()),
+                        SyncDest::MongoDB("mongodb://localhost:27017".into()),
+                        // SyncDest::ClickHouse("abc".into()),
                     ],
                     rx,
                     // None,
-                    Some(vec![HiqSyncDataType::StockMargin]),
+                    Some(vec![SyncDataType::StockMargin]),
                 );
                 s.sync(true, 1, 1).await.unwrap();
             });

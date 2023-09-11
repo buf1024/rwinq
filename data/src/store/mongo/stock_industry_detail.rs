@@ -1,52 +1,52 @@
 use std::{collections::HashSet, sync::Arc};
 
 use async_trait::async_trait;
-use hiq_fetch::StockFetch;
 use mongodb::{bson::doc, Client};
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
     store::mongo::service::{insert_many, query},
     syncer::{retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use crate::store::{TAB_STOCK_INDUSTRY, TAB_STOCK_INDUSTRY_DETAIL};
 
 struct StockIndustryDetailAsyncFunc<'a> {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
 }
 
 #[async_trait]
 impl<'a> AsyncFunc for StockIndustryDetailAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_stock_industry_detail(Some(self.code), Some(self.name))
             .await?;
 
-        Ok(Some(HiqSyncData::StockIndustryDetail(data)))
+        Ok(Some(SyncData::StockIndustryDetail(data)))
     }
 }
 
 pub(crate) struct StockIndustryDetailSyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockIndustryDetailSyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
         Self { client, fetch }
     }
 }
 
 #[async_trait]
 impl Syncer for StockIndustryDetailSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
-        let mut industry: Vec<hiq_fetch::StockIndustry> =
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
+        let mut industry: Vec<rwqfetch::StockIndustry> =
             query(self.client.clone(), TAB_STOCK_INDUSTRY, doc! {}, None).await?;
         if industry.is_empty() {
             industry = self.fetch.fetch_stock_industry().await?;
@@ -67,8 +67,8 @@ impl Syncer for StockIndustryDetailSyncer {
             let code = info.code.as_str();
             let data = retry(func).await?;
             if let Some(data) = data {
-                if let HiqSyncData::StockIndustryDetail(info) = data {
-                    let db_data: Vec<hiq_fetch::StockIndustryDetail> = query(
+                if let SyncData::StockIndustryDetail(info) = data {
+                    let db_data: Vec<rwqfetch::StockIndustryDetail> = query(
                         self.client.clone(),
                         TAB_STOCK_INDUSTRY_DETAIL,
                         doc! {"code": code},
@@ -87,11 +87,10 @@ impl Syncer for StockIndustryDetailSyncer {
                     };
 
                     if data.len() > 0 {
-                        tx.send(HiqSyncData::StockIndustryDetail(data))
-                            .map_err(|e| {
-                                log::error!("send data error {:?}", e);
-                                Error::Custom(format!("send data error {:?}", e))
-                            })?;
+                        tx.send(SyncData::StockIndustryDetail(data)).map_err(|e| {
+                            log::error!("send data error {:?}", e);
+                            Error::Custom(format!("send data error {:?}", e))
+                        })?;
                     }
                 }
             }
@@ -106,8 +105,8 @@ impl Syncer for StockIndustryDetailSyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockIndustryDetail(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockIndustryDetail(info) = data {
             let elm = info.get(0).unwrap();
             let len = info.len();
             log::info!(

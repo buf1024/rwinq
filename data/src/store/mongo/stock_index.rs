@@ -1,25 +1,26 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use hiq_fetch::StockFetch;
 use mongodb::Client;
+use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
+    store::TAB_STOCK_INDEX,
     syncer::{retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
-    Error, Result, store::TAB_STOCK_INDEX,
+    types::SyncData,
+    Error, Result,
 };
 
 use super::service::insert_many;
 
 struct StockIndexAsyncFunc {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
 }
 
 #[async_trait]
 impl AsyncFunc for StockIndexAsyncFunc {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self.fetch.fetch_stock_index(None).await?;
 
         if data.is_empty() {
@@ -28,24 +29,24 @@ impl AsyncFunc for StockIndexAsyncFunc {
 
         let data: Vec<_> = data.into_iter().map(|(_, e)| e).collect();
 
-        Ok(Some(HiqSyncData::StockIndex(data)))
+        Ok(Some(SyncData::StockIndex(data)))
     }
 }
 
 pub(crate) struct StockIndexSyncer {
-    fetch: Arc<dyn StockFetch>,
+    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockIndexSyncer {
-    pub fn new(client: Client, fetch: Arc<dyn StockFetch>) -> Self {
+    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
         Self { client, fetch }
     }
 }
 
 #[async_trait]
 impl Syncer for StockIndexSyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         log::info!("start sync {}", TAB_STOCK_INDEX);
         let func = StockIndexAsyncFunc {
             fetch: self.fetch.clone(),
@@ -62,8 +63,8 @@ impl Syncer for StockIndexSyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::StockIndex(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::StockIndex(info) = data {
             let elm = info.get(0).unwrap();
             let len = info.len();
             log::info!(

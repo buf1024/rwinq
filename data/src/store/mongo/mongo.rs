@@ -4,16 +4,16 @@ use std::{
 };
 
 use async_trait::async_trait;
-use hiq_fetch::{BondFetch, FundFetch, StockFetch};
 use mongodb::{bson::doc, options::ClientOptions, Client};
+use rwqfetch::{BondFetch, FundFetch, StockFetch};
 
 use crate::{
     store::{
-        mongo::service::query, HiqCache, Store, TAB_BOND_INFO, TAB_FUND_INFO, TAB_INDEX_INFO,
+        mongo::service::query, Cache, Store, TAB_BOND_INFO, TAB_FUND_INFO, TAB_INDEX_INFO,
         TAB_STOCK_INFO, TAB_TRADE_DATE,
     },
     syncer::Syncer,
-    types::HiqSyncDataType,
+    types::SyncDataType,
     Error, Result,
 };
 
@@ -29,16 +29,16 @@ use super::{
 };
 
 pub(crate) struct MongoStore {
-    bond_fetch: Arc<dyn BondFetch>,
-    fund_fetch: Arc<dyn FundFetch>,
-    stock_fetch: Arc<dyn StockFetch>,
+    bond_fetch: Arc<BondFetch>,
+    fund_fetch: Arc<FundFetch>,
+    stock_fetch: Arc<StockFetch>,
     syncer_vec: Vec<Arc<Box<dyn Syncer>>>,
-    cache: Arc<RwLock<HiqCache>>,
+    cache: Arc<RwLock<Cache>>,
 
     url: String,
     skip_basic: bool,
     split_count: usize,
-    funcs: Option<Vec<HiqSyncDataType>>,
+    funcs: Option<Vec<SyncDataType>>,
 }
 
 impl MongoStore {
@@ -46,15 +46,15 @@ impl MongoStore {
         url: String,
         skip_basic: bool,
         split_count: usize,
-        funcs: &Option<Vec<HiqSyncDataType>>,
+        funcs: &Option<Vec<SyncDataType>>,
     ) -> Self {
-        let bond_fetch = Arc::new(hiq_fetch::bond_fetch());
-        let fund_fetch = Arc::new(hiq_fetch::fund_fetch());
-        let stock_fetch = Arc::new(hiq_fetch::stock_fetch());
+        let bond_fetch = Arc::new(rwqfetch::bond_fetch());
+        let fund_fetch = Arc::new(rwqfetch::fund_fetch());
+        let stock_fetch = Arc::new(rwqfetch::stock_fetch());
 
         let syncer_vec = Vec::new();
 
-        let cache = Arc::new(RwLock::new(HiqCache::new()));
+        let cache = Arc::new(RwLock::new(Cache::new()));
 
         let mut t_funcs = None;
         if let Some(funcs) = funcs {
@@ -90,7 +90,7 @@ impl MongoStore {
             let fund_info = self.fund_fetch.fetch_fund_info().await?;
 
             log::info!("prepare cache trade_date");
-            let trade_date = hiq_fetch::fetch_trade_date().await?;
+            let trade_date = rwqfetch::fetch_trade_date().await?;
 
             (bond_info, index_info, stock_info, fund_info, trade_date)
         } else {
@@ -109,7 +109,7 @@ impl MongoStore {
             let fund_info = query(client.clone(), TAB_FUND_INFO, doc! {}, None).await?;
 
             log::info!("prepare cache trade_date");
-            let trade_date_v: Vec<hiq_fetch::TradeDate> =
+            let trade_date_v: Vec<rwqfetch::TradeDate> =
                 query(client.clone(), TAB_TRADE_DATE, doc! {}, None).await?;
 
             let trade_date: BTreeSet<_> = trade_date_v.iter().map(|t| t.trade_date).collect();
@@ -140,14 +140,14 @@ impl MongoStore {
             Ok(())
         }
     }
-    fn contains(&self, typ: &HiqSyncDataType) -> bool {
+    fn contains(&self, typ: &SyncDataType) -> bool {
         if self.funcs.is_none() {
             return true;
         }
         let funcs = self.funcs.as_ref().unwrap();
         funcs.contains(typ)
     }
-    fn add_syncer(&mut self, typ: &HiqSyncDataType, syncer: Arc<Box<dyn Syncer>>) {
+    fn add_syncer(&mut self, typ: &SyncDataType, syncer: Arc<Box<dyn Syncer>>) {
         if self.contains(typ) {
             // log::info!("add syncer: {:?}", typ);
             self.syncer_vec.push(syncer);
@@ -180,7 +180,7 @@ impl MongoStore {
             if sub_codes.len() >= len {
                 task_n += 1;
                 self.add_syncer(
-                    &HiqSyncDataType::StockBar,
+                    &SyncDataType::StockBar,
                     Arc::new(Box::new(StockDailySyncer::new(
                         client.clone(),
                         self.stock_fetch.clone(),
@@ -191,7 +191,7 @@ impl MongoStore {
                 );
 
                 self.add_syncer(
-                    &HiqSyncDataType::StockMargin,
+                    &SyncDataType::StockMargin,
                     Arc::new(Box::new(StockMarginSyncer::new(
                         client.clone(),
                         self.stock_fetch.clone(),
@@ -208,7 +208,7 @@ impl MongoStore {
         if sub_codes.len() >= len {
             task_n += 1;
             self.add_syncer(
-                &HiqSyncDataType::StockBar,
+                &SyncDataType::StockBar,
                 Arc::new(Box::new(StockDailySyncer::new(
                     client.clone(),
                     self.stock_fetch.clone(),
@@ -221,7 +221,7 @@ impl MongoStore {
         if margin_sub_codes.len() >= len {
             task_n += 1;
             self.add_syncer(
-                &HiqSyncDataType::StockMargin,
+                &SyncDataType::StockMargin,
                 Arc::new(Box::new(StockMarginSyncer::new(
                     client.clone(),
                     self.stock_fetch.clone(),
@@ -236,7 +236,7 @@ impl MongoStore {
         if !self.skip_basic {
             // bond
             self.add_syncer(
-                &HiqSyncDataType::BondInfo,
+                &SyncDataType::BondInfo,
                 Arc::new(Box::new(BondInfoSyncer::new(
                     client.clone(),
                     self.cache.clone(),
@@ -245,14 +245,14 @@ impl MongoStore {
 
             // stock
             self.add_syncer(
-                &HiqSyncDataType::IndexInfo,
+                &SyncDataType::IndexInfo,
                 Arc::new(Box::new(IndexInfoSyncer::new(
                     client.clone(),
                     self.cache.clone(),
                 ))),
             );
             self.add_syncer(
-                &HiqSyncDataType::StockInfo,
+                &SyncDataType::StockInfo,
                 Arc::new(Box::new(StockInfoSyncer::new(
                     client.clone(),
                     self.cache.clone(),
@@ -261,7 +261,7 @@ impl MongoStore {
 
             // fund
             self.add_syncer(
-                &HiqSyncDataType::FundInfo,
+                &SyncDataType::FundInfo,
                 Arc::new(Box::new(FundInfoSyncer::new(
                     client.clone(),
                     self.cache.clone(),
@@ -270,7 +270,7 @@ impl MongoStore {
 
             // trade_date
             self.add_syncer(
-                &HiqSyncDataType::TradeDate,
+                &SyncDataType::TradeDate,
                 Arc::new(Box::new(TradeDateSyncer::new(
                     client.clone(),
                     self.cache.clone(),
@@ -280,7 +280,7 @@ impl MongoStore {
 
         // bond
         self.add_syncer(
-            &HiqSyncDataType::BondBar,
+            &SyncDataType::BondBar,
             Arc::new(Box::new(BondDailySyncer::new(
                 client.clone(),
                 self.bond_fetch.clone(),
@@ -290,7 +290,7 @@ impl MongoStore {
 
         // fund
         self.add_syncer(
-            &HiqSyncDataType::FundBar,
+            &SyncDataType::FundBar,
             Arc::new(Box::new(FundDailySyncer::new(
                 client.clone(),
                 self.fund_fetch.clone(),
@@ -299,7 +299,7 @@ impl MongoStore {
         );
 
         self.add_syncer(
-            &HiqSyncDataType::FundNet,
+            &SyncDataType::FundNet,
             Arc::new(Box::new(FundNetSyncer::new(
                 client.clone(),
                 self.fund_fetch.clone(),
@@ -309,7 +309,7 @@ impl MongoStore {
 
         // stock
         self.add_syncer(
-            &HiqSyncDataType::IndexBar,
+            &SyncDataType::IndexBar,
             Arc::new(Box::new(IndexDailySyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -318,7 +318,7 @@ impl MongoStore {
         );
 
         self.add_syncer(
-            &HiqSyncDataType::StockIndex,
+            &SyncDataType::StockIndex,
             Arc::new(Box::new(StockIndexSyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -326,14 +326,14 @@ impl MongoStore {
         );
 
         self.add_syncer(
-            &HiqSyncDataType::StockIndustry,
+            &SyncDataType::StockIndustry,
             Arc::new(Box::new(StockIndustrySyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
             ))),
         );
         self.add_syncer(
-            &HiqSyncDataType::StockIndustryBar,
+            &SyncDataType::StockIndustryBar,
             Arc::new(Box::new(StockIndustryDailySyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -341,7 +341,7 @@ impl MongoStore {
             ))),
         );
         self.add_syncer(
-            &HiqSyncDataType::StockIndustryDetail,
+            &SyncDataType::StockIndustryDetail,
             Arc::new(Box::new(StockIndustryDetailSyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -349,14 +349,14 @@ impl MongoStore {
         );
 
         self.add_syncer(
-            &HiqSyncDataType::StockConcept,
+            &SyncDataType::StockConcept,
             Arc::new(Box::new(StockConceptSyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
             ))),
         );
         self.add_syncer(
-            &HiqSyncDataType::StockConceptBar,
+            &SyncDataType::StockConceptBar,
             Arc::new(Box::new(StockConceptDailySyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -364,14 +364,14 @@ impl MongoStore {
             ))),
         );
         self.add_syncer(
-            &HiqSyncDataType::StockConceptDetail,
+            &SyncDataType::StockConceptDetail,
             Arc::new(Box::new(StockConceptDetailSyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
             ))),
         );
         self.add_syncer(
-            &HiqSyncDataType::StockYJBB,
+            &SyncDataType::StockYJBB,
             Arc::new(Box::new(StockYJBBSyncer::new(
                 client.clone(),
                 self.stock_fetch.clone(),
@@ -438,7 +438,7 @@ mod tests {
 
         let mut info = vec![];
         for i in 0..10 {
-            info.push(hiq_fetch::BondInfo {
+            info.push(rwqfetch::BondInfo {
                 code: format!("code-{}", i),
                 name: "name1".to_string(),
                 stock_code: "股票1code".to_string(),
@@ -448,8 +448,8 @@ mod tests {
             })
         }
 
-        let db = client.database("hiq");
-        let coll = db.collection::<hiq_fetch::BondInfo>("bond_info");
+        let db = client.database("rwinq");
+        let coll = db.collection::<rwqfetch::BondInfo>("bond_info");
         coll.insert_many(info, None).await?;
 
         let opt = FindOptions::builder()

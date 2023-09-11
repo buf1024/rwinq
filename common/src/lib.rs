@@ -18,7 +18,7 @@ pub fn naive_dt_serialize<S>(ndt: &chrono::NaiveDateTime, s: S) -> Result<S::Ok,
 where
     S: serde::Serializer,
 {
-    let dt = chrono::DateTime::<chrono::Utc>::from_utc(*ndt, chrono::Utc);
+    let dt = chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(*ndt, chrono::Utc);
 
     bson::serde_helpers::serialize_chrono_datetime_as_bson_datetime(&dt, s)
 }

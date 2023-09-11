@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use bson::doc;
-use hiq_data::store::Loader;
+use rwqdata::store::Loader;
 
 use crate::{
     stat_result, strategy_to_data_type, util::shadow, CommonParam, Error, Result, Strategy,
@@ -100,12 +100,14 @@ impl Strategy for RightSide {
         let test_end_date = self.cmm_params.test_end_date.unwrap();
         let test_trade_days = self.cmm_params.test_trade_days.unwrap();
 
-        let dt_str = loader.naive_date_time_to_datetime_str(&test_end_date).map_err(|e| {
-            Error::Custom(format!(
-                "naive_date_to_datetime_str error: {}",
-                e.to_string()
-            ))
-        })?;
+        let dt_str = loader
+            .naive_date_time_to_datetime_str(&test_end_date)
+            .map_err(|e| {
+                Error::Custom(format!(
+                    "naive_date_to_datetime_str error: {}",
+                    e.to_string()
+                ))
+            })?;
         let kdata = loader
             .load_daily(
                 strategy_to_data_type(typ),
@@ -127,8 +129,7 @@ impl Strategy for RightSide {
                 (data.chg_pct, data.volume_chg_pct, data.amount_chg_pct);
             let (open, close, high, low) = (data.open, data.close, data.high, data.low);
             let last_close = close / (1.0 + chg_pct / 100.0);
-            let (_, u_shadow, _, l_shadow) =
-                shadow(last_close, open, close, low, high);
+            let (_, u_shadow, _, l_shadow) = shadow(last_close, open, close, low, high);
             if chg_pct > 0.0
                 && low < last_close
                 && volume_chg_pct >= self.min_volume_chg_pct

@@ -1,0 +1,23 @@
+[package]
+build = "build.rs"
+edition = "2021"
+name = "pywqfetch"
+version = "0.1.1"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "pywqfetch"
+
+[dependencies]
+chrono = { version = "0.4.29", features = ["serde"] }
+rwqfetch = { path = "../../fetch" }
+pywqcmm = { path = "../pywqcommon" }
+pyo3 = { version = "0.19.2", features = ["extension-module", "chrono"] }
+pyo3-asyncio = { version = "0.19.0", features = [
+    "attributes",
+    "tokio-runtime",
+] }
+
+[build-dependencies]
+pyo3-build-config = "0.19.2"

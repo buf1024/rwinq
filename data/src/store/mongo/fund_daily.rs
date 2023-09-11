@@ -2,21 +2,21 @@ use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use hiq_fetch::{BarFreq, FundFetch};
 use mongodb::{bson::doc, options::FindOptions, Client};
+use rwqfetch::{BarFreq, FundFetch};
 use tokio::sync::mpsc;
 
 use crate::{
-    store::{mongo::service::query_one, HiqCache, DATA_DEF_START_DATE, TAB_FUND_DAILY},
+    store::{mongo::service::query_one, Cache, DATA_DEF_START_DATE, TAB_FUND_DAILY},
     syncer::{need_to_start, retry, AsyncFunc, Syncer},
-    types::HiqSyncData,
+    types::SyncData,
     Error, Result,
 };
 
 use super::service::insert_many;
 
 struct FundDailyAsyncFunc<'a> {
-    fetch: Arc<dyn FundFetch>,
+    fetch: Arc<FundFetch>,
     code: &'a str,
     name: &'a str,
     freq: Option<BarFreq>,
@@ -26,7 +26,7 @@ struct FundDailyAsyncFunc<'a> {
 
 #[async_trait]
 impl<'a> AsyncFunc for FundDailyAsyncFunc<'a> {
-    async fn call(&self) -> Result<Option<HiqSyncData>> {
+    async fn call(&self) -> Result<Option<SyncData>> {
         let data = self
             .fetch
             .fetch_fund_bar(
@@ -42,19 +42,19 @@ impl<'a> AsyncFunc for FundDailyAsyncFunc<'a> {
         if bar.is_none() {
             Ok(None)
         } else {
-            Ok(Some(HiqSyncData::FundBar(bar.unwrap())))
+            Ok(Some(SyncData::FundBar(bar.unwrap())))
         }
     }
 }
 
 pub(crate) struct FundDailySyncer {
-    fetch: Arc<dyn FundFetch>,
-    cache: Arc<RwLock<HiqCache>>,
+    fetch: Arc<FundFetch>,
+    cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl FundDailySyncer {
-    pub fn new(client: Client, fetch: Arc<dyn FundFetch>, cache: Arc<RwLock<HiqCache>>) -> Self {
+    pub fn new(client: Client, fetch: Arc<FundFetch>, cache: Arc<RwLock<Cache>>) -> Self {
         Self {
             client,
             fetch,
@@ -65,7 +65,7 @@ impl FundDailySyncer {
 
 #[async_trait]
 impl Syncer for FundDailySyncer {
-    async fn fetch(&self, tx: mpsc::UnboundedSender<HiqSyncData>) -> Result<()> {
+    async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         let data = {
             let mut data = Vec::new();
             let cache_info = self.cache.read().unwrap();
@@ -83,7 +83,7 @@ impl Syncer for FundDailySyncer {
                 info.code.as_str(),
                 TAB_FUND_DAILY
             );
-            let bar: Option<hiq_fetch::Bar> = query_one(
+            let bar: Option<rwqfetch::Bar> = query_one(
                 self.client.clone(),
                 TAB_FUND_DAILY,
                 doc! {"code": info.code.as_str()},
@@ -145,8 +145,8 @@ impl Syncer for FundDailySyncer {
         Ok(())
     }
 
-    async fn save(&self, data: HiqSyncData) -> Result<()> {
-        if let HiqSyncData::FundBar(info) = data {
+    async fn save(&self, data: SyncData) -> Result<()> {
+        if let SyncData::FundBar(info) = data {
             let bar = info.get(0).unwrap();
             let len = info.len();
             log::info!(

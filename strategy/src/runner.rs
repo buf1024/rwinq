@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use bson::doc;
 use futures::future::{join, join_all};
-use hiq_data::store::Loader;
+use rwqdata::store::Loader;
 
 use crate::{Error, ProgressFunc, Result, Strategy, StrategyResult, StrategyType};
 use tokio::{
@@ -10,14 +10,14 @@ use tokio::{
     task::JoinHandle,
 };
 
-pub fn strategy_to_data_type(typ: StrategyType) -> hiq_data::store::DataType {
+pub fn strategy_to_data_type(typ: StrategyType) -> rwqdata::store::DataType {
     match typ {
-        StrategyType::Bond => hiq_data::store::DataType::Bond,
-        StrategyType::Fund => hiq_data::store::DataType::Fund,
-        StrategyType::Stock => hiq_data::store::DataType::Stock,
-        StrategyType::Index => hiq_data::store::DataType::Index,
-        StrategyType::Concept => hiq_data::store::DataType::Concept,
-        StrategyType::Industry => hiq_data::store::DataType::Industry,
+        StrategyType::Bond => rwqdata::store::DataType::Bond,
+        StrategyType::Fund => rwqdata::store::DataType::Fund,
+        StrategyType::Stock => rwqdata::store::DataType::Stock,
+        StrategyType::Index => rwqdata::store::DataType::Index,
+        StrategyType::Concept => rwqdata::store::DataType::Concept,
+        StrategyType::Industry => rwqdata::store::DataType::Industry,
     }
 }
 
@@ -277,9 +277,9 @@ fn split_code(codes: Vec<(String, String)>, count: usize) -> Vec<Vec<(String, St
 mod tests {
     use std::sync::Arc;
 
-    use hiq_data::{
+    use rwqdata::{
         store::{get_loader, Loader},
-        HiqSyncDest,
+        SyncDest,
     };
     use tokio::sync::broadcast;
 
@@ -317,7 +317,7 @@ mod tests {
     #[test]
     fn test_runner() {
         fern::Dispatch::new()
-            // .filter(|f| f.target().starts_with("hiq"))
+            // .filter(|f| f.target().starts_with("rwinq"))
             .format(|out, message, record| {
                 out.finish(format_args!(
                     "{}[{}][{}] {}",
@@ -339,7 +339,7 @@ mod tests {
             .block_on(async {
                 log::info!("set up logger");
                 let (tx, _) = broadcast::channel(1);
-                let dest = HiqSyncDest::MongoDB("mongodb://localhost:27017".to_owned());
+                let dest = SyncDest::MongoDB("mongodb://localhost:27017".to_owned());
 
                 let (_, loader) = get_loader(&dest, true).await.unwrap();
                 let mut strategy: Box<dyn Strategy> = Box::new(TestStrategy {});

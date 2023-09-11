@@ -1,5 +1,5 @@
+use rwqstrategy::Strategy;
 use test_strategy::TestStrategy;
-use hiq_strategy::Strategy;
 
 mod test_strategy;
 
