@@ -3,10 +3,12 @@ from datetime import date
 
 
 async def fetch_trade_date() -> Set[int]:
+    """Rust封装的函数，除了返回会原始类外，同 :func:`~pywqfetch.fetch.fetch_trade_date` """
     pass
 
 
 def block_fetch_trade_date() -> Set[int]:
+    """Rust封装的函数，阻塞版本，除了返回会原始类外，同 :func:`~pywqfetch.fetch.block_fetch_trade_date` """
     pass
 
 
@@ -34,7 +36,16 @@ def block_fetch_is_trade_date(d: date) -> bool:
     pass
 
 
-def to_std_code(int, str) -> str:
+def to_std_code(typ: int, code: str) -> str:
+    """转化为内部使用前缀为sz/sh/bj的代码
+
+    Args:
+        typ (int): 市场品种 参考 :class:`~pywqfetch.MarketType`
+        code (str): 原始的代码
+
+    Returns:
+        str: 前缀为sz/sh/bj的代码
+    """
     pass
 
 
@@ -168,7 +179,7 @@ class StockFetch:
 
     async def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
         pass
-    
+
     async def fetch_stock_hot_rank(self, code: str) -> Dict:
         pass
 
@@ -232,7 +243,7 @@ class BlockStockFetch:
 
     def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
         pass
-    
+
     def fetch_stock_hot_rank(self, code: str) -> Dict:
         pass
 

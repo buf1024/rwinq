@@ -7,6 +7,15 @@ import pandas as pd
 
 
 class Fetch:
+    """
+    原始Rust包装类的汇聚类，包括债券，股票已经基金三类，通常使用此类来获取数据。
+
+    参考: 
+    :class:`~pywqfetch.pywqfetch.BondFetch`
+    :class:`~pywqfetch.pywqfetch.FundFetch`
+    :class:`~pywqfetch.pywqfetch.StockFetch`
+    """
+
     def __init__(self):
         self.bond_fetch = BondFetch()
         self.fund_fetch = FundFetch()
@@ -27,7 +36,7 @@ class Fetch:
 
         Returns:
             Union[Set[int], pd.DataFrame]: to_frame 为 False时，返回Set， 否则返回`pd.DataFrame`
-            
+
         >>> import pywqfetch as fetch
         >>> await fetch.fetch_trade_date(to_frame=True)
                 trade_date
@@ -44,21 +53,60 @@ class Fetch:
         return data
 
     @staticmethod
-    async def fetch_next_trade_date(d) -> datetime:
+    async def fetch_next_trade_date(d: Union[date, datetime]) -> date:
+        """获取某日的下一个交易日
+
+        Args:
+            d (Union[date, datetime]): 某时间
+
+        Returns:
+            date: 下一个交易日
+        """
         data = await fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    async def fetch_prev_trade_date(d) -> datetime:
+    async def fetch_prev_trade_date(d: Union[date, datetime]) -> date:
+        """获取某日的下一个交易日
+
+        Args:
+            d (Union[date, datetime]): 某时间
+
+        Returns:
+            date: 前一个交易日
+        """
         data = await fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    async def fetch_is_trade_date(d) -> bool:
+    async def fetch_is_trade_date(d: Union[date, datetime]) -> bool:
+        """测试某日是否交易日
+
+        Args:
+            d (Union[date, datetime]): 某日
+
+        Returns:
+            bool: True 交易日 False 非交易日
+        """
         return await fetch_is_trade_date(d)
 
     # bond
     async def fetch_bond_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+        """获取可转债基本信息
+
+        Args:
+            to_frame (bool, optional): 结果是否转换为`pd.DataFrame`格式。 默认: True。
+
+        Returns:
+            Union[List[Dict], pd.DataFrame]: 返回字段参考下面示例
+
+        >>> import pywqfetch as fetch
+        >>> await fetch.fetch_bond_info()
+                    code   name stock_code stock_name listing_date  is_delist
+            0    sz127091   科数转债   sz002335       科华数据   2023-09-12          0
+            ..        ...    ...        ...        ...          ...        ...
+            [540 rows x 6 columns]
+        """
         return self._to_dataframe(to_frame,
                                   await self.bond_fetch.fetch_bond_info())
 
@@ -68,6 +116,31 @@ class Fetch:
                              start: Optional[date] = None, end: Optional[date] = None,
                              skip_rt: bool = True,
                              to_frame=True, ) -> Dict:
+        """可转债k线数据
+
+        Args:
+            code (str): 可转债代码
+            name (str): 可转债名称
+            stock_code (str): 正股代码
+            stock_name (str): 正股名称
+            freq (Optional[int], optional): k线频率, 参考 :class:`~pywqfetch.BarFreq` 。默认None，即日线.
+            start (Optional[date], optional): 开始时间，默认None，即上市时间。
+            end (Optional[date], optional): 结束时间，默认None，即当前时间。
+            skip_rt (bool, optional): 是否忽略实时k线. 默认 True.
+            to_frame (bool, optional): 结果bar是否转换为pd.DataFrame 默认 True.
+
+        Returns:
+            Dict: 返回字段参考下面示例
+            
+        >>> await fetch.fetch_stock_bar(code='bj836675')
+            {'code': 'bj836675',
+            'name': '秉扬科技',
+            'freq': 101,
+            'bars':          code  name trade_date  open  close  high   low  volume       amount  turnover  chg_pct  volume_chg_pct  amount_chg_pct  hfq_factor
+            0    bj836675  秉扬科技 2018-01-16  4.99   4.98  4.99  4.98      20      9970.00   0.00   -30.83        0.000000        0.000000    1.030120 
+            ..        ...      ...             ...             ...         ...  
+            [738 rows x 14 columns]}
+        """
         data = await self.bond_fetch.fetch_bond_bar(code=code, name=name,
                                                     stock_code=stock_code, stock_name=stock_name,
                                                     freq=freq, start=start, end=end, skip_rt=skip_rt)
@@ -204,6 +277,12 @@ class Fetch:
 
 
 class BlockFetch:
+    """阻塞版本 :class:`~pywqfetch.fetch.Fetch` ，功能一模一样。
+
+    参考: 
+    :class:`~pywqfetch.fetch.Fetch`
+    """
+
     def __init__(self):
         self.bond_fetch = BlockBondFetch()
         self.fund_fetch = BlockFundFetch()
@@ -225,17 +304,20 @@ class BlockFetch:
         return data
 
     @staticmethod
-    def fetch_next_trade_date(d) -> date:
+    def fetch_next_trade_date(d: Union[date, datetime]) -> date:
+        """阻塞版本, 同 :func:`~pywqfetch.Fetch.fetch_next_trade_date`"""
         data = block_fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    def fetch_prev_trade_date(d) -> date:
+    def fetch_prev_trade_date(d: Union[date, datetime]) -> date:
+        """阻塞版本, 同 :func:`~pywqfetch.Fetch.fetch_prev_trade_date`"""
         data = block_fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
     def fetch_is_trade_date(d) -> bool:
+        """阻塞版本, 同 :func:`~pywqfetch.Fetch.fetch_is_trade_date`"""
         return block_fetch_is_trade_date(d)
 
     # bond

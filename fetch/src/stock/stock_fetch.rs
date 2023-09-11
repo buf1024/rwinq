@@ -1,8 +1,7 @@
 use crate::comm::{async_client, fetch_bar, to_bar_ds};
 use crate::stock::trans_info::{
-    EastStockIndex, EastStockIndexDataDetailValue, EastStockIndustry, EastStockInfoMargin,
-    EastStockMargin, EastStockYJBB, ExchStockInfo, XuQiuStockRtQuot,
-    EastStockHotRankResult
+    EastStockHotRankResult, EastStockIndex, EastStockIndexDataDetailValue, EastStockIndustry,
+    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchStockInfo, XuQiuStockRtQuot,
 };
 use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, HTTP_CMM_HEADER};
@@ -18,7 +17,6 @@ use rwqcmm::{
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::ops::Add;
-
 
 pub struct StockFetch {
     client: Client,
@@ -42,9 +40,6 @@ impl StockFetch {
             _ => "".into(),
         }
     }
-}
-
-impl  StockFetch {
     /// 股票大盘指数（列举几个而已）
     pub async fn fetch_index_info(&self) -> Result<Vec<StockInfo>> {
         let data = vec![
@@ -196,7 +191,7 @@ impl  StockFetch {
     /// 获取融资融券股票代码
     pub async fn fetch_stock_is_margin(&self) -> Result<HashSet<String>> {
         let mut page = 1;
-        const PAGE_SIZE: i32 = 2000;
+        let page_size: i32 = 2000;
         let mut total = 0;
         let mut data = HashSet::new();
         loop {
@@ -205,7 +200,7 @@ impl  StockFetch {
             cb=jQuery1123017621166317571624_1639204790874&fid=f62&po=1&pz={page_size}&pn={page}&\
             np=1&fltt=2&invt=2&ut=b2884a393a59ad64002292a3e90d46a5&fs=b%3ABK0596&fields=f12",
                 page = page,
-                page_size = PAGE_SIZE
+                page_size = page_size
             );
 
             let resp = self.client.get(req_url).send().await?.text().await?;
@@ -246,6 +241,7 @@ impl  StockFetch {
             // 上海市场
             format!("{}.{}", Market::SH as i32, &code[2..])
         } else {
+            // 深圳和北京一样是0
             format!("{}.{}", Market::SZ as i32, &code[2..])
         };
 
@@ -287,12 +283,12 @@ impl  StockFetch {
         let mut data = HashMap::new();
         let mut page_num: i64 = 1;
         let mut total: usize = 0;
-        const PAGE_SIZE: usize = 2000;
+        let page_size: usize = 2000;
         loop {
             let req_url = format!("https://push2.eastmoney.com/api/qt/clist/get?\
             pn={page_num}&pz={page_size}&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&\
             fid=f3&fs=m:0+t:6,m:0+t:13,m:0+t:80,m:1+t:2,m:1+t:23&fields=f2,f9,f12,f14,f20,f21,f23&\
-            _=1626075887768", page_num = page_num, page_size = PAGE_SIZE);
+            _=1626075887768", page_num = page_num, page_size = page_size);
 
             let resp = self.client.get(req_url).send().await?.text().await?;
 
@@ -578,7 +574,7 @@ impl  StockFetch {
         );
 
         let mut page = 1;
-        const PAGE_SIZE: i32 = 500;
+        let page_size: i32 = 500;
         let mut data = Vec::new();
         let mut total_page = 0;
 
@@ -586,7 +582,7 @@ impl  StockFetch {
             let req_url = format!("http://datacenter.eastmoney.com/api/data/get?\
             st=UPDATE_DATE%2CSECURITY_CODE&sr=-1%2C-1&ps={page_size}&p={page}&type=RPT_LICO_FN_CPD&sty=ALL&\
             token=894050c76af8597a853f5b408b759f5d&filter=%28REPORTDATE%3D%27{season_date}%27%29",
-                                  page_size = PAGE_SIZE, page = page, season_date = season_date);
+                                  page_size = page_size, page = page, season_date = season_date);
 
             let resp = self.client.get(req_url).send().await?.text().await?;
 
@@ -688,7 +684,7 @@ impl  StockFetch {
         end: Option<NaiveDate>,
     ) -> Result<Vec<StockMargin>> {
         let mut page = 1;
-        const PAGE_SIZE: i32 = 500;
+        let page_size: i32 = 500;
         let mut data = Vec::new();
         let mut total_page = 0;
 
@@ -702,7 +698,7 @@ impl  StockFetch {
             reportName=RPTA_WEB_RZRQ_GGMX&columns=ALL&source=WEB&sortColumns=date&sortTypes=-1&\
             pageNumber={page}&pageSize={page_size}&filter=(scode%3D%22{code}%22)&pageNo={page}&\
             _=1668232304568",
-                page_size = PAGE_SIZE,
+                page_size = page_size,
                 page = page,
                 code = &code[2..]
             );
@@ -766,7 +762,10 @@ impl  StockFetch {
     }
 
     /// 实时行情
-    pub async fn fetch_stock_rt_quot(&self, code: Vec<&str>) -> Result<HashMap<String, StockRtQuot>> {
+    pub async fn fetch_stock_rt_quot(
+        &self,
+        code: Vec<&str>,
+    ) -> Result<HashMap<String, StockRtQuot>> {
         let codes = code
             .iter()
             .map(|s| s.to_uppercase())
@@ -940,7 +939,7 @@ mod tests {
                 // let end = start.clone();
                 let fetch = StockFetch::new();
                 let data = fetch
-                    .fetch_stock_bar("sz301200", None, None, Some(start), None, false)
+                    .fetch_stock_bar("bj836675", None, None, Some(start), None, false)
                     .await;
                 assert!(data.is_ok());
 

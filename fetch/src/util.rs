@@ -1,6 +1,6 @@
 use crate::MarketType;
 
-/// 原始的代码表示为内部的代码格式，内部格式为sz/sh + 代码
+/// 原始的代码表示为内部的代码格式，内部格式为sz/sh/bj + 代码
 ///
 /// # Examples
 /// ```
@@ -31,9 +31,11 @@ pub fn to_std_code(typ: MarketType, code: &str) -> String {
         MarketType::Stock => {
             if code.starts_with("6") {
                 format!("sh{}", code)
-            } else {
-                // todo 北交所？
+            } else if code.starts_with("0") || code.starts_with("3") {
                 format!("sz{}", code)
+            } else {
+                // 北交所
+                format!("bj{}", code)
             }
         }
     }

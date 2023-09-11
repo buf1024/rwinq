@@ -69,6 +69,7 @@ pub(crate) static HTTP_CMM_HEADER: Lazy<HeaderMap> = Lazy::new(|| {
 pub enum Market {
     SZ = 0,
     SH = 1,
+    BJ = 2
 }
 
 /// 市场交易类型： 可转债，etf基金，股票
