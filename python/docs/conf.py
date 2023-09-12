@@ -80,7 +80,7 @@ def setup(app):
 extensions.append('autoapi.extension')
 extensions.append("sphinx.ext.napoleon")
 autoapi_type = 'python'
-autoapi_dirs = ['../../pywqfetch', '../../pywqdata',]
+autoapi_dirs = ['../pywqfetch', '../pywqdata',]
 autoapi_options = ['members', 'undoc-members', 'show-inheritance',
                    'show-module-summary', 'show-inheritance-diagram', 'imported-members']
 # autoapi_options = ['members', 'undoc-members', 'show-inheritance',
