@@ -43,6 +43,8 @@ source_suffix = {
     '.rst': 'restructuredtext'
 }
 
+# 去掉查看页面源码
+html_show_sourcelink = False
 
 # todo插件的设置
 todo_include_todos = True
@@ -65,7 +67,7 @@ def setup(app):
         "recommonmark_config",
         {
             # "url_resolver": lambda url:  github_url + url,
-            "auto_toc_tree_section": "目录",
+            # "auto_toc_tree_section": "目录",
             "enable_math": True,  # 支持 math,注意目前inline_math会有问题因此不建议使用.
             'enable_eval_rst': True,  # 支持嵌入rst
         }, True

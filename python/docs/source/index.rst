@@ -3,21 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pywinq's documentation!
+pywinq 文档
 ==================================
 
 .. note::
 
-   Please visit `Github`_ for source code or visit `Issues`_ if you have any question!
+   源码在 `Github`_ , 提BUG点 `Issues`_。
 
 .. _Github: https://github.com/buf1024/rwinq
 
-.. _Issues: https://github.com/akfamily/buf1024/rwinq
+.. _Issues: https://github.com/buf1024/rwinq
 
 .. toctree::
    :maxdepth: 2
-   :caption: 目录
 
+   intro
+   data/index
 
 
 索引
