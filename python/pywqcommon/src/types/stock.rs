@@ -305,41 +305,6 @@ impl IntoPy<PyObject> for StockMargin {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StockRtQuot {
-    pub(crate) inner: rwqcmm::StockRtQuot,
-}
-
-impl From<rwqcmm::StockRtQuot> for StockRtQuot {
-    fn from(inner: rwqcmm::StockRtQuot) -> Self {
-        Self { inner }
-    }
-}
-
-impl IntoPy<PyObject> for StockRtQuot {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        let dict = PyDict::new(py);
-        dict.set_item("code", self.inner.code).unwrap();
-        dict.set_item("time", self.inner.time).unwrap();
-        dict.set_item("last_close", self.inner.last_close).unwrap();
-        dict.set_item("open", self.inner.open).unwrap();
-        dict.set_item("high", self.inner.high).unwrap();
-        dict.set_item("low", self.inner.low).unwrap();
-        dict.set_item("last", self.inner.last).unwrap();
-        dict.set_item("chg", self.inner.chg).unwrap();
-        dict.set_item("chg_pct", self.inner.chg_pct).unwrap();
-        dict.set_item("volume", self.inner.volume).unwrap();
-        dict.set_item("amount", self.inner.amount).unwrap();
-        dict.set_item("turnover", self.inner.turnover).unwrap();
-        dict.set_item("total_value", self.inner.total_value)
-            .unwrap();
-        dict.set_item("currency_value", self.inner.currency_value)
-            .unwrap();
-        dict.set_item("is_trading", self.inner.is_trading).unwrap();
-        dict.into()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StockHotRank {
     pub(crate) inner: rwqcmm::StockHotRank,
 }
@@ -357,7 +322,7 @@ impl IntoPy<PyObject> for StockHotRank {
         dict.set_item("market_all_count", self.inner.market_all_count)
             .unwrap();
         dict.set_item("rank", self.inner.rank).unwrap();
-        dict.set_item("rank_chang", self.inner.rank_chang).unwrap();
+        dict.set_item("rank_chg", self.inner.rank_chg).unwrap();
         dict.set_item("calc_time", self.inner.calc_time).unwrap();
 
         dict.into()

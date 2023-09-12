@@ -1,7 +1,8 @@
 use crate::comm::EastBar;
-use crate::{AdjustFactor, Result, HTTP_CMM_HEADER};
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, Timelike};
-use rwqcmm::{Bar, BarFreq};
+use crate::{AdjustFactor, Error, Result, XuQiuRtQuot, HTTP_CMM_HEADER};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike};
+use rwqcmm::{Bar, BarFreq, RtQuot};
+use std::collections::HashMap;
 use std::ops::Add;
 
 use super::trade_date::fetch_prev_trade_date;
@@ -195,4 +196,93 @@ pub(crate) async fn fetch_bar(
         }
     }
     Ok(data)
+}
+
+/// 实时行情
+pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
+    let codes = code
+        .iter()
+        .map(|s| s.to_uppercase())
+        .collect::<Vec<_>>()
+        .join("%2C");
+
+    let req_url = format!(
+        "https://stock.xueqiu.com/v5/stock/realtime/quotec.json?\
+    symbol={codes}",
+        codes = codes
+    );
+    let client = async_client();
+
+    let resp = client.get(req_url).send().await?.text().await?;
+
+    let json: XuQiuRtQuot = serde_json::from_str(&resp)?;
+    let data = json
+        .data
+        .ok_or(Error::Custom("Error fetch quotation".to_string()))?;
+
+    let data: Vec<_> = data
+        .iter()
+        .map(|item| {
+            let code = item.symbol.to_lowercase();
+            let time = Local
+                .timestamp_opt(item.timestamp / 1000, 0)
+                .unwrap()
+                .naive_local();
+            let mut is_trading = false;
+            let t = time.time();
+            let ms = NaiveTime::from_hms_opt(9, 30, 0).unwrap();
+            let me = NaiveTime::from_hms_opt(11, 30, 0).unwrap();
+            let ns = NaiveTime::from_hms_opt(13, 0, 0).unwrap();
+            let ne = NaiveTime::from_hms_opt(15, 0, 0).unwrap();
+            if (t > ms && t < me) || (t > ns && t < ne) {
+                is_trading = true;
+            }
+            (
+                code.clone(),
+                RtQuot {
+                    code,
+                    time,
+                    last_close: item.last_close,
+                    open: item.open,
+                    high: item.high,
+                    low: item.low,
+                    last: item.last,
+                    chg: item.chg,
+                    chg_pct: item.percent,
+                    volume: item.volume,
+                    amount: item.amount,
+                    turnover: item.turnover_rate,
+                    total_value: item.market_capital,
+                    currency_value: item.float_market_capital,
+                    is_trading: is_trading,
+                },
+            )
+        })
+        .collect();
+
+    Ok(data.into_iter().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fetch_rt_quot;
+
+    #[test]
+    fn test_fetch_rt_quot() {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"])
+                    .await;
+                println!("{:?}", data);
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                assert!(data.len() > 0);
+                data.iter().for_each(|(key, val)| {
+                    println!("data[{}]={:?}", key, val);
+                });
+            })
+    }
 }

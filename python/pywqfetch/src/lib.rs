@@ -5,7 +5,7 @@ mod stock;
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 use crate::bond::{BlockBondFetch, BondFetch};
 use crate::fund::{BlockFundFetch, FundFetch};
@@ -83,6 +83,32 @@ fn to_std_code(typ: i32, code: &str) -> PyResult<String> {
     Ok(rwqfetch::to_std_code(typ, code))
 }
 
+#[pyfunction]
+fn fetch_rt_quot<'a>(py: Python<'a>, code: Vec<&str>) -> PyResult<&'a PyAny> {
+    let code: Vec<_> = code.into_iter().map(String::from).collect();
+    pyo3_asyncio::tokio::future_into_py(py, async move {
+        let code: Vec<_> = code.iter().map(|e| &e[..]).collect();
+        Ok(rwqfetch::fetch_rt_quot(code)
+            .await
+            .map_err(|e| PyException::new_err(e.to_string()))?
+            .into_iter()
+            .map(|(key, value)| (key, RtQuot::from(value)))
+            .collect::<HashMap<String, RtQuot>>())
+    })
+}
+#[pyfunction]
+fn block_fetch_rt_quot(code: Vec<&str>) -> PyResult<HashMap<String, RtQuot>> {
+    Ok(runtime()?
+        .block_on(async move {
+            let code: Vec<_> = code.iter().map(|e| &e[..]).collect();
+            rwqfetch::fetch_rt_quot(code).await
+        })
+        .map_err(|e| PyException::new_err(e.to_string()))?
+        .into_iter()
+        .map(|(key, value)| (key, RtQuot::from(value)))
+        .collect::<HashMap<String, RtQuot>>())
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pywqfetch(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -95,6 +121,8 @@ fn pywqfetch(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fetch_is_trade_date, m)?)?;
     m.add_function(wrap_pyfunction!(block_fetch_is_trade_date, m)?)?;
     m.add_function(wrap_pyfunction!(to_std_code, m)?)?;
+    m.add_function(wrap_pyfunction!(fetch_rt_quot, m)?)?;
+    m.add_function(wrap_pyfunction!(block_fetch_rt_quot, m)?)?;
     m.add_class::<BondFetch>()?;
     m.add_class::<BlockBondFetch>()?;
     m.add_class::<FundFetch>()?;

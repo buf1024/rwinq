@@ -85,3 +85,39 @@ impl From<i32> for BarFreq {
         }
     }
 }
+
+/// 实时行情
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RtQuot {
+    /// 代码
+    pub code: String,
+    /// 行情时间
+    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    pub time: NaiveDateTime,
+    /// 昨收价
+    pub last_close: f32,
+    /// 开盘价
+    pub open: f32,
+    /// 最高价
+    pub high: f32,
+    /// 最低价
+    pub low: f32,
+    /// 最后一口价（最新价）
+    pub last: f32,
+    /// 涨跌额
+    pub chg: f32,
+    /// 涨幅
+    pub chg_pct: f32,
+    /// 成交量
+    pub volume: i64,
+    /// 成交额
+    pub amount: f64,
+    /// 换手率
+    pub turnover: f32,
+    /// 总市值
+    pub total_value: f64,
+    /// 流通市值
+    pub currency_value: f64,
+    /// 是否交易
+    pub is_trading: bool,
+}

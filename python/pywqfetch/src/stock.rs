@@ -1,6 +1,6 @@
 use crate::{
     StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockIndex, StockIndustry,
-    StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot, StockYJBB,
+    StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockYJBB,
 };
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
@@ -297,21 +297,6 @@ impl StockFetch {
             Ok(hot_rank)
         })
     }
-    /// 实时行情
-    fn fetch_stock_rt_quot<'a>(&self, py: Python<'a>, code: Vec<&str>) -> PyResult<&'a PyAny> {
-        let fetch = self.fetch.clone();
-        let code: Vec<_> = code.into_iter().map(String::from).collect();
-        pyo3_asyncio::tokio::future_into_py(py, async move {
-            let code: Vec<_> = code.iter().map(|e| &e[..]).collect();
-            Ok(fetch
-                .fetch_stock_rt_quot(code)
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into_iter()
-                .map(|(key, value)| (key, StockRtQuot::from(value)))
-                .collect::<HashMap<String, StockRtQuot>>())
-        })
-    }
 }
 
 #[pyclass]
@@ -512,14 +497,5 @@ impl BlockStockFetch {
             .block_on(self.fetch.fetch_stock_hot_rank(code))
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
-    }
-    /// 实时行情
-    fn fetch_stock_rt_quot(&self, code: Vec<&str>) -> PyResult<HashMap<String, StockRtQuot>> {
-        Ok(runtime()?
-            .block_on(self.fetch.fetch_stock_rt_quot(code))
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into_iter()
-            .map(|(key, value)| (key, StockRtQuot::from(value)))
-            .collect())
     }
 }

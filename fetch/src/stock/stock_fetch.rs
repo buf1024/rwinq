@@ -1,18 +1,17 @@
 use crate::comm::{async_client, fetch_bar, to_bar_ds};
 use crate::stock::trans_info::{
     EastStockHotRankResult, EastStockIndex, EastStockIndexDataDetailValue, EastStockIndustry,
-    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchStockInfo, XuQiuStockRtQuot,
+    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchStockInfo,
 };
 use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, HTTP_CMM_HEADER};
 use calamine::{open_workbook_auto_from_rs, DataType, Reader};
-use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
+use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime};
 use reqwest::header::*;
 use reqwest::Client;
 use rwqcmm::{
     BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockHotRank, StockIndex,
-    StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockRtQuot,
-    StockYJBB,
+    StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockYJBB,
 };
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
@@ -761,73 +760,6 @@ impl StockFetch {
         Ok(data)
     }
 
-    /// 实时行情
-    pub async fn fetch_stock_rt_quot(
-        &self,
-        code: Vec<&str>,
-    ) -> Result<HashMap<String, StockRtQuot>> {
-        let codes = code
-            .iter()
-            .map(|s| s.to_uppercase())
-            .collect::<Vec<_>>()
-            .join("%2C");
-
-        let req_url = format!(
-            "https://stock.xueqiu.com/v5/stock/realtime/quotec.json?\
-        symbol={codes}",
-            codes = codes
-        );
-
-        let resp = self.client.get(req_url).send().await?.text().await?;
-
-        let json: XuQiuStockRtQuot = serde_json::from_str(&resp)?;
-        let data = json
-            .data
-            .ok_or(Error::Custom("Error fetch quotation".to_string()))?;
-
-        let data: Vec<_> = data
-            .iter()
-            .map(|item| {
-                let code = item.symbol.to_lowercase();
-                let time = Local
-                    .timestamp_opt(item.timestamp / 1000, 0)
-                    .unwrap()
-                    .naive_local();
-                let mut is_trading = false;
-                let t = time.time();
-                let ms = NaiveTime::from_hms_opt(9, 30, 0).unwrap();
-                let me = NaiveTime::from_hms_opt(11, 30, 0).unwrap();
-                let ns = NaiveTime::from_hms_opt(13, 0, 0).unwrap();
-                let ne = NaiveTime::from_hms_opt(15, 0, 0).unwrap();
-                if (t > ms && t < me) || (t > ns && t < ne) {
-                    is_trading = true;
-                }
-                (
-                    code.clone(),
-                    StockRtQuot {
-                        code,
-                        time,
-                        last_close: item.last_close,
-                        open: item.open,
-                        high: item.high,
-                        low: item.low,
-                        last: item.last,
-                        chg: item.chg,
-                        chg_pct: item.percent,
-                        volume: item.volume,
-                        amount: item.amount,
-                        turnover: item.turnover_rate,
-                        total_value: item.market_capital,
-                        currency_value: item.float_market_capital,
-                        is_trading: is_trading,
-                    },
-                )
-            })
-            .collect();
-
-        Ok(data.into_iter().collect())
-    }
-
     /// 股票排名
     pub async fn fetch_stock_hot_rank(&self, code: &str) -> Result<StockHotRank> {
         let req_url = "https://emappdata.eastmoney.com/stockrank/getCurrentLatest";
@@ -853,7 +785,7 @@ impl StockFetch {
             code: code.into(),
             market_all_count: data.market_all_count,
             rank: data.rank,
-            rank_chang: data.rank_change,
+            rank_chg: data.rank_chg,
             calc_time: NaiveDateTime::parse_from_str(data.calc_time, "%Y-%m-%d %H:%M:%S").unwrap(),
         })
     }
@@ -1153,27 +1085,6 @@ mod tests {
                 let data = data.unwrap();
 
                 println!("data={:?}", data);
-            })
-    }
-
-    #[test]
-    fn test_fetch_stock_rt_quot() {
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(async {
-                let fetch = StockFetch::new();
-                let data = fetch
-                    .fetch_stock_rt_quot(vec!["sz000001", "sz002805", "sh600887"])
-                    .await;
-                println!("{:?}", data);
-                assert!(data.is_ok());
-                let data = data.unwrap();
-                assert!(data.len() > 0);
-                data.iter().for_each(|(key, val)| {
-                    println!("data[{}]={:?}", key, val);
-                });
             })
     }
 }

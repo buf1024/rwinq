@@ -11,10 +11,11 @@ import sys
 import sphinx_rtd_theme
 from recommonmark.transform import AutoStructify
 from recommonmark.parser import CommonMarkParser
+from datetime import datetime
 
 
 project = 'pywinq'
-copyright = '2023, buf1024@gmail.com'
+copyright = f'{datetime.now().year}, buf1024@gmail.com'
 author = 'buf1024@gmail.com'
 release = '1.0.0'
 
@@ -54,6 +55,8 @@ extensions.append('sphinx_rtd_theme')
 
 # 使用插件支持markdown
 extensions.append('recommonmark')
+extensions.append('sphinx_markdown_tables')
+
 
 # 针对`.md`为后缀的文件做markdown渲染
 source_suffix[".md"] = 'markdown'
@@ -62,11 +65,11 @@ source_suffix[".md"] = 'markdown'
 
 
 def setup(app):
-    github_url = 'https://github.com/buf1024/rwinq'
+    github_doc_url = 'https://github.com/buf1024/rwinq/tree/main/python/docs'
     app.add_config_value(
         "recommonmark_config",
         {
-            # "url_resolver": lambda url:  github_url + url,
+            "url_resolver": lambda url:  github_doc_url + url,
             # "auto_toc_tree_section": "目录",
             "enable_math": True,  # 支持 math,注意目前inline_math会有问题因此不建议使用.
             'enable_eval_rst': True,  # 支持嵌入rst
@@ -75,8 +78,7 @@ def setup(app):
     app.add_transform(AutoStructify)
 
 
-# autoapi-python
-
+#autoapi-python
 extensions.append('autoapi.extension')
 extensions.append("sphinx.ext.napoleon")
 autoapi_type = 'python'

@@ -301,7 +301,7 @@ pub(crate) struct EastStockHotRankData<'a> {
     pub rank: i32,
 
     #[serde(rename(deserialize = "rankChange"))]
-    pub rank_change: i32,
+    pub rank_chg: i32,
 
     // #[serde(rename(deserialize = "hisRankChange"))]
     // pub his_rank_change: i32,
@@ -311,31 +311,4 @@ pub(crate) struct EastStockHotRankData<'a> {
 
     // pub flag: i32,
 
-}
-
-/// stock_rt_quot
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct XuQiuStockRtQuot<'a> {
-    #[serde(borrow)]
-    pub data: Option<Vec<XuQiuStockRtQuotData<'a>>>,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct XuQiuStockRtQuotData<'a> {
-    pub timestamp: i64,
-    #[serde(borrow)]
-    pub symbol: &'a str,
-    pub last_close: f32,
-    pub open: f32,
-    pub high: f32,
-    pub low: f32,
-    #[serde(rename(deserialize = "current"))]
-    pub last: f32,
-    pub chg: f32,
-    pub percent: f32,
-    pub volume: i64,
-    pub amount: f64,
-    pub turnover_rate: f32,
-    pub market_capital: f64,
-    pub float_market_capital: f64,
-    pub is_trade: bool,
 }

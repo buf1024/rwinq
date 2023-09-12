@@ -1,9 +1,9 @@
 import json
 from typing import Dict, List, Optional
 
-from rwqpy.strategy.base_strategy import BaseStrategy
-from pywqdata.rwqloader import Loader
-from rwqpyfetch.rwqfetch import Fetch
+from pywq.strategy.base_strategy import BaseStrategy
+from pywqdata.loader import Loader
+from pywqfetch.fetch import Fetch
 from pywqstrategy.strategy import CommonParam, StrategyResult, StrategyType
 
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     import logging
     import nest_asyncio
 
-    from rwqpy.common import run_until_complete
+    from pywq.common import run_until_complete
     from pywqdata import get_loader
     from pywqstrategy import Runner
 

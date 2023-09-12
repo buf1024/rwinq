@@ -18,12 +18,9 @@ pywinq 文档
    :maxdepth: 2
 
    intro
-   data/index
+   fetch/index
+   data
+   select
+   backtest
 
 
-索引
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
