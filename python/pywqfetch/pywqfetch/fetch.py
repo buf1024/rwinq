@@ -1,9 +1,24 @@
 from datetime import date, datetime
 from typing import List, Dict, Union, Optional, Set
 
-from pywqfetch.pywqfetch import BlockBondFetch, BlockFundFetch, BlockStockFetch, BondFetch, FundFetch, StockFetch, block_fetch_next_trade_date, block_fetch_prev_trade_date, fetch_next_trade_date, fetch_is_trade_date, block_fetch_is_trade_date, fetch_prev_trade_date, fetch_trade_date, block_fetch_trade_date, fetch_rt_quot, block_fetch_rt_quot
+from pywqfetch.pywqfetch import BlockBondFetch, BlockFundFetch, BlockStockFetch, BondFetch, FundFetch, StockFetch, block_fetch_next_trade_date, block_fetch_prev_trade_date, fetch_next_trade_date, fetch_is_trade_date, block_fetch_is_trade_date, fetch_prev_trade_date, fetch_trade_date, block_fetch_trade_date, fetch_rt_quot, block_fetch_rt_quot, calc_chip_dist as _calc_chip_dist, calc_cost as _calc_cost, calc_winner as _calc_winner
+
 
 import pandas as pd
+
+
+def calc_chip_dist(*, data: pd.DataFrame, ac: int = 1, chip_dist: Dict = None) -> Dict:
+    data = data.to_dict('records')
+    return _calc_chip_dist(data=data, ac=ac, chip_dist=chip_dist)
+
+
+def calc_winner(*, chip_dist: Dict, data: pd.DataFrame = None, price: float = None) -> Dict:
+    data = data.to_dict('records') if data is not None else None
+    return _calc_winner(chip_dist=chip_dist, data=data, price=price)
+
+
+def calc_cost(*, chip_dist: Dict, ratio: int) -> Dict:
+    return _calc_cost(chip_dist=chip_dist, ratio=ratio)
 
 
 async def _fetch_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
@@ -111,9 +126,9 @@ class Fetch:
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
-    async def fetch_stock_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    async def fetch_stock_info(self, *, market: int = None, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,
-                                  await self.stock_fetch.fetch_stock_info())
+                                  await self.stock_fetch.fetch_stock_info(market))
 
     async def fetch_stock_is_margin(self, *, to_frame=True) -> Union[Set[str], pd.DataFrame]:
         data = await self.stock_fetch.fetch_stock_is_margin()
@@ -291,9 +306,9 @@ class BlockFetch:
         data['bars'] = self._to_dataframe(to_frame, data['bars'])
         return data
 
-    def fetch_stock_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    def fetch_stock_info(self, *, market: int = None,  to_frame=True) -> Union[List[Dict], pd.DataFrame]:
         return self._to_dataframe(to_frame,
-                                  self.stock_fetch.fetch_stock_info())
+                                  self.stock_fetch.fetch_stock_info(market))
 
     def fetch_stock_is_margin(self, *, to_frame=True) -> Union[Set[str], pd.DataFrame]:
         data = self.stock_fetch.fetch_stock_is_margin()

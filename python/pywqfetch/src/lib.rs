@@ -2,6 +2,9 @@ mod bond;
 mod fund;
 mod stock;
 
+mod ta;
+mod types;
+
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
@@ -11,6 +14,8 @@ use crate::bond::{BlockBondFetch, BondFetch};
 use crate::fund::{BlockFundFetch, FundFetch};
 use crate::stock::{BlockStockFetch, StockFetch};
 pub(crate) use pywqcmm::*;
+
+use crate::ta::{calc_chip_dist, calc_cost, calc_winner};
 
 /// Fetch trade_date.
 #[pyfunction]
@@ -123,6 +128,9 @@ fn pywqfetch(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(to_std_code, m)?)?;
     m.add_function(wrap_pyfunction!(fetch_rt_quot, m)?)?;
     m.add_function(wrap_pyfunction!(block_fetch_rt_quot, m)?)?;
+    m.add_function(wrap_pyfunction!(calc_chip_dist, m)?)?;
+    m.add_function(wrap_pyfunction!(calc_winner, m)?)?;
+    m.add_function(wrap_pyfunction!(calc_cost, m)?)?;
     m.add_class::<BondFetch>()?;
     m.add_class::<BlockBondFetch>()?;
     m.add_class::<FundFetch>()?;

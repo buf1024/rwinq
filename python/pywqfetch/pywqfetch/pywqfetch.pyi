@@ -38,11 +38,23 @@ def to_std_code(typ: int, code: str) -> str:
     pass
 
 
-async def fetch_rt_quot(self, code: List[str]) -> Dict[str, Dict]:
+async def fetch_rt_quot(code: List[str]) -> Dict[str, Dict]:
     pass
 
 
-def block_fetch_rt_quot(self, code: List[str]) -> Dict[str, Dict]:
+def block_fetch_rt_quot(code: List[str]) -> Dict[str, Dict]:
+    pass
+
+
+def calc_chip_dist(data: List[Dict], ac: int = 1, chip_dist: Dict = None) -> Dict:
+    pass
+
+
+def calc_winner(chip_dist: Dict, data: List[Dict] = None, price: float = None) -> Dict:
+    pass
+
+
+def calc_cost(chip_dist: Dict, ratio: int) -> Dict:
     pass
 
 
@@ -130,7 +142,7 @@ class StockFetch:
                               skip_rt: bool = True) -> Dict:
         pass
 
-    async def fetch_stock_info(self) -> List[Dict]:
+    async def fetch_stock_info(self, market: int = 0) -> List[Dict]:
         pass
 
     async def fetch_stock_is_margin(self) -> Set[str]:
@@ -194,7 +206,7 @@ class BlockStockFetch:
                         skip_rt: bool = True) -> Dict:
         pass
 
-    def fetch_stock_info(self) -> List[Dict]:
+    def fetch_stock_info(self, market: int = 0) -> List[Dict]:
         pass
 
     def fetch_stock_is_margin(self) -> Set[str]:

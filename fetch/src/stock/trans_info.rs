@@ -1,21 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-/// stock_info
+/// stock_info bj
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct ExchStockInfo<'a> {
+pub(crate) struct ExchSHStockInfo<'a> {
     #[serde(borrow)]
     #[serde(rename(deserialize = "pageHelp"))]
-    pub page_help: ExchStockInfoPageHelp<'a>,
+    pub page_help: ExchSHStockInfoPageHelp<'a>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct ExchStockInfoPageHelp<'a> {
+pub(crate) struct ExchSHStockInfoPageHelp<'a> {
     #[serde(borrow)]
-    pub data: Vec<ExchStockInfoData<'a>>,
+    pub data: Vec<ExchSHStockInfoData<'a>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct ExchStockInfoData<'a> {
+pub(crate) struct ExchSHStockInfoData<'a> {
     #[serde(borrow)]
     #[serde(rename(deserialize = "COMPANY_ABBR"))]
     pub name: &'a str,
@@ -30,6 +30,31 @@ pub(crate) struct ExchStockInfoData<'a> {
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "LIST_DATE"))]
+    pub list_date: &'a str,
+}
+
+/// stock_info bj
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct ExchBJStockInfo<'a> {
+    #[serde(borrow)]
+    pub content: Vec<ExchBJStockInfoData<'a>>,
+
+    #[serde(rename(deserialize = "totalPages"))]
+    pub total_page: isize,
+
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct ExchBJStockInfoData<'a> {
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "xxzqjc"))]
+    pub name: &'a str,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "xxzqdm"))]
+    pub code: &'a str,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "fxssrq"))]
     pub list_date: &'a str,
 }
 
@@ -282,7 +307,6 @@ pub(crate) struct EastStockHotRankData<'a> {
     // #[serde(borrow)]
     // #[serde(rename(deserialize = "marketType"))]
     // pub market_type: &'a str,
-
     #[serde(rename(deserialize = "marketAllCount"))]
     pub market_all_count: i32,
 
@@ -297,12 +321,10 @@ pub(crate) struct EastStockHotRankData<'a> {
     // #[serde(borrow)]
     // #[serde(rename(deserialize = "srcSecurityCode"))]
     // pub src_security_code: &'a str,
-
     pub rank: i32,
 
     #[serde(rename(deserialize = "rankChange"))]
     pub rank_chg: i32,
-
     // #[serde(rename(deserialize = "hisRankChange"))]
     // pub his_rank_change: i32,
 
@@ -310,5 +332,4 @@ pub(crate) struct EastStockHotRankData<'a> {
     // pub his_rank_change_rank: i32,
 
     // pub flag: i32,
-
 }

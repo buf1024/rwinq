@@ -6,6 +6,7 @@ use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pywqcmm::{runtime, StockHotRank};
+use rwqfetch::Market;
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
@@ -68,11 +69,12 @@ impl StockFetch {
         })
     }
     /// 获取股票基本信息
-    fn fetch_stock_info<'a>(&self, py: Python<'a>) -> PyResult<&'a PyAny> {
+    fn fetch_stock_info<'a>(&self, py: Python<'a>, market: Option<i32>) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
+        let m = market.map(|v|Market::from(v));
         pyo3_asyncio::tokio::future_into_py(py, async move {
             Ok(fetch
-                .fetch_stock_info()
+                .fetch_stock_info(m)
                 .await
                 .map_err(|e| PyException::new_err(e.to_string()))?
                 .into_iter()
@@ -343,9 +345,10 @@ impl BlockStockFetch {
             .into())
     }
     /// 获取股票基本信息
-    fn fetch_stock_info(&self) -> PyResult<Vec<StockInfo>> {
+    fn fetch_stock_info(&self, market: Option<i32>) -> PyResult<Vec<StockInfo>> {
+        let m = market.map(|v|Market::from(v));
         Ok(runtime()?
-            .block_on(self.fetch.fetch_stock_info())
+            .block_on(self.fetch.fetch_stock_info(m))
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into_iter()
             .map(StockInfo::from)

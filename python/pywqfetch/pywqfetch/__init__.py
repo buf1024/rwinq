@@ -1,5 +1,4 @@
-from pywqfetch.fetch import BlockFetch, Fetch
-from pywqfetch.pywqfetch import to_std_code
+from pywqfetch.fetch import BlockFetch, Fetch, calc_chip_dist, calc_cost, calc_winner
 
 
 class BarFreq:
@@ -12,6 +11,12 @@ class BarFreq:
     Weekly = 102  # 周线
     Monthly = 103  # 月线
     LooseDaily = 1010  # 日线，在交易日没结束前，显示的是最新值，交易日结束后，同Daily
+
+
+class Market:
+    SZ = 0
+    SH = 1
+    BJ = 2
 
 
 class MarketType:
@@ -92,5 +97,5 @@ block_fetch_stock_yjbb = rwq_block_fetch.fetch_stock_yjbb
 block_fetch_stock_margin = rwq_block_fetch.fetch_stock_margin
 block_fetch_stock_hot_rank = rwq_block_fetch.fetch_stock_hot_rank
 
-#行情
+# 行情
 block_fetch_rt_quot = rwq_block_fetch.fetch_rt_quot

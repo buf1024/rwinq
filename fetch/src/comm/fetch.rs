@@ -55,6 +55,7 @@ pub(crate) async fn fetch_bar(
     }
 
     let mut n = Local::now().naive_local();
+    let mut end_set = false;
     if skip_rt {
         // 当日的不准
         if n.hour() < 15 && matches!(freq, BarFreq::Daily) {
@@ -69,6 +70,13 @@ pub(crate) async fn fetch_bar(
             if minus_day {
                 n = n.add(Duration::days(-1))
             }
+            end_set = true;
+        }
+    }
+    if !end_set {
+        if let Some(e) = end {
+            let d_str = format!("{} 00:00:00", e.format("%Y%m%d"));
+            n = NaiveDateTime::parse_from_str(&d_str, "%Y%m%d %H:%M:%S").unwrap();
         }
     }
 
@@ -274,8 +282,7 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"])
-                    .await;
+                let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"]).await;
                 println!("{:?}", data);
                 assert!(data.is_ok());
                 let data = data.unwrap();

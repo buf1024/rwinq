@@ -1,7 +1,7 @@
 use crate::comm::{async_client, fetch_bar, to_bar_ds};
 use crate::stock::trans_info::{
     EastStockHotRankResult, EastStockIndex, EastStockIndexDataDetailValue, EastStockIndustry,
-    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchStockInfo,
+    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchSHStockInfo,
 };
 use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, HTTP_CMM_HEADER};
@@ -16,6 +16,8 @@ use rwqcmm::{
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
 use std::ops::Add;
+
+use super::trans_info::ExchBJStockInfo;
 
 pub struct StockFetch {
     client: Client,
@@ -54,6 +56,7 @@ impl StockFetch {
             ("sz399678", "深次新股"),
             ("sz399007", "深证300"),
             ("sz399008", "中小300"),
+            ("bj899050", "北证50"),
         ];
         Ok(data
             .into_iter()
@@ -80,13 +83,10 @@ impl StockFetch {
             .await
     }
 
-    /// 获取股票基本信息
-    pub async fn fetch_stock_info(&self) -> Result<Vec<StockInfo>> {
+    async fn fetch_stock_info_sh(&self, margin_codes: &HashSet<String>) -> Result<Vec<StockInfo>> {
         let mut data = Vec::new();
-
-        let margin_codes = self.fetch_stock_is_margin().await?;
+        let mut header = HTTP_CMM_HEADER.clone();
         // 上海
-        let mut header = HTTP_CMM_HEADER.to_owned();
         header.insert(HOST, HeaderValue::from_static("query.sse.com.cn"));
         header.insert(
             REFERER,
@@ -99,11 +99,11 @@ impl StockFetch {
             // "主板A股": "1", "主板B股": "2", "科创板": "8"
             let req_url = format!(
                 "http://query.sse.com.cn/sseQuery/commonQuery.do?\
-            STOCK_TYPE={stock_type}&REG_PROVINCE=&CSRC_CODE=&STOCK_CODE=&\
-            sqlId=COMMON_SSE_CP_GPJCTPZ_GPLB_GP_L&COMPANY_STATUS=2%2C4%2C5%2C7%2C8&type=inParams&\
-            isPagination=true&pageHelp.cacheSize=1&\
-            pageHelp.beginPage=1&pageHelp.pageSize=10000&pageHelp.pageNo=1&pageHelp.endPage=1&\
-            _=1653291270045",
+    STOCK_TYPE={stock_type}&REG_PROVINCE=&CSRC_CODE=&STOCK_CODE=&\
+    sqlId=COMMON_SSE_CP_GPJCTPZ_GPLB_GP_L&COMPANY_STATUS=2%2C4%2C5%2C7%2C8&type=inParams&\
+    isPagination=true&pageHelp.cacheSize=1&\
+    pageHelp.beginPage=1&pageHelp.pageSize=10000&pageHelp.pageNo=1&pageHelp.endPage=1&\
+    _=1653291270045",
                 stock_type = stock_type
             );
 
@@ -116,7 +116,7 @@ impl StockFetch {
                 .text()
                 .await?;
 
-            let json: ExchStockInfo = serde_json::from_str(&resp)?;
+            let json: ExchSHStockInfo = serde_json::from_str(&resp)?;
             let tmp_vec: Vec<_> = json
                 .page_help
                 .data
@@ -138,11 +138,15 @@ impl StockFetch {
                 .collect();
             data.extend(tmp_vec.into_iter());
         }
+        Ok(data)
+    }
 
-        // 深圳
+    async fn fetch_stock_info_sz(&self, margin_codes: &HashSet<String>) -> Result<Vec<StockInfo>> {
+        let mut data = Vec::new();
+
         // "A股列表": "tab1", "B股列表": "tab2", "CDR列表": "tab3", "AB股列表": "tab4",
         let req_url = "http://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=1110&\
-        TABKEY=tab1&random=0.6935816432433362";
+         TABKEY=tab1&random=0.6935816432433362";
 
         let resp = self.client.get(req_url).send().await?.bytes().await?;
         // 板块	公司全称	英文名称	注册地址	A股代码	A股简称	A股上市日期	A股总股本	A股流通股本	B股代码
@@ -185,6 +189,101 @@ impl StockFetch {
             data.extend(tmp_vec.into_iter());
         }
 
+        Ok(data)
+    }
+
+    async fn fetch_stock_info_bj(&self, margin_codes: &HashSet<String>) -> Result<Vec<StockInfo>> {
+        let mut data = Vec::new();
+
+        let mut page = 0;
+        let mut total_page = 0;
+        let mut payload = HashMap::new();
+
+        payload.insert("typejb", "T".to_owned());
+        payload.insert("xxfcbj[]", "2".to_owned());
+        payload.insert("xxzqdm", "".to_owned());
+        payload.insert("pasortfieldge", "xxzqdm".to_owned());
+        payload.insert("pasortfieldge", "asc".to_owned());
+
+        let req_url = "https://www.bse.cn/nqxxController/nqxxCnzq.do";
+
+        loop {
+            payload.insert("page", page.to_string());
+            let resp = self
+                .client
+                .post(req_url)
+                .form(&payload)
+                .send()
+                .await?
+                .text()
+                .await?;
+
+            let start = resp.find("[").unwrap();
+            let end = resp.rfind("]").unwrap();
+
+            let resp = &resp[start..=end];
+
+            let json: Vec<ExchBJStockInfo> = serde_json::from_str(resp)?;
+            json.into_iter().for_each(|info| {
+                if total_page == 0 {
+                    total_page = info.total_page;
+                }
+
+                let v: Vec<_> = info
+                    .content
+                    .into_iter()
+                    .map(|item| {
+                        let code = to_std_code(MarketType::Stock, item.code);
+                        let listing_date =
+                            NaiveDate::parse_from_str(item.list_date, "%Y%m%d").unwrap();
+                        let listing_date = NaiveDateTime::new(
+                            listing_date,
+                            NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+                        );
+                        StockInfo {
+                            code: code.clone(),
+                            name: item.name.to_owned(),
+                            block: "主板".to_owned(),
+                            is_margin: margin_codes.contains(&code),
+                            listing_date,
+                        }
+                    })
+                    .collect();
+                data.extend(v)
+            });
+            page += 1;
+            if page >= total_page {
+                break;
+            }
+        }
+        Ok(data)
+    }
+
+    /// 获取股票基本信息
+    pub async fn fetch_stock_info(&self, market: Option<Market>) -> Result<Vec<StockInfo>> {
+        let margin_codes = self.fetch_stock_is_margin().await?;
+
+        let data = if let Some(m) = market {
+            let mut data = Vec::new();
+            match m {
+                Market::SZ => {
+                    data.extend(self.fetch_stock_info_sz(&margin_codes).await?.into_iter())
+                }
+                Market::SH => {
+                    data.extend(self.fetch_stock_info_sh(&margin_codes).await?.into_iter())
+                }
+                Market::BJ => {
+                    data.extend(self.fetch_stock_info_bj(&margin_codes).await?.into_iter())
+                }
+            }
+            data
+        } else {
+            let mut data = Vec::new();
+            data.extend(self.fetch_stock_info_sh(&margin_codes).await?.into_iter());
+            data.extend(self.fetch_stock_info_sz(&margin_codes).await?.into_iter());
+            data.extend(self.fetch_stock_info_bj(&margin_codes).await?.into_iter());
+            data
+        };
         Ok(data)
     }
     /// 获取融资融券股票代码
@@ -804,7 +903,7 @@ mod tests {
             .unwrap()
             .block_on(async {
                 let fetch = StockFetch::new();
-                let data = fetch.fetch_stock_info().await;
+                let data = fetch.fetch_stock_info(None).await;
                 assert!(data.is_ok());
                 let data = data.unwrap();
                 assert!(data.len() > 0);
@@ -837,7 +936,16 @@ mod tests {
                     })
                     .nth(0);
                 let d2 = d2.unwrap();
-                println!("d1: {:?}", d2);
+                println!("d2: {:?}", d2);
+
+                let d3= data
+                    .iter()
+                    .filter(|item| {
+                        item.is_margin && item.code.starts_with("bj")
+                    })
+                    .nth(0);
+                let d3 = d3.unwrap();
+                println!("d3: {:?}", d3);
             })
     }
 

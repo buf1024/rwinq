@@ -84,7 +84,7 @@ impl MongoStore {
             let index_info = self.stock_fetch.fetch_index_info().await?;
 
             log::info!("prepare cache stock_info");
-            let stock_info = self.stock_fetch.fetch_stock_info().await?;
+            let stock_info = self.stock_fetch.fetch_stock_info(None).await?;
 
             log::info!("prepare cache fund_info");
             let fund_info = self.fund_fetch.fetch_fund_info().await?;

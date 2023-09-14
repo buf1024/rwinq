@@ -11,14 +11,17 @@ pub struct TradeDate {
 }
 
 /// K线基本信息（可表示分钟线，日线，周线，年线等）
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Bar {
     /// 代码
     pub code: String,
     /// 简称
     pub name: String,
     /// 交易时间
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub trade_date: NaiveDateTime,
     /// 开盘价
     pub open: f32,
@@ -28,7 +31,7 @@ pub struct Bar {
     pub high: f32,
     /// 最低价
     pub low: f32,
-    /// 成交量(股)
+    /// 成交量(手)
     pub volume: u64,
     /// 成交额(元)
     pub amount: f64,
@@ -92,7 +95,10 @@ pub struct RtQuot {
     /// 代码
     pub code: String,
     /// 行情时间
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub time: NaiveDateTime,
     /// 昨收价
     pub last_close: f32,

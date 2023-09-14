@@ -21,10 +21,14 @@ pub mod comm;
 pub use comm::*;
 
 pub mod util;
+pub use util::to_std_code;
+
+pub mod ta;
+pub use ta::*;
 
 pub use rwqcmm::*;
 
-pub use util::to_std_code;
+
 
 /// 模块定义的错误码
 #[derive(Error, Debug)]
@@ -64,12 +68,23 @@ pub(crate) static HTTP_CMM_HEADER: Lazy<HeaderMap> = Lazy::new(|| {
     header
 });
 
-/// 股票市场： 深圳或上海
+/// 股票市场： 深圳/上海/上海
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Market {
     SZ = 0,
     SH = 1,
     BJ = 2
+}
+
+impl From<i32> for Market {
+    fn from(v: i32) -> Self {
+        match v {
+            0 => Market::SZ,
+            1 => Market::SH,
+            2 => Market::BJ,
+            _ => Market::SH,
+        }
+    }
 }
 
 /// 市场交易类型： 可转债，etf基金，股票
