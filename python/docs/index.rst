@@ -12,7 +12,7 @@ pywinq 文档
 
 .. _Github: https://github.com/buf1024/rwinq
 
-.. _Issues: https://github.com/buf1024/rwinq
+.. _Issues: https://github.com/buf1024/rwinq/issues
 
 .. toctree::
    :maxdepth: 2
