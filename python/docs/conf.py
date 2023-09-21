@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 project = 'pywinq'
-copyright = f'{datetime.now().year}, buf1024@gmail.com'
+copyright = f'2018 - {datetime.now().year}, buf1024@gmail.com'
 author = 'buf1024@gmail.com'
 release = '1.0.0'
 

@@ -18,6 +18,11 @@ pyo3-asyncio = { version = "0.19.0", features = [
     "attributes",
     "tokio-runtime",
 ] }
+pyo3-log = "0.8.3"
+log = "0.4.20"
+tracing-subscriber = "0.3.17"
+tracing = "0.1.37"
+tracing-error = "0.2.0"
 
 [build-dependencies]
 pyo3-build-config = "0.19.2"

@@ -69,8 +69,8 @@ pub(crate) struct XuQiuRtQuotData<'a> {
     pub percent: f32,
     pub volume: i64,
     pub amount: f64,
-    pub turnover_rate: f32,
-    pub market_capital: f64,
-    pub float_market_capital: f64,
+    pub turnover_rate: Option<f32>,
+    pub market_capital: Option<f64>,
+    pub float_market_capital: Option<f64>,
     pub is_trade: bool,
 }

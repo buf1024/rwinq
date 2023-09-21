@@ -1,7 +1,7 @@
 use crate::comm::{async_client, fetch_bar, to_bar_ds};
 use crate::stock::trans_info::{
-    EastStockHotRankResult, EastStockIndex, EastStockIndexDataDetailValue, EastStockIndustry,
-    EastStockInfoMargin, EastStockMargin, EastStockYJBB, ExchSHStockInfo,
+    EastStockHotRankResult, EastStockIndex, EastStockIndustry, EastStockInfoMargin,
+    EastStockMargin, EastStockYJBB, ExchSHStockInfo,
 };
 use crate::util::to_std_code;
 use crate::{fetch_trade_date, Error, Market, MarketType, Result, HTTP_CMM_HEADER};
@@ -10,14 +10,18 @@ use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime};
 use reqwest::header::*;
 use reqwest::Client;
 use rwqcmm::{
-    BarFreq, StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockHotRank, StockIndex,
-    StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockYJBB,
+    BarFreq, StockBar, StockComment, StockConcept, StockConceptBar, StockConceptDetail,
+    StockHotRank, StockIndex, StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo,
+    StockMargin, StockRtQuot, StockYJBB,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::Cursor;
 use std::ops::Add;
 
-use super::trans_info::ExchBJStockInfo;
+use super::trans_info::{
+    EastStockComment, EastStockCommentAttention, EastStockCommentScore, EastStockQuot,
+    ExchBJStockInfo,
+};
 
 pub struct StockFetch {
     client: Client,
@@ -403,37 +407,17 @@ impl StockFetch {
                 .iter()
                 .map(|item| {
                     let code = to_std_code(MarketType::Stock, item.code);
-                    let price = match item.price {
-                        EastStockIndexDataDetailValue::Float(v) => v as f32,
-                        EastStockIndexDataDetailValue::String(_) => 0.0,
-                    };
-                    let pe = match item.pe {
-                        EastStockIndexDataDetailValue::Float(v) => v as f32,
-                        EastStockIndexDataDetailValue::String(_) => 0.0,
-                    };
-                    let pb = match item.pb {
-                        EastStockIndexDataDetailValue::Float(v) => v as f32,
-                        EastStockIndexDataDetailValue::String(_) => 0.0,
-                    };
-                    let total_value = match item.total_value {
-                        EastStockIndexDataDetailValue::Float(v) => v,
-                        EastStockIndexDataDetailValue::String(_) => 0.0,
-                    };
-                    let currency_value = match item.currency_value {
-                        EastStockIndexDataDetailValue::Float(v) => v,
-                        EastStockIndexDataDetailValue::String(_) => 0.0,
-                    };
                     (
                         code.clone(),
                         StockIndex {
                             code,
                             name: item.name.to_owned(),
                             trade_date: index_date,
-                            price,
-                            pe,
-                            pb,
-                            total_value,
-                            currency_value,
+                            price: item.price.unwrap(),
+                            pe: item.pe.unwrap(),
+                            pb: item.pb.unwrap(),
+                            total_value: item.total_value.unwrap(),
+                            currency_value: item.currency_value.unwrap(),
                         },
                     )
                 })
@@ -703,61 +687,17 @@ impl StockFetch {
                         season_date,
                         code: to_std_code(MarketType::Stock, item.code),
                         name: item.name.to_owned(),
-                        mg_sy: if item.mg_sy.is_none() {
-                            0.0
-                        } else {
-                            item.mg_sy.unwrap()
-                        },
-                        yysr: if item.yysr.is_none() {
-                            0.0
-                        } else {
-                            item.yysr.unwrap()
-                        },
-                        yysr_tbzz: if item.yysr_tbzz.is_none() {
-                            0.0
-                        } else {
-                            item.yysr_tbzz.unwrap()
-                        },
-                        yysr_jdhbzz: if item.yysr_jdhbzz.is_none() {
-                            0.0
-                        } else {
-                            item.yysr_jdhbzz.unwrap()
-                        },
-                        jlr: if item.jlr.is_none() {
-                            0.0
-                        } else {
-                            item.jlr.unwrap()
-                        },
-                        jlr_tbzz: if item.jlr_tbzz.is_none() {
-                            0.0
-                        } else {
-                            item.jlr_tbzz.unwrap()
-                        },
-                        jlr_jdhbzz: if item.jlr_jdhbzz.is_none() {
-                            0.0
-                        } else {
-                            item.jlr_jdhbzz.unwrap()
-                        },
-                        mg_jzc: if item.mg_jzc.is_none() {
-                            0.0
-                        } else {
-                            item.mg_jzc.unwrap()
-                        },
-                        jzc_syl: if item.mg_jzc.is_none() {
-                            0.0
-                        } else {
-                            item.mg_jzc.unwrap()
-                        },
-                        mg_jy_xjl: if item.mg_jy_xjl.is_none() {
-                            0.0
-                        } else {
-                            item.mg_jy_xjl.unwrap()
-                        },
-                        xs_mll: if item.xs_mll.is_none() {
-                            0.0
-                        } else {
-                            item.xs_mll.unwrap()
-                        },
+                        mg_sy: item.mg_sy.unwrap_or_default(),
+                        yysr: item.yysr.unwrap_or_default(),
+                        yysr_tbzz: item.yysr_tbzz.unwrap_or_default(),
+                        yysr_jdhbzz: item.yysr_jdhbzz.unwrap_or_default(),
+                        jlr: item.jlr.unwrap_or_default(),
+                        jlr_tbzz: item.jlr_tbzz.unwrap_or_default(),
+                        jlr_jdhbzz: item.jlr_jdhbzz.unwrap_or_default(),
+                        mg_jzc: item.mg_jzc.unwrap_or_default(),
+                        jzc_syl: item.mg_jzc.unwrap_or_default(),
+                        mg_jy_xjl: item.mg_jy_xjl.unwrap_or_default(),
+                        xs_mll: item.xs_mll.unwrap_or_default(),
                     }
                 })
                 .collect();
@@ -888,12 +828,281 @@ impl StockFetch {
             calc_time: NaiveDateTime::parse_from_str(data.calc_time, "%Y-%m-%d %H:%M:%S").unwrap(),
         })
     }
+
+    /// 全量股票行情，注意调用频率
+    pub async fn fetch_stock_rt_quot(
+        &self,
+        codes: Option<Vec<String>>,
+    ) -> Result<Vec<StockRtQuot>> {
+        let req_url = format!(
+            "http://82.push2.eastmoney.com/api/qt/clist/get?pn=1&pz=50000&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m%3A0+t%3A6%2Cm%3A0+t%3A80%2Cm%3A1+t%3A2%2Cm%3A1+t%3A23%2Cm%3A0+t%3A81+s%3A2048&fields=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6%2Cf7%2Cf8%2Cf9%2Cf10%2Cf12%2Cf13%2Cf14%2Cf15%2Cf16%2Cf17%2Cf18%2Cf20%2Cf21%2Cf23%2Cf24%2Cf25%2Cf22%2Cf11%2Cf62%2Cf128%2Cf136%2Cf115%2Cf152&_=1623833739532"
+        );
+
+        let resp = self.client.get(req_url).send().await?.text().await?;
+
+        let json: EastStockQuot = serde_json::from_str(&resp)?;
+
+        let codes: Option<Vec<String>> =
+            codes.map(|codes| codes.iter().map(|code| String::from(&code[2..])).collect());
+        let data: Vec<_> = json.data.map_or_else(
+            || Vec::new(),
+            |data| {
+                data.diff
+                    .iter()
+                    .filter(|item| {
+                        item.open.unwrap() > 0.0
+                            && (codes.is_none()
+                                || codes.as_ref().unwrap().contains(&String::from(item.code)))
+                    })
+                    .map(|item| StockRtQuot {
+                        code: to_std_code(MarketType::Stock, item.code),
+                        name: item.name.to_owned(),
+                        price: item.price.unwrap(),
+                        chg_pct: item.chg_pct.unwrap(),
+                        chg: item.chg.unwrap(),
+                        volume: item.volume.unwrap(),
+                        amount: item.amount.unwrap(),
+                        turnover: item.turnover.unwrap(),
+                        pe: item.pe.unwrap(),
+                        vol_ratio: item.vol_ratio.unwrap(),
+                        high: item.high.unwrap(),
+                        low: item.low.unwrap(),
+                        open: item.open.unwrap(),
+                        last_close: item.last_close.unwrap(),
+                        total_value: item.total_value.unwrap(),
+                        currency_value: item.currency_value.unwrap(),
+                        rise_speed: item.rise_speed.unwrap(),
+                        pb: item.pb.clone().unwrap_or_default().unwrap(),
+                    })
+                    .collect()
+            },
+        );
+
+        Ok(data)
+    }
+    /// 千股千评
+    pub async fn fetch_stock_comment(
+        &self,
+        codes: Option<Vec<String>>,
+    ) -> Result<Vec<StockComment>> {
+        let mut page = 1;
+        let page_size: i32 = 500;
+        let mut data = Vec::new();
+        let mut total_page = 0;
+
+        let codes: Option<Vec<String>> =
+            codes.map(|codes| codes.iter().map(|code| String::from(&code[2..])).collect());
+
+        loop {
+            let req_url = format!(
+                "https://datacenter-web.eastmoney.com/api/data/v1/get?\
+                sortColumns=SECURITY_CODE&sortTypes=1&pageSize={page_size}0&pageNumber={page}&reportName=RPT_DMSK_TS_STOCKNEW&quoteColumns=f2~01~SECURITY_CODE~CLOSE_PRICE%2Cf8~01~SECURITY_CODE~TURNOVERRATE%2Cf3~01~SECURITY_CODE~CHANGE_RATE%2Cf9~01~SECURITY_CODE~PE_DYNAMIC&columns=ALL&filter=&token=894050c76af8597a853f5b408b759f5d",
+                page_size = page_size,
+                page = page,
+            );
+
+            let resp = self.client.get(req_url).send().await?.text().await?;
+
+            let json: EastStockComment = serde_json::from_str(&resp)?;
+
+            if json.result.is_none() {
+                break;
+            }
+            let result = json.result.unwrap();
+            let tmp_vec: Vec<_> = result
+                .data
+                .iter()
+                .filter(|item| {
+                    codes.is_none() || codes.as_ref().unwrap().contains(&String::from(item.code))
+                })
+                .map(|item| {
+                    let name = item.name.to_owned();
+                    let mut name_vec = Vec::new();
+                    for n in name.chars() {
+                        if !n.is_whitespace() {
+                            name_vec.push(n)
+                        }
+                    }
+                    let name: String = name_vec.into_iter().collect();
+                    StockComment {
+                        code: to_std_code(MarketType::Stock, item.code),
+                        name,
+                        trade_date: NaiveDateTime::parse_from_str(
+                            item.trade_date,
+                            "%Y-%m-%d %H:%M:%S",
+                        )
+                        .unwrap(),
+                        close: item.close.unwrap(),
+                        chg_pct: item.chg_pct.unwrap(),
+                        turnover: item.turnover,
+                        pe: item.pe,
+                        cost: item.cost,
+                        engage: item.engage,
+                        score: item.score.unwrap_or_default(),
+                        rank: item.rank.unwrap_or_default(),
+                        rank_chg: item.rank_chg.unwrap_or_default(),
+                        attention: item.attention.unwrap_or_default(),
+                    }
+                })
+                .collect();
+            if tmp_vec.len() > 0 {
+                data.extend(tmp_vec.into_iter());
+            }
+
+            if total_page == 0 {
+                total_page = result.pages;
+            }
+            if page == total_page {
+                break;
+            }
+
+            page += 1;
+        }
+        Ok(data)
+    }
+
+    // async fetch_attention_rank_data(&self, code: String) ->
+    /// 千股千评历史
+    pub async fn fetch_stock_comment_his(&self, code: String) -> Result<Vec<StockComment>> {
+        // 机构参与度 / 市场成本
+
+        let req_url = format!(
+            "https://datacenter-web.eastmoney.com/api/data/v1/get?\
+            reportName=RPT_DMSK_TS_STOCKEVALUATE&filter=%28SECURITY_CODE%3D%22{code}%22%29&\
+            columns=ALL&source=WEB&client=WEB&sortColumns=TRADE_DATE&sortTypes=-1&_=1655387358195",
+            code = &code[2..]
+        );
+
+        let resp = self.client.get(req_url).send().await?.text().await?;
+
+        let json: EastStockComment = serde_json::from_str(&resp)?;
+
+        if json.result.is_none() {
+            return Ok(Vec::new());
+        }
+        let engage_cost_data: BTreeMap<_, _> = json
+            .result
+            .unwrap()
+            .data
+            .into_iter()
+            .map(|item| (item.trade_date, item))
+            .collect();
+
+        // 市场评分
+
+        let req_url = format!(
+            "https://datacenter-web.eastmoney.com/api/data/v1/get?\
+            filter=(SECURITY_CODE%3D%22{code}%22)&columns=ALL&source=WEB&client=WEB&\
+            reportName=RPT_STOCK_HISTORYMARK&sortColumns=DIAGNOSE_DATE&sortTypes=1&_=1695281367385",
+            code = &code[2..]
+        );
+
+        let resp = self.client.get(req_url).send().await?.text().await?;
+
+        let json: EastStockCommentScore = serde_json::from_str(&resp)?;
+
+        if json.result.is_none() {
+            return Ok(Vec::new());
+        }
+        let score_data: HashMap<_, _> = json
+            .result
+            .unwrap()
+            .data
+            .into_iter()
+            .map(|item| (item.trade_date, item))
+            .collect();
+
+        // 关注度 / 排名
+
+        let req_url = format!(
+            "https://datacenter-web.eastmoney.com/api/data/v1/get?\
+            filter=(SECURITY_CODE%3D%22{code}%22)&columns=ALL&source=WEB&client=WEB&\
+            reportName=RPT_STOCK_MARKETFOCUS&sortColumns=TRADE_DATE&sortTypes=-1&pageSize=30&_=1695281367390",
+            code = &code[2..]);
+
+        let resp = self.client.get(req_url).send().await?.text().await?;
+
+        let json: EastStockCommentAttention = serde_json::from_str(&resp)?;
+
+        if json.result.is_none() {
+            return Ok(Vec::new());
+        }
+        let attention_rank_data: HashMap<_, _> = json
+            .result
+            .unwrap()
+            .data
+            .into_iter()
+            .map(|item| (item.trade_date, item))
+            .collect();
+
+        let data = engage_cost_data
+            .into_iter()
+            .map(|(trade_date, item)| {
+                let name = item.name.to_owned();
+                let mut name_vec = Vec::new();
+                for n in name.chars() {
+                    if !n.is_whitespace() {
+                        name_vec.push(n)
+                    }
+                }
+                let name: String = name_vec.into_iter().collect();
+
+                let score = score_data
+                    .get(trade_date)
+                    .map_or(0.0, |s_item| s_item.score);
+
+                let (rank, rank_chg, attention) =
+                    attention_rank_data
+                        .get(trade_date)
+                        .map_or((0, 0, 0.0), |a_item| {
+                            (
+                                a_item.rank.unwrap_or_default(),
+                                a_item.rank_chg.unwrap_or_default(),
+                                a_item.attention,
+                            )
+                        });
+                StockComment {
+                    code: to_std_code(MarketType::Stock, item.code),
+                    name,
+                    trade_date: NaiveDateTime::parse_from_str(item.trade_date, "%Y-%m-%d %H:%M:%S")
+                        .unwrap(),
+                    close: item.close.unwrap(),
+                    chg_pct: item.chg_pct.unwrap(),
+                    turnover: item.turnover,
+                    pe: item.pe,
+                    cost: item.cost,
+                    engage: item.engage,
+                    score,
+                    rank,
+                    rank_chg,
+                    attention,
+                }
+            })
+            .collect();
+
+        Ok(data)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::StockFetch;
     use chrono::NaiveDate;
+    use tracing_error::ErrorLayer;
+    use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+
+    fn setup() {
+        let env_filter =
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("trace"));
+        // 输出到控制台中
+        let formatting_layer = fmt::layer().pretty().with_writer(std::io::stderr);
+
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(ErrorLayer::default())
+            .with(formatting_layer)
+            .init();
+    }
 
     #[test]
     fn test_fetch_stock_info() {
@@ -938,11 +1147,9 @@ mod tests {
                 let d2 = d2.unwrap();
                 println!("d2: {:?}", d2);
 
-                let d3= data
+                let d3 = data
                     .iter()
-                    .filter(|item| {
-                        item.is_margin && item.code.starts_with("bj")
-                    })
+                    .filter(|item| item.is_margin && item.code.starts_with("bj"))
                     .nth(0);
                 let d3 = d3.unwrap();
                 println!("d3: {:?}", d3);
@@ -975,12 +1182,15 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
+                setup();
+
                 let start = NaiveDate::parse_from_str("20220301", "%Y%m%d").unwrap();
                 // let end = start.clone();
                 let fetch = StockFetch::new();
                 let data = fetch
-                    .fetch_stock_bar("bj836675", None, None, Some(start), None, false)
+                    .fetch_stock_bar("sz000001", None, None, Some(start), None, false)
                     .await;
+
                 assert!(data.is_ok());
 
                 let data = data.unwrap();
@@ -1193,6 +1403,65 @@ mod tests {
                 let data = data.unwrap();
 
                 println!("data={:?}", data);
+            })
+    }
+    #[test]
+    fn test_fetch_stock_rt_quot() {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let fetch = StockFetch::new();
+
+                let data = fetch
+                    .fetch_stock_rt_quot(Some(vec!["sz000001".into(), "sh603270".into()]))
+                    .await;
+                if data.is_err() {
+                    println!("{:?}", data.as_ref().err().unwrap());
+                }
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                println!("data len={:?}", data.len());
+                println!("data={:?}", data[1]);
+            })
+    }
+    #[test]
+    fn test_fetch_stock_comment() {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let fetch = StockFetch::new();
+
+                let data = fetch.fetch_stock_comment(None).await;
+                if data.is_err() {
+                    println!("{:?}", data.as_ref().err().unwrap());
+                }
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                println!("data len={:?}", data.len());
+                println!("data={:?}", data[1]);
+            })
+    }
+    #[test]
+    fn test_fetch_stock_comment_his() {
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                let fetch = StockFetch::new();
+
+                let data = fetch.fetch_stock_comment_his("sh600000".into()).await;
+                if data.is_err() {
+                    println!("{:?}", data.as_ref().err().unwrap());
+                }
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                println!("data len={:?}", data.len());
+                println!("data={:?}", data[1]);
             })
     }
 }

@@ -1,4 +1,5 @@
 from pywqfetch.fetch import BlockFetch, Fetch, calc_chip_dist, calc_cost, calc_winner
+from pywqfetch.pywqfetch import to_std_code
 
 
 class BarFreq:
@@ -43,6 +44,9 @@ fetch_fund_net = rwq_fetch.fetch_fund_net
 fetch_fund_bar = rwq_fetch.fetch_fund_bar
 
 # stock
+# 行情
+fetch_rt_quot = rwq_fetch.fetch_rt_quot
+
 fetch_index_info = rwq_fetch.fetch_index_info
 fetch_index_bar = rwq_fetch.fetch_index_bar
 fetch_stock_info = rwq_fetch.fetch_stock_info
@@ -58,9 +62,8 @@ fetch_stock_concept_daily = rwq_fetch.fetch_stock_concept_daily
 fetch_stock_yjbb = rwq_fetch.fetch_stock_yjbb
 fetch_stock_margin = rwq_fetch.fetch_stock_margin
 fetch_stock_hot_rank = rwq_fetch.fetch_stock_hot_rank
-
-# 行情
-fetch_rt_quot = rwq_fetch.fetch_rt_quot
+fetch_stock_comment = rwq_fetch.fetch_stock_comment
+fetch_stock_comment_his = rwq_fetch.fetch_stock_comment_his
 
 
 rwq_block_fetch = BlockFetch()
@@ -81,6 +84,9 @@ block_fetch_fund_net = rwq_block_fetch.fetch_fund_net
 block_fetch_fund_bar = rwq_block_fetch.fetch_fund_bar
 
 # stock
+# 行情
+block_fetch_rt_quot = rwq_block_fetch.fetch_rt_quot
+
 block_fetch_index_info = rwq_block_fetch.fetch_index_info
 block_fetch_index_bar = rwq_block_fetch.fetch_index_bar
 block_fetch_stock_info = rwq_block_fetch.fetch_stock_info
@@ -96,6 +102,5 @@ block_fetch_stock_concept_daily = rwq_block_fetch.fetch_stock_concept_daily
 block_fetch_stock_yjbb = rwq_block_fetch.fetch_stock_yjbb
 block_fetch_stock_margin = rwq_block_fetch.fetch_stock_margin
 block_fetch_stock_hot_rank = rwq_block_fetch.fetch_stock_hot_rank
-
-# 行情
-block_fetch_rt_quot = rwq_block_fetch.fetch_rt_quot
+block_fetch_stock_comment = rwq_block_fetch.fetch_stock_comment
+block_fetch_stock_comment_his = rwq_block_fetch.fetch_stock_comment_his

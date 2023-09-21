@@ -192,6 +192,12 @@ class StockFetch:
     async def fetch_stock_hot_rank(self, code: str) -> Dict:
         pass
 
+    async def fetch_stock_comment(self, codes: Optional[List[str]] = None) -> Dict:
+        pass
+
+    async def fetch_stock_comment_his(self, code: str) -> Dict:
+        pass
+
 
 class BlockStockFetch:
     def __init__(self):
@@ -251,4 +257,10 @@ class BlockStockFetch:
         pass
 
     def fetch_stock_hot_rank(self, code: str) -> Dict:
+        pass
+
+    def fetch_stock_comment(self, code: Optional[List[str]] = None) -> Dict:
+        pass
+
+    def fetch_stock_comment_his(self, code: str) -> Dict:
         pass

@@ -21,18 +21,16 @@ def calc_cost(*, chip_dist: Dict, ratio: int) -> Dict:
     return _calc_cost(chip_dist=chip_dist, ratio=ratio)
 
 
-async def _fetch_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
-    data = await fetch_rt_quot(code)
-    if to_frame and data != None and len(data) > 0:
-        data = pd.DataFrame([v for v in data.values()])
-    return data
-
-
-async def _block_fetch_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
-    data = block_fetch_rt_quot(code)
-    if to_frame and data != None and len(data) > 0:
-        data = pd.DataFrame([v for v in data.values()])
-    return data
+def _str_to_datetime(d: str) -> datetime:
+    nd = None
+    for fmt in ['%Y%m%d', '%Y-%m-%d']:
+        try:
+            nd = datetime.strptime(d, fmt)
+            return nd
+        except ValueError:
+            pass
+    if nd == None:
+        raise Exception('date format invalid: {}'.format(d))
 
 
 class Fetch:
@@ -56,22 +54,30 @@ class Fetch:
         return data
 
     @staticmethod
-    async def fetch_next_trade_date(d: Union[date, datetime]) -> date:
+    async def fetch_next_trade_date(d: Union[date, datetime, str]) -> date:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         data = await fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    async def fetch_prev_trade_date(d: Union[date, datetime]) -> date:
+    async def fetch_prev_trade_date(d: Union[date, datetime, str]) -> date:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         data = await fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    async def fetch_is_trade_date(d: Union[date, datetime]) -> bool:
+    async def fetch_is_trade_date(d: Union[date, datetime, str]) -> bool:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         return await fetch_is_trade_date(d)
 
     @staticmethod
-    async def fetch_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
-        return await _fetch_rt_quot(code=code, to_frame=to_frame)
+    async def fetch_rt_quot(*, code: Union[str, List[str]], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
+        if type(code) == type(''):
+            code = [code]
+        data = await fetch_rt_quot(code)
+        if to_frame and data != None and len(data) > 0:
+            data = pd.DataFrame([v for v in data.values()])
+        return data
 
     # bond
     async def fetch_bond_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
@@ -213,6 +219,17 @@ class Fetch:
             datas.append(data)
         return self._to_dataframe(to_frame, data=datas)
 
+    async def fetch_stock_comment(self, *, code: Optional[Union[List[str], str]] = None,
+                                  to_frame=True) -> Union[Dict, pd.DataFrame]:
+        codes = code
+        if type(code) == type(''):
+            codes = [code]
+        return self._to_dataframe(to_frame, await self.stock_fetch.fetch_stock_comment(codes=codes))
+
+    async def fetch_stock_comment_his(self, code: str,
+                                      to_frame=True) -> Dict:
+        return self._to_dataframe(to_frame, await self.stock_fetch.fetch_stock_comment_his(code=code))
+
 
 class BlockFetch:
     def __init__(self):
@@ -235,22 +252,30 @@ class BlockFetch:
         return data
 
     @staticmethod
-    def fetch_next_trade_date(d: Union[date, datetime]) -> date:
+    def fetch_next_trade_date(d: Union[date, datetime, str]) -> date:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         data = block_fetch_next_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    def fetch_prev_trade_date(d: Union[date, datetime]) -> date:
+    def fetch_prev_trade_date(d: Union[date, datetime, str]) -> date:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         data = block_fetch_prev_trade_date(d)
         return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
     @staticmethod
-    def fetch_is_trade_date(d) -> bool:
+    def fetch_is_trade_date(d: Union[date, datetime, str]) -> bool:
+        d = _str_to_datetime(d) if type(d) == type('') else d
         return block_fetch_is_trade_date(d)
 
     @staticmethod
-    def fetch_rt_quot(*, code: List[str], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
-        return _block_fetch_rt_quot(code=code, to_frame=to_frame)
+    def fetch_rt_quot(*, code: Union[str, List[str]], to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
+        if type(code) == type(''):
+            code = [code]
+        data = block_fetch_rt_quot(code)
+        if to_frame and data != None and len(data) > 0:
+            data = pd.DataFrame([v for v in data.values()])
+        return data
 
     # bond
     def fetch_bond_info(self, *, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
@@ -390,3 +415,14 @@ class BlockFetch:
             data = self.stock_fetch.fetch_stock_hot_rank(code=code)
             datas.append(data)
         return self._to_dataframe(to_frame, data=datas)
+
+    def fetch_stock_comment(self, *, code: Optional[Union[List[str], str]] = None,
+                            to_frame=True) -> Union[Dict, pd.DataFrame]:
+        codes = code
+        if type(code) == type(''):
+            codes = [code]
+        return self._to_dataframe(to_frame,  self.stock_fetch.fetch_stock_comment(codes=codes))
+
+    def fetch_stock_comment_his(self, code: str,
+                                to_frame=True) -> Dict:
+        return self._to_dataframe(to_frame,  self.stock_fetch.fetch_stock_comment_his(code=code))

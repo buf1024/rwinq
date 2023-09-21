@@ -9,6 +9,10 @@ use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use std::collections::{BTreeSet, HashMap};
+// use tracing::Event;
+// use tracing_error::ErrorLayer;
+// use tracing_subscriber::util::SubscriberInitExt;
+// use tracing_subscriber::{layer::SubscriberExt, Layer};
 
 use crate::bond::{BlockBondFetch, BondFetch};
 use crate::fund::{BlockFundFetch, FundFetch};
@@ -114,9 +118,37 @@ fn block_fetch_rt_quot(code: Vec<&str>) -> PyResult<HashMap<String, RtQuot>> {
         .collect::<HashMap<String, RtQuot>>())
 }
 
+// struct LogTracingLayer {}
+
+// impl LogTracingLayer {
+//     pub fn new() -> Self {
+//         Self {}
+//     }
+// }
+
+// impl<S> Layer<S> for LogTracingLayer
+// where
+//     S: tracing::Subscriber,
+// {
+//     fn on_event(&self, event: &Event<'_>, _ctx: tracing_subscriber::layer::Context<'_, S>) {
+//         println!("Got event!");
+//         println!("  level={:?}", event.metadata().level());
+//         println!("  target={:?}", event.metadata().target());
+//         println!("  name={:?}", event.metadata().name());
+//         for field in event.fields() {
+//             println!("  field={}", field.name());
+//         }
+//     }
+// }
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pywqfetch(_py: Python, m: &PyModule) -> PyResult<()> {
+    // pyo3_log::init();
+    // tracing_subscriber::registry()
+    //     .with(LogTracingLayer::new())
+    //     .with(ErrorLayer::default())
+    //     .init();
     m.add_function(wrap_pyfunction!(fetch_trade_date, m)?)?;
     m.add_function(wrap_pyfunction!(block_fetch_trade_date, m)?)?;
     m.add_function(wrap_pyfunction!(fetch_next_trade_date, m)?)?;

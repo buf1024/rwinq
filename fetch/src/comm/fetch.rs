@@ -4,6 +4,7 @@ use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, Tim
 use rwqcmm::{Bar, BarFreq, RtQuot};
 use std::collections::HashMap;
 use std::ops::Add;
+use tracing::{debug, instrument};
 
 use super::trade_date::fetch_prev_trade_date;
 
@@ -37,6 +38,7 @@ pub(crate) fn to_bar_ds(name: Option<&str>, bars: Vec<Bar>) -> (String, Option<V
     (stock_name, bars)
 }
 
+#[instrument(skip(client))]
 pub(crate) async fn fetch_bar(
     client: &reqwest::Client,
     market_code: &str,
@@ -53,7 +55,6 @@ pub(crate) async fn fetch_bar(
         start_str = format!("{}", prev);
         first_date = Some(prev);
     }
-
     let mut n = Local::now().naive_local();
     let mut end_set = false;
     if skip_rt {
@@ -107,11 +108,13 @@ pub(crate) async fn fetch_bar(
             end = end_str
         );
 
-        let resp = client.get(req_url).send().await?.text().await?;
+        debug!(request = req_url);
 
+        let resp = client.get(req_url).send().await?.text().await?;
         let mut pre_item: Option<Bar> = None;
         let json: EastBar = serde_json::from_str(&resp)?;
         let tmp_bars: Option<Vec<_>> = if let Some(data) = json.data {
+            debug!(bar = data.klines.len());
             let tmp_vec: Vec<_> = data
                 .klines
                 .iter()
@@ -164,6 +167,7 @@ pub(crate) async fn fetch_bar(
 
             Some(tmp_vec)
         } else {
+            debug!(bar = "None");
             None
         };
         if let Some(bars) = tmp_bars {
@@ -212,7 +216,7 @@ pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
         .iter()
         .map(|s| s.to_uppercase())
         .collect::<Vec<_>>()
-        .join("%2C");
+        .join(",");
 
     let req_url = format!(
         "https://stock.xueqiu.com/v5/stock/realtime/quotec.json?\
@@ -259,9 +263,9 @@ pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
                     chg_pct: item.percent,
                     volume: item.volume,
                     amount: item.amount,
-                    turnover: item.turnover_rate,
-                    total_value: item.market_capital,
-                    currency_value: item.float_market_capital,
+                    turnover: item.turnover_rate.unwrap_or_default(),
+                    total_value: item.market_capital.unwrap_or_default(),
+                    currency_value: item.float_market_capital.unwrap_or_default(),
                     is_trading: is_trading,
                 },
             )
@@ -282,7 +286,38 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"]).await;
+                // 上海深圳股票
+                // let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"]).await;
+                // println!("{:?}", data);
+                // assert!(data.is_ok());
+                // let data = data.unwrap();
+                // assert!(data.len() > 0);
+                // data.iter().for_each(|(key, val)| {
+                //     println!("data[{}]={:?}", key, val);
+                // });
+
+                // 北京股票
+                // let data = fetch_rt_quot(vec!["bj832089"]).await;
+                // println!("{:?}", data);
+                // assert!(data.is_ok());
+                // let data = data.unwrap();
+                // assert!(data.len() > 0);
+                // data.iter().for_each(|(key, val)| {
+                //     println!("data[{}]={:?}", key, val);
+                // });
+
+                // ETF
+                // let data = fetch_rt_quot(vec!["sz159949"]).await;
+                // println!("{:?}", data);
+                // assert!(data.is_ok());
+                // let data = data.unwrap();
+                // assert!(data.len() > 0);
+                // data.iter().for_each(|(key, val)| {
+                //     println!("data[{}]={:?}", key, val);
+                // });
+
+                // 可转债
+                let data = fetch_rt_quot(vec!["sz128030"]).await;
                 println!("{:?}", data);
                 assert!(data.is_ok());
                 let data = data.unwrap();

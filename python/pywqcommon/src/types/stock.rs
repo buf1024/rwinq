@@ -328,3 +328,33 @@ impl IntoPy<PyObject> for StockHotRank {
         dict.into()
     }
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StockComment {
+    pub(crate) inner: rwqcmm::StockComment,
+}
+impl From<rwqcmm::StockComment> for StockComment {
+    fn from(inner: rwqcmm::StockComment) -> Self {
+        Self { inner }
+    }
+}
+
+impl IntoPy<PyObject> for StockComment {
+    fn into_py(self, py: Python<'_>) -> PyObject {
+        let dict = PyDict::new(py);
+        dict.set_item("code", self.inner.code).unwrap();
+        dict.set_item("name", self.inner.name).unwrap();
+        dict.set_item("close", self.inner.close).unwrap();
+        dict.set_item("chg_pct", self.inner.chg_pct).unwrap();
+        dict.set_item("turnover", self.inner.turnover).unwrap();
+        dict.set_item("pe", self.inner.pe).unwrap();
+        dict.set_item("cost", self.inner.cost).unwrap();
+        dict.set_item("engage", self.inner.engage).unwrap();
+        dict.set_item("score", self.inner.score).unwrap();
+        dict.set_item("rank", self.inner.cost).unwrap();
+        dict.set_item("rank_chg", self.inner.rank_chg).unwrap();
+        dict.set_item("attention", self.inner.cost).unwrap();
+        dict.set_item("trade_date", self.inner.trade_date).unwrap();
+
+        dict.into()
+    }
+}

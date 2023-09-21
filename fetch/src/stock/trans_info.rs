@@ -41,7 +41,6 @@ pub(crate) struct ExchBJStockInfo<'a> {
 
     #[serde(rename(deserialize = "totalPages"))]
     pub total_page: isize,
-
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct ExchBJStockInfoData<'a> {
@@ -94,9 +93,24 @@ pub(crate) struct EastStockIndexData<'a> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-pub(crate) enum EastStockIndexDataDetailValue<'a> {
-    Float(f64),
+pub(crate) enum EastFloatString<'a, T: num_traits::Float + Default> {
+    Float(T),
     String(&'a str),
+}
+
+impl<'a, T: num_traits::Float + Default> Default for EastFloatString<'a, T> {
+    fn default() -> Self {
+        Self::Float(T::default())
+    }
+}
+
+impl<'a, T: num_traits::Float + Default> EastFloatString<'a, T> {
+    pub(crate) fn unwrap(&self) -> T {
+        match self {
+            EastFloatString::Float(v) => *v,
+            EastFloatString::String(_) => T::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -111,23 +125,23 @@ pub(crate) struct EastStockIndexDataDetail<'a> {
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "f2"))]
-    pub price: EastStockIndexDataDetailValue<'a>,
+    pub price: EastFloatString<'a, f32>,
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "f9"))]
-    pub pe: EastStockIndexDataDetailValue<'a>,
+    pub pe: EastFloatString<'a, f32>,
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "f23"))]
-    pub pb: EastStockIndexDataDetailValue<'a>,
+    pub pb: EastFloatString<'a, f32>,
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "f20"))]
-    pub total_value: EastStockIndexDataDetailValue<'a>,
+    pub total_value: EastFloatString<'a, f64>,
 
     #[serde(borrow)]
     #[serde(rename(deserialize = "f21"))]
-    pub currency_value: EastStockIndexDataDetailValue<'a>,
+    pub currency_value: EastFloatString<'a, f64>,
 }
 
 // stock index
@@ -332,4 +346,187 @@ pub(crate) struct EastStockHotRankData<'a> {
     // pub his_rank_change_rank: i32,
 
     // pub flag: i32,
+}
+
+// 上深京行情
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockQuot<'a> {
+    #[serde(borrow)]
+    pub data: Option<EastStockQuotData<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockQuotData<'a> {
+    pub total: usize,
+    #[serde(borrow)]
+    pub diff: Vec<EastStockQuotDataDetail<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockQuotDataDetail<'a> {
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "f12"))]
+    pub code: &'a str,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "f14"))]
+    pub name: &'a str,
+
+    #[serde(rename(deserialize = "f2"))]
+    pub price: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f3"))]
+    pub chg_pct: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f4"))]
+    pub chg: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f5"))]
+    pub volume: EastFloatString<'a, f64>,
+
+    #[serde(rename(deserialize = "f6"))]
+    pub amount: EastFloatString<'a, f64>,
+
+    #[serde(rename(deserialize = "f8"))]
+    pub turnover: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f9"))]
+    pub pe: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f10"))]
+    pub vol_ratio: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f15"))]
+    pub high: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f16"))]
+    pub low: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f17"))]
+    pub open: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f18"))]
+    pub last_close: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "f20"))]
+    pub total_value: EastFloatString<'a, f64>,
+
+    #[serde(rename(deserialize = "f21"))]
+    pub currency_value: EastFloatString<'a, f64>,
+
+    #[serde(rename(deserialize = "f22"))]
+    pub rise_speed: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "23"))]
+    pub pb: Option<EastFloatString<'a, f32>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockComment<'a> {
+    #[serde(borrow)]
+    pub result: Option<EastStockCommentResult<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentResult<'a> {
+    pub pages: i32,
+    #[serde(borrow)]
+    pub data: Vec<EastStockCommentData<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentData<'a> {
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "SECURITY_CODE"))]
+    pub code: &'a str,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "SECURITY_NAME_ABBR"))]
+    pub name: &'a str,
+
+    #[serde(rename(deserialize = "CLOSE_PRICE"))]
+    pub close: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "CHANGE_RATE"))]
+    pub chg_pct: EastFloatString<'a, f32>,
+
+    #[serde(rename(deserialize = "TURNOVERRATE"))]
+    pub turnover: f32,
+
+    #[serde(rename(deserialize = "PE_DYNAMIC"))]
+    pub pe: f32,
+
+    #[serde(rename(deserialize = "PRIME_COST"))]
+    pub cost: f32,
+
+    #[serde(rename(deserialize = "ORG_PARTICIPATE"))]
+    pub engage: f32,
+
+    #[serde(rename(deserialize = "TOTALSCORE"))]
+    pub score: Option<f32>,
+
+    #[serde(rename(deserialize = "RANK"))]
+    pub rank: Option<i32>,
+
+    #[serde(rename(deserialize = "RANK_UP"))]
+    pub rank_chg: Option<i32>,
+
+    #[serde(rename(deserialize = "FOCUS"))]
+    pub attention: Option<f32>,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "TRADE_DATE"))]
+    pub trade_date: &'a str,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentScore<'a> {
+    #[serde(borrow)]
+    pub result: Option<EastStockCommentScoreResult<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentScoreResult<'a> {
+    pub pages: i32,
+    #[serde(borrow)]
+    pub data: Vec<EastStockCommentScoreData<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentScoreData<'a> {
+    #[serde(rename(deserialize = "TOTAL_SCORE"))]
+    pub score: f32,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "DIAGNOSE_DATE"))]
+    pub trade_date: &'a str,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentAttention<'a> {
+    #[serde(borrow)]
+    pub result: Option<EastStockCommentAttentionResult<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentAttentionResult<'a> {
+    pub pages: i32,
+    #[serde(borrow)]
+    pub data: Vec<EastStockCommentAttentionData<'a>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct EastStockCommentAttentionData<'a> {
+    #[serde(rename(deserialize = "MARKET_FOCUS"))]
+    pub attention: f32,
+
+    #[serde(rename(deserialize = "MARKET_FOCUS_RANK"))]
+    pub rank: Option<i32>,
+
+    #[serde(rename(deserialize = "MARKET_FOCUS_CHANGE"))]
+    pub rank_chg: Option<i32>,
+
+    #[serde(borrow)]
+    #[serde(rename(deserialize = "TRADE_DATE"))]
+    pub trade_date: &'a str,
 }

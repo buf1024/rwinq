@@ -1,11 +1,11 @@
 use crate::{
-    StockBar, StockConcept, StockConceptBar, StockConceptDetail, StockIndex, StockIndustry,
-    StockIndustryBar, StockIndustryDetail, StockInfo, StockMargin, StockYJBB,
+    runtime, StockBar, StockComment, StockConcept, StockConceptBar, StockConceptDetail,
+    StockHotRank, StockIndex, StockIndustry, StockIndustryBar, StockIndustryDetail, StockInfo,
+    StockMargin, StockYJBB,
 };
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use pywqcmm::{runtime, StockHotRank};
 use rwqfetch::Market;
 use std::{
     collections::{HashMap, HashSet},
@@ -71,7 +71,7 @@ impl StockFetch {
     /// 获取股票基本信息
     fn fetch_stock_info<'a>(&self, py: Python<'a>, market: Option<i32>) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
-        let m = market.map(|v|Market::from(v));
+        let m = market.map(|v| Market::from(v));
         pyo3_asyncio::tokio::future_into_py(py, async move {
             Ok(fetch
                 .fetch_stock_info(m)
@@ -299,6 +299,38 @@ impl StockFetch {
             Ok(hot_rank)
         })
     }
+    /// 千股千评
+    fn fetch_stock_comment<'a>(
+        &self,
+        py: Python<'a>,
+        codes: Option<Vec<String>>,
+    ) -> PyResult<&'a PyAny> {
+        let fetch = self.fetch.clone();
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let comments: Vec<StockComment> = fetch
+                .fetch_stock_comment(codes)
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?
+                .into_iter()
+                .map(StockComment::from)
+                .collect();
+            Ok(comments)
+        })
+    }
+    /// 千股千评历史
+    fn fetch_stock_comment_his<'a>(&self, py: Python<'a>, code: String) -> PyResult<&'a PyAny> {
+        let fetch = self.fetch.clone();
+        pyo3_asyncio::tokio::future_into_py(py, async move {
+            let comments: Vec<StockComment> = fetch
+                .fetch_stock_comment_his(code)
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?
+                .into_iter()
+                .map(StockComment::from)
+                .collect();
+            Ok(comments)
+        })
+    }
 }
 
 #[pyclass]
@@ -346,7 +378,7 @@ impl BlockStockFetch {
     }
     /// 获取股票基本信息
     fn fetch_stock_info(&self, market: Option<i32>) -> PyResult<Vec<StockInfo>> {
-        let m = market.map(|v|Market::from(v));
+        let m = market.map(|v| Market::from(v));
         Ok(runtime()?
             .block_on(self.fetch.fetch_stock_info(m))
             .map_err(|e| PyException::new_err(e.to_string()))?
@@ -500,5 +532,23 @@ impl BlockStockFetch {
             .block_on(self.fetch.fetch_stock_hot_rank(code))
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into())
+    }
+    /// 千股千评
+    fn fetch_stock_comment(&self, codes: Option<Vec<String>>) -> PyResult<Vec<StockComment>> {
+        Ok(runtime()?
+            .block_on(self.fetch.fetch_stock_comment(codes))
+            .map_err(|e| PyException::new_err(e.to_string()))?
+            .into_iter()
+            .map(StockComment::from)
+            .collect())
+    }
+    /// 千股千评历史
+    fn fetch_stock_comment_his(&self, code: String) -> PyResult<Vec<StockComment>> {
+        Ok(runtime()?
+            .block_on(self.fetch.fetch_stock_comment_his(code))
+            .map_err(|e| PyException::new_err(e.to_string()))?
+            .into_iter()
+            .map(StockComment::from)
+            .collect())
     }
 }

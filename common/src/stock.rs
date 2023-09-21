@@ -16,7 +16,10 @@ pub struct StockInfo {
     /// 是否融资融券标的
     pub is_margin: bool,
     /// 上市日期
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub listing_date: NaiveDateTime,
 }
 
@@ -41,7 +44,10 @@ pub struct StockIndex {
     /// 股票简称
     pub name: String,
     /// 市值日期
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub trade_date: NaiveDateTime,
     /// 股价
     pub price: f32,
@@ -133,7 +139,10 @@ pub struct StockYJBB {
     /// 季度，1~4
     pub season: u16,
     /// 季度时间
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub season_date: NaiveDateTime,
     /// 代码
     pub code: String,
@@ -171,7 +180,10 @@ pub struct StockMargin {
     /// 简称
     pub name: String,
     /// 交易日期
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub trade_date: NaiveDateTime,
     /// 收盘价(元)(SPJ)
     pub close: f32,
@@ -215,6 +227,85 @@ pub struct StockHotRank {
     /// 当前排名变更
     pub rank_chg: i32,
     /// 计算时间
-    #[serde(serialize_with = "crate::naive_dt_serialize", deserialize_with="crate::naive_dt_deserialize")]
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
     pub calc_time: NaiveDateTime,
+}
+
+/// 全量股票实时行情，不要频繁调用
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StockRtQuot {
+    /// 股票代码
+    pub code: String,
+    /// 股票名称
+    pub name: String,
+    /// 现价
+    pub price: f32,
+    /// 涨跌幅
+    pub chg_pct: f32,
+    /// 涨跌额
+    pub chg: f32,
+    /// 成交量
+    pub volume: f64,
+    /// 成交额
+    pub amount: f64,
+    /// 换手率
+    pub turnover: f32,
+    /// PE
+    pub pe: f32,
+    /// 涨速
+    pub vol_ratio: f32,
+    /// 最高价
+    pub high: f32,
+    /// 最低价
+    pub low: f32,
+    /// 开盘价
+    pub open: f32,
+    /// 昨收价
+    pub last_close: f32,
+    /// 总市值
+    pub total_value: f64,
+    /// 流通市值
+    pub currency_value: f64,
+    /// 涨速
+    pub rise_speed: f32,
+    /// PB
+    pub pb: f32,
+}
+
+/// 千股千评
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StockComment {
+    /// 股票代码
+    pub code: String,
+    /// 股票名称
+    pub name: String,
+    /// 现价
+    pub close: f32,
+    /// 涨跌幅
+    pub chg_pct: f32,
+    /// 换手率
+    pub turnover: f32,
+    /// PE
+    pub pe: f32,
+    /// 主力成本
+    pub cost: f32,
+    /// 主力参与度
+    pub engage: f32,
+    /// 综合得分
+    pub score: f32,
+    /// 排名
+    pub rank: i32,
+    /// 排名变化
+    pub rank_chg: i32,
+    /// 关注度
+    pub attention: f32,
+    /// 交易日期
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
+    pub trade_date: NaiveDateTime,
 }
