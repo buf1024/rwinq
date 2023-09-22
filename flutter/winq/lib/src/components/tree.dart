@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 class TreeWidget extends StatefulWidget {
   final TreeNode root;
 
-  ValueChanged<TreeNode>? onDeleted;
-  ValueChanged<TreeNode>? onStared;
-  ValueChanged<TreeNode>? onSelected;
+  final ValueChanged<TreeNode>? onDeleted;
+  final ValueChanged<TreeNode>? onStared;
+  final ValueChanged<TreeNode>? onSelected;
 
   final bool readOnly;
   final bool keepEmpty;
 
-  bool? filteredStar;
-  String? filteredText;
+  final bool? filteredStar;
+  final String? filteredText;
 
-  TreeWidget(
+  const TreeWidget(
       {super.key,
       required this.root,
       this.onDeleted,
@@ -547,6 +547,7 @@ class _TreeWidgetState extends State<TreeWidget> {
   }
 }
 
+// ignore: must_be_immutable
 class TreeNode extends Equatable {
   List<TreeNode>? children;
   final String text;

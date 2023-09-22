@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:winq/src/app/iconfont.dart';
 import 'package:window_manager/window_manager.dart';
@@ -84,7 +85,8 @@ class _TitleBarState extends State<TitleBar> {
 
   Widget _funcButtons() {
     return Row(children: [
-      Platform.isLinux || Platform.isLinux ? _windowsButtons() : Container(),
+      if (!kIsWeb)
+        Platform.isLinux || Platform.isLinux ? _windowsButtons() : Container(),
       const Spacer(),
       GestureDetector(
         onTap: () {

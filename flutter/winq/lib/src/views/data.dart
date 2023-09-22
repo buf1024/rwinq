@@ -25,6 +25,7 @@ class _DataSyncViewState extends State<DataSyncView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return SingleChildScrollView(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

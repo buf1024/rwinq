@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:winq/src/app/app_theme_data.dart';
@@ -8,21 +9,23 @@ import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
 
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(900.0, 600.0),
-    // minimumSize: Size(kMinWindowWidth, kMinWindowWidth),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  if (!kIsWeb) {
+    await windowManager.ensureInitialized();
 
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(900.0, 600.0),
+      // minimumSize: Size(kMinWindowWidth, kMinWindowWidth),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   runApp(const BlocWrap(child: MyApp()));
   // runApp(const MyApp());
 }

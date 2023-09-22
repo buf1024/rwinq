@@ -15,9 +15,8 @@ class _DashboardViewState extends State<DashboardView> with AutomaticKeepAliveCl
   }
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text('dashboard')
-    );
+    super.build(context);
+    return const Text('dashboard');
   }
   
   @override

@@ -15,9 +15,8 @@ class _TradeViewState extends State<TradeView> with AutomaticKeepAliveClientMixi
   }
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text('交易页面')
-    );
+    super.build(context);
+    return const Text('交易页面');
   }
   
   @override

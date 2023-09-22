@@ -39,6 +39,7 @@ class _StrategyWidgetState extends State<StrategyWidget>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     Color dividerColor = Theme.of(context).dividerColor;
 
     return Column(

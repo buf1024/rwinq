@@ -57,6 +57,7 @@ class _BacktestWidgetState extends State<BacktestWidget>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     Color dividerColor = Theme.of(context).dividerColor;
     return Column(
       children: [

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:winq/src/app/iconfont.dart';
 import 'package:winq/src/app/nav.dart';
@@ -80,9 +81,9 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           TitleBar(
-            child: const Text('WinQ'),
+            child:  kIsWeb ? null: const Text('WinQ'),
             onConfigCall: () async {
-              Size size = await windowManager.getSize();
+              Size size = MediaQuery.of(context).size;
               onShowConfigDialog(size.width - 80.0, size.height - 80.0);
             },
             onLockCall: () => onLockScreen(),

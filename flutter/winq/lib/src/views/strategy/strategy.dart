@@ -67,6 +67,7 @@ class _StrategyViewState extends State<StrategyView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     Color dividerColor = Theme.of(context).dividerColor;
 
     return Row(children: [
