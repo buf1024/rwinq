@@ -68,12 +68,15 @@ target
 
 python/notebook
 
-flutter/rwinq/linux
-flutter/rwinq/windows
-flutter/rwinq/web
-flutter/rwinq/macos
-flutter/rwinq/android
-flutter/rwinq/ios
-flutter/rwinq/build
+#flutter/winq/linux
+#flutter/winq/windows
+#flutter/winq/web
+#flutter/winq/macos
+#flutter/winq/android
+#flutter/winq/ios
+flutter/winq/build
+flutter/winq/.dart_tool
+flutter/winq/.flutter*
+
 
 python/docs/_build
