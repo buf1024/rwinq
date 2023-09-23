@@ -1,8 +1,8 @@
 use crate::comm::EastBar;
 use crate::{AdjustFactor, Error, Result, XuQiuRtQuot, HTTP_CMM_HEADER};
 use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike};
-use rwqcmm::{Bar, BarFreq, RtQuot};
-use std::collections::HashMap;
+use regex::Regex;
+use rwqcmm::{Bar, BarFreq, Quot, QuotSn, QuotXq, RtQuot, RtQuotSn, RtQuotXq};
 use std::ops::Add;
 use tracing::{debug, instrument};
 
@@ -210,8 +210,8 @@ pub(crate) async fn fetch_bar(
     Ok(data)
 }
 
-/// 实时行情
-pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
+/// 雪球实时行情
+pub async fn fetch_rt_quot_xq(code: &Vec<String>) -> Result<RtQuotXq> {
     let codes = code
         .iter()
         .map(|s| s.to_uppercase())
@@ -251,14 +251,14 @@ pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
             }
             (
                 code.clone(),
-                RtQuot {
+                QuotXq {
                     code,
                     time,
                     last_close: item.last_close,
                     open: item.open,
                     high: item.high,
                     low: item.low,
-                    last: item.last,
+                    now: item.now,
                     chg: item.chg,
                     chg_pct: item.percent,
                     volume: item.volume,
@@ -275,6 +275,204 @@ pub async fn fetch_rt_quot(code: Vec<&str>) -> Result<HashMap<String, RtQuot>> {
     Ok(data.into_iter().collect())
 }
 
+/// 新浪实时行情
+pub async fn fetch_rt_quot_sn(code: &Vec<String>) -> Result<RtQuotSn> {
+    let req_url = format!("http://hq.sinajs.cn/?format=text&list={}", code.join(","));
+    let client: reqwest::Client = async_client();
+
+    let resp = client
+        .get(req_url)
+        .header("Referer", "https://finance.sina.com.cn/")
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    let mut re_str = String::from(r"(\w+)=([^\s][^,]+?)");
+    for _ in 0..29 {
+        re_str.push_str(r",([\.\d]+)")
+    }
+    for _ in 0..2 {
+        re_str.push_str(r",([-\.\d:]+)");
+    }
+    let regex = Regex::new(re_str.as_str()).unwrap();
+
+    if !regex.is_match(resp.as_str()) {
+        return Err(Error::Custom("Sina response data error!".into()));
+    }
+
+    let mut rq = RtQuotSn::new();
+    for cap in regex.captures_iter(resp.as_str()) {
+        let date: NaiveDate = cap[32]
+            .parse()
+            .map_err(|_| Error::Custom(format!("Parse naive_date error: {}!", &cap[32])))?;
+        let time: NaiveTime = cap[33]
+            .parse()
+            .map_err(|_| Error::Custom(format!("Parse naive_time error: {}!", &cap[33])))?;
+
+        let time = NaiveDateTime::new(date, time);
+
+        let q = QuotSn {
+            code: String::from(&cap[1]),
+            name: String::from(&cap[2]),
+            open: cap[3]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse open error: {}!", &cap[3])))?,
+            last_close: cap[4]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse pre_close error: {}!", &cap[4])))?,
+            now: cap[5]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse now error: {}!", &cap[5])))?,
+            high: cap[6]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse high error: {}!", &cap[6])))?,
+            low: cap[7]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse low error: {}!", &cap[7])))?,
+            buy: cap[8]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse buy error: {}!", &cap[8])))?,
+            sell: cap[9]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse sell error: {}!", &cap[9])))?,
+            volume: cap[10]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse vol error: {}!", &cap[10])))?,
+            amount: cap[11]
+                .parse()
+                .map_err(|_| Error::Custom(format!("Parse amount error: {}!", &cap[11])))?,
+            bid: (
+                (
+                    cap[12]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid[1] error: {}!", &cap[12])))?,
+                    cap[13]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid[1] error: {}!", &cap[13])))?,
+                ),
+                (
+                    cap[14]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[14])))?,
+                    cap[15]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[14])))?,
+                ),
+                (
+                    cap[16]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[16])))?,
+                    cap[17]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[17])))?,
+                ),
+                (
+                    cap[18]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[18])))?,
+                    cap[19]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[19])))?,
+                ),
+                (
+                    cap[20]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[20])))?,
+                    cap[21]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse bid error: {}!", &cap[21])))?,
+                ),
+            ),
+            ask: (
+                (
+                    cap[22]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[22])))?,
+                    cap[23]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[23])))?,
+                ),
+                (
+                    cap[24]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[24])))?,
+                    cap[25]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[25])))?,
+                ),
+                (
+                    cap[26]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[26])))?,
+                    cap[27]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[27])))?,
+                ),
+                (
+                    cap[28]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[28])))?,
+                    cap[29]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[29])))?,
+                ),
+                (
+                    cap[30]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[30])))?,
+                    cap[31]
+                        .parse()
+                        .map_err(|_| Error::Custom(format!("Parse ask error: {}!", &cap[31])))?,
+                ),
+            ),
+            time,
+        };
+        rq.insert(q.code.clone(), q);
+    }
+    Ok(rq)
+}
+
+pub async fn fetch_rt_quot(code: &Vec<String>) -> Result<RtQuot> {
+    let (xq, sn) = tokio::join!(fetch_rt_quot_xq(code), fetch_rt_quot_sn(code));
+    let (mxq, msn) = (xq?, sn?);
+
+    if mxq.len() != msn.len() {
+        return Err(Error::Custom(String::from("fail to fetch quot")));
+    }
+
+    let rt_quot = msn
+        .into_iter()
+        .map(|(k, sn)| {
+            let xq = mxq.get(&k).unwrap();
+            let quot = Quot {
+                chg: xq.chg,
+                chg_pct: xq.chg_pct,
+                turnover: xq.turnover,
+                total_value: xq.total_value,
+                currency_value: xq.currency_value,
+                is_trading: xq.is_trading,
+                code: sn.code,
+                name: sn.name,
+                open: sn.open,
+                last_close: sn.last_close,
+                now: sn.now,
+                high: sn.high,
+                low: sn.low,
+                buy: sn.buy,
+                sell: sn.sell,
+                volume: sn.volume,
+                amount: sn.amount,
+                bid: sn.bid,
+                ask: sn.ask,
+                time: sn.time,
+            };
+            (k.clone(), quot)
+        })
+        .collect();
+    Ok(rt_quot)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::fetch_rt_quot;
@@ -286,38 +484,42 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                // 上海深圳股票
-                // let data = fetch_rt_quot(vec!["sz000001", "sz002805", "sh600887"]).await;
-                // println!("{:?}", data);
-                // assert!(data.is_ok());
-                // let data = data.unwrap();
-                // assert!(data.len() > 0);
-                // data.iter().for_each(|(key, val)| {
-                //     println!("data[{}]={:?}", key, val);
-                // });
+                //上海深圳股票
+                let codes = vec!["sz000001".into(), "sz002805".into(), "sh600887".into()];
+                let data = fetch_rt_quot(&codes).await;
+                println!("{:?}", data);
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                assert!(data.len() > 0);
+                data.iter().for_each(|(key, val)| {
+                    println!("data[{}]={:?}", key, val);
+                });
 
                 // 北京股票
-                // let data = fetch_rt_quot(vec!["bj832089"]).await;
-                // println!("{:?}", data);
-                // assert!(data.is_ok());
-                // let data = data.unwrap();
-                // assert!(data.len() > 0);
-                // data.iter().for_each(|(key, val)| {
-                //     println!("data[{}]={:?}", key, val);
-                // });
+                let codes = vec!["bj832089".into()];
+                let data = fetch_rt_quot(&codes).await;
+                println!("{:?}", data);
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                assert!(data.len() > 0);
+                data.iter().for_each(|(key, val)| {
+                    println!("data[{}]={:?}", key, val);
+                });
 
                 // ETF
-                // let data = fetch_rt_quot(vec!["sz159949"]).await;
-                // println!("{:?}", data);
-                // assert!(data.is_ok());
-                // let data = data.unwrap();
-                // assert!(data.len() > 0);
-                // data.iter().for_each(|(key, val)| {
-                //     println!("data[{}]={:?}", key, val);
-                // });
+                let codes = vec!["sz159949".into()];
+                let data = fetch_rt_quot(&codes).await;
+                println!("{:?}", data);
+                assert!(data.is_ok());
+                let data = data.unwrap();
+                assert!(data.len() > 0);
+                data.iter().for_each(|(key, val)| {
+                    println!("data[{}]={:?}", key, val);
+                });
 
                 // 可转债
-                let data = fetch_rt_quot(vec!["sz128030"]).await;
+                let codes = vec!["sz128030".into()];
+                let data = fetch_rt_quot(&codes).await;
                 println!("{:?}", data);
                 assert!(data.is_ok());
                 let data = data.unwrap();

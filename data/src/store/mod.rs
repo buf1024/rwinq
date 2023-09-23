@@ -18,7 +18,6 @@ use crate::{
 
 use async_trait::async_trait;
 
-mod clickhouse;
 pub mod mongo;
 mod mysql;
 mod sqlite;
@@ -28,7 +27,6 @@ pub(crate) use mongo::MongoStore;
 use self::mongo::MongoLoader;
 // pub(crate) use sqlite::SqliteStore;
 // pub(crate) use mysql::MysqlStore;
-// pub(crate) use clickhouse::ClickHouseStore;
 
 /// 获取同步数据store  
 /// `dest`: 目标数据源  
@@ -58,8 +56,6 @@ pub async fn get_store(
             Ok((SyncDestType::MongoDB, store))
         }
         SyncDest::MySQL(_) => todo!(),
-        SyncDest::ClickHouse(_) => todo!(),
-        // SyncDest::ClickHouse(url) => (SyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
     }
 }
 
@@ -80,8 +76,6 @@ pub async fn get_loader(
             Ok((SyncDestType::MongoDB, Box::new(loader)))
         }
         SyncDest::MySQL(_) => todo!(),
-        SyncDest::ClickHouse(_) => todo!(),
-        // SyncDest::ClickHouse(url) => (SyncDestType::ClickHouse, Box::new(ClickHouseStore::new(url))),
     }
 }
 
@@ -395,7 +389,7 @@ pub trait Loader: Sync + Send {
 
 pub const DATA_DEF_START_DATE: &'static str = "2010-01-01";
 
-pub const DATABASE: &'static str = "rwinq";
+pub const DATABASE: &'static str = "winq";
 
 pub const TAB_TRADE_DATE: &'static str = "trade_date";
 

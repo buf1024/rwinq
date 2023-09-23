@@ -8,7 +8,7 @@ mod types;
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::BTreeSet;
 // use tracing::Event;
 // use tracing_error::ErrorLayer;
 // use tracing_subscriber::util::SubscriberInitExt;
@@ -93,29 +93,25 @@ fn to_std_code(typ: i32, code: &str) -> PyResult<String> {
 }
 
 #[pyfunction]
-fn fetch_rt_quot<'a>(py: Python<'a>, code: Vec<&str>) -> PyResult<&'a PyAny> {
+fn fetch_rt_quot<'a>(py: Python<'a>, code: Vec<String>) -> PyResult<&'a PyAny> {
     let code: Vec<_> = code.into_iter().map(String::from).collect();
     pyo3_asyncio::tokio::future_into_py(py, async move {
-        let code: Vec<_> = code.iter().map(|e| &e[..]).collect();
-        Ok(rwqfetch::fetch_rt_quot(code)
+        Ok(rwqfetch::fetch_rt_quot(&code)
             .await
             .map_err(|e| PyException::new_err(e.to_string()))?
             .into_iter()
-            .map(|(key, value)| (key, RtQuot::from(value)))
-            .collect::<HashMap<String, RtQuot>>())
+            .map(|(key, value)| (key, Quot::from(value)))
+            .collect::<RtQuot>())
     })
 }
 #[pyfunction]
-fn block_fetch_rt_quot(code: Vec<&str>) -> PyResult<HashMap<String, RtQuot>> {
+fn block_fetch_rt_quot(code: Vec<String>) -> PyResult<RtQuot> {
     Ok(runtime()?
-        .block_on(async move {
-            let code: Vec<_> = code.iter().map(|e| &e[..]).collect();
-            rwqfetch::fetch_rt_quot(code).await
-        })
+        .block_on(async move { rwqfetch::fetch_rt_quot(&code).await })
         .map_err(|e| PyException::new_err(e.to_string()))?
         .into_iter()
-        .map(|(key, value)| (key, RtQuot::from(value)))
-        .collect::<HashMap<String, RtQuot>>())
+        .map(|(key, value)| (key, Quot::from(value)))
+        .collect::<RtQuot>())
 }
 
 // struct LogTracingLayer {}

@@ -7,12 +7,10 @@ class Dest:
                  *,
                  file: Optional[str] = None,
                  mongo: Optional[str] = None,
-                 mysql: Optional[str] = None,
-                 clickhouse: Optional[str] = None) -> None:
+                 mysql: Optional[str] = None,) -> None:
         self.file = file
         self.mongo = mongo
         self.mysql = mysql
-        self.clickhouse = clickhouse
 
     def to_list(self) -> Optional[List[Tuple]]:
         list = []
@@ -22,8 +20,6 @@ class Dest:
             list.append(('mongodb', self.mongo))
         if self.mysql is not None:
             list.append(('mysql', self.mysql))
-        if self.clickhouse is not None:
-            list.append(('clickhouse', self.clickhouse))
         return list
 
 

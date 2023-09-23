@@ -15,7 +15,5 @@ def get_loader(typ: str, url: str, block: bool = False) -> Optional[Loader]:
             url=url) if not block else BlockMongoLoader(url=url)
     elif typ == "mysql":
         pass
-    elif typ == "clickhouse":
-        pass
 
     return loader

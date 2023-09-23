@@ -61,6 +61,7 @@ impl MongoStore {
             let v: Vec<_> = funcs.iter().map(|e| (*e).clone()).collect();
             t_funcs = Some(v);
         }
+
         Self {
             bond_fetch,
             fund_fetch,

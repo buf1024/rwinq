@@ -64,7 +64,7 @@ pub(crate) struct XuQiuRtQuotData<'a> {
     pub high: f32,
     pub low: f32,
     #[serde(rename(deserialize = "current"))]
-    pub last: f32,
+    pub now: f32,
     pub chg: f32,
     pub percent: f32,
     pub volume: i64,

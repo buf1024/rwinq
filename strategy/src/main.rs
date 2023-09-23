@@ -343,7 +343,7 @@ struct StrategyCli {
     concurrent: usize,
 
     /// 如：file=/user/home/app, mongodb=mongodb://localhost:27017
-    /// 支持的目标有: file, mongodb, mysql, clickhouse
+    /// 支持的目标有: file, mongodb, mysql
     /// 可同时传递多个目标:
     /// 如：-d mongodb=mongodb://localhost:27017
     #[argh(

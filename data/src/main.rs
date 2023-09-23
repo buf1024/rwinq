@@ -175,7 +175,7 @@ struct SyncCommand {
     split_count: usize,
     /// 同步数据存储目的。“=”分割，前面一部分表示目标，后一部分表示url
     /// 如：file=/user/home/app, mongodb=mongodb://localhost:27017
-    /// 支持的目标有: file, mongodb, mysql, clickhouse
+    /// 支持的目标有: file, mongodb, mysql
     /// 可同时传递多个目标:
     /// 如：-d file=/user/home/app -d mongodb=mongodb://localhost:27017
     #[argh(option, short = 'd')]
@@ -198,7 +198,7 @@ struct SyncCommand {
 struct BuildIndexCommand {
     /// 同步数据存储目的。“=”分割，前面一部分表示目标，后一部分表示url
     /// 如：file=/user/home/app, mongodb=mongodb://localhost:27017
-    /// 支持的目标有: file, mongodb, mysql, clickhouse
+    /// 支持的目标有: file, mongodb, mysql
     /// 可同时传递多个目标:
     /// 如：-d file=/user/home/app -d mongodb=mongodb://localhost:27017
     #[argh(option, short = 'd')]

@@ -1,5 +1,7 @@
 //! 公共数据
 
+use std::collections::HashMap;
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -91,7 +93,7 @@ impl From<i32> for BarFreq {
 
 /// 实时行情
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RtQuot {
+pub struct QuotXq {
     /// 代码
     pub code: String,
     /// 行情时间
@@ -109,7 +111,7 @@ pub struct RtQuot {
     /// 最低价
     pub low: f32,
     /// 最后一口价（最新价）
-    pub last: f32,
+    pub now: f32,
     /// 涨跌额
     pub chg: f32,
     /// 涨幅
@@ -127,3 +129,94 @@ pub struct RtQuot {
     /// 是否交易
     pub is_trading: bool,
 }
+
+pub type RtQuotXq = HashMap<String, QuotXq>;
+
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct QuotSn {
+    /// 代码
+    pub code: String,
+    /// 名称
+    pub name: String,
+    /// 开盘价
+    pub open: f64,
+    /// 昨收价
+    pub last_close: f64,
+    /// 最后一口价（最新价）
+    pub now: f64,
+    /// 最高价
+    pub high: f64,
+    /// 最低价
+    pub low: f64,
+    /// 买价
+    pub buy: f64,
+    /// 卖价
+    pub sell: f64,
+    /// 成交量
+    pub volume: u64,
+    /// 成交额
+    pub amount: f64,
+    /// 买单
+    pub bid: ((u32, f64), (u32, f64), (u32, f64), (u32, f64), (u32, f64)),
+    /// 卖单
+    pub ask: ((u32, f64), (u32, f64), (u32, f64), (u32, f64), (u32, f64)),
+    /// 行情时间
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
+    pub time: NaiveDateTime,
+}
+
+pub type RtQuotSn = HashMap<String, QuotSn>;
+
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub struct Quot {
+    /// 代码
+    pub code: String,
+    /// 名称
+    pub name: String,
+    /// 开盘价
+    pub open: f64,
+    /// 昨收价
+    pub last_close: f64,
+    /// 最后一口价（最新价）
+    pub now: f64,
+    /// 最高价
+    pub high: f64,
+    /// 最低价
+    pub low: f64,
+    /// 买价
+    pub buy: f64,
+    /// 卖价
+    pub sell: f64,
+    /// 成交量
+    pub volume: u64,
+    /// 成交额
+    pub amount: f64,
+    /// 买单
+    pub bid: ((u32, f64), (u32, f64), (u32, f64), (u32, f64), (u32, f64)),
+    /// 卖单
+    pub ask: ((u32, f64), (u32, f64), (u32, f64), (u32, f64), (u32, f64)),
+    /// 行情时间
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
+    pub time: NaiveDateTime,
+
+    /// 涨跌额
+    pub chg: f32,
+    /// 涨幅
+    pub chg_pct: f32,
+    /// 换手率
+    pub turnover: f32,
+    /// 总市值
+    pub total_value: f64,
+    /// 流通市值
+    pub currency_value: f64,
+    /// 是否交易
+    pub is_trading: bool,
+}
+
+pub type RtQuot = HashMap<String, Quot>;

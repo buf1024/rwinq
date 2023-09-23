@@ -264,7 +264,6 @@ mod tests {
                 let mut s = Sync::new(
                     vec![
                         SyncDest::MongoDB("mongodb://localhost:27017".into()),
-                        // SyncDest::ClickHouse("abc".into()),
                     ],
                     rx,
                     // None,

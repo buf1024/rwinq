@@ -14,11 +14,10 @@ pub enum SyncDest {
     File(PathBuf),
     MongoDB(String),
     MySQL(String),
-    ClickHouse(String),
 }
 
 /// 转换为`SyncDest`  
-/// 格式为(file, path), (mongodb, url), (mysql, url), (clickhouse, url)
+/// 格式为(file, path), (mongodb, url), (mysql, url)
 impl TryFrom<(String, String)> for SyncDest {
     type Error = Error;
 
@@ -29,7 +28,6 @@ impl TryFrom<(String, String)> for SyncDest {
             "file" => Ok(SyncDest::File(PathBuf::from(val))),
             "mongodb" => Ok(SyncDest::MongoDB(val)),
             "mysql" => Ok(SyncDest::MySQL(val)),
-            "clickhouse" => Ok(SyncDest::ClickHouse(val)),
             _ => Err(Error::Custom(format!("Invalid SyncDest: {}", typ.as_str()))),
         }
     }
@@ -41,7 +39,6 @@ pub enum SyncDestType {
     File = 1,
     MongoDB,
     MySQL,
-    ClickHouse,
 }
 
 impl TryFrom<i32> for SyncDestType {
@@ -52,7 +49,6 @@ impl TryFrom<i32> for SyncDestType {
             1 => Ok(SyncDestType::File),
             2 => Ok(SyncDestType::MongoDB),
             3 => Ok(SyncDestType::MySQL),
-            4 => Ok(SyncDestType::ClickHouse),
             _ => Err(Error::Custom(format!("Invalid SyncDestType: {}", v))),
         }
     }
