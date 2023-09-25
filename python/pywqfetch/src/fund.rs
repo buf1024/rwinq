@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-use crate::{FundBar, FundInfo, FundNet};
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use pywqcmm::runtime;
+use pywqcmm::{runtime, to_python};
 
 #[pyclass]
 pub(crate) struct FundFetch {
@@ -23,13 +22,12 @@ impl FundFetch {
     fn fetch_fund_info<'a>(&self, py: Python<'a>) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         pyo3_asyncio::tokio::future_into_py(py, async move {
-            Ok(fetch
-                .fetch_fund_info()
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into_iter()
-                .map(FundInfo::from)
-                .collect::<Vec<_>>())
+            to_python(
+                &fetch
+                    .fetch_fund_info()
+                    .await
+                    .map_err(|e| PyException::new_err(e.to_string()))?,
+            )
         })
     }
     /// etf基金净值
@@ -46,13 +44,13 @@ impl FundFetch {
         let name = name.map(String::from);
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let name = name.as_deref();
-            Ok(fetch
-                .fetch_fund_net(&code[..], name, start, end)
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into_iter()
-                .map(FundNet::from)
-                .collect::<Vec<_>>())
+
+            to_python(
+                &fetch
+                    .fetch_fund_net(&code[..], name, start, end)
+                    .await
+                    .map_err(|e| PyException::new_err(e.to_string()))?,
+            )
         })
     }
 
@@ -74,12 +72,13 @@ impl FundFetch {
         let name = name.map(String::from);
         pyo3_asyncio::tokio::future_into_py(py, async move {
             let name = name.as_deref();
-            let bar: FundBar = fetch
-                .fetch_fund_bar(&code[..], name, fr, start, end, is_skip_rt)
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into();
-            Ok(bar)
+
+            to_python(
+                &fetch
+                    .fetch_fund_bar(&code[..], name, fr, start, end, is_skip_rt)
+                    .await
+                    .map_err(|e| PyException::new_err(e.to_string()))?,
+            )
         })
     }
 }
@@ -98,13 +97,12 @@ impl BlockFundFetch {
         }
     }
     /// etf基金基本信息
-    fn fetch_fund_info(&self) -> PyResult<Vec<FundInfo>> {
-        Ok(runtime()?
-            .block_on(self.fetch.fetch_fund_info())
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into_iter()
-            .map(FundInfo::from)
-            .collect::<Vec<_>>())
+    fn fetch_fund_info(&self) -> PyResult<PyObject> {
+        to_python(
+            &runtime()?
+                .block_on(self.fetch.fetch_fund_info())
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     }
     /// etf基金净值
     fn fetch_fund_net(
@@ -113,13 +111,12 @@ impl BlockFundFetch {
         name: Option<&str>,
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
-    ) -> PyResult<Vec<FundNet>> {
-        Ok(runtime()?
-            .block_on(self.fetch.fetch_fund_net(code, name, start, end))
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into_iter()
-            .map(FundNet::from)
-            .collect::<Vec<_>>())
+    ) -> PyResult<PyObject> {
+        to_python(
+            &runtime()?
+                .block_on(self.fetch.fetch_fund_net(code, name, start, end))
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     }
 
     /// etf基金k线数据
@@ -131,15 +128,17 @@ impl BlockFundFetch {
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
         skip_rt: Option<bool>,
-    ) -> PyResult<FundBar> {
+    ) -> PyResult<PyObject> {
         let is_skip_rt = skip_rt.unwrap_or(true);
         let fr: Option<rwqfetch::BarFreq> = freq.map_or(None, |v| Some(v.into()));
-        Ok(runtime()?
-            .block_on(
-                self.fetch
-                    .fetch_fund_bar(code, name, fr, start, end, is_skip_rt),
-            )
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into())
+
+        to_python(
+            &runtime()?
+                .block_on(
+                    self.fetch
+                        .fetch_fund_bar(code, name, fr, start, end, is_skip_rt),
+                )
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     }
 }

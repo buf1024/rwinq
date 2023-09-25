@@ -3,7 +3,6 @@ mod fund;
 mod stock;
 
 mod ta;
-mod types;
 
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
@@ -96,22 +95,20 @@ fn to_std_code(typ: i32, code: &str) -> PyResult<String> {
 fn fetch_rt_quot<'a>(py: Python<'a>, code: Vec<String>) -> PyResult<&'a PyAny> {
     let code: Vec<_> = code.into_iter().map(String::from).collect();
     pyo3_asyncio::tokio::future_into_py(py, async move {
-        Ok(rwqfetch::fetch_rt_quot(&code)
-            .await
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into_iter()
-            .map(|(key, value)| (key, Quot::from(value)))
-            .collect::<RtQuot>())
+        to_python(
+            &rwqfetch::fetch_rt_quot(&code)
+                .await
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     })
 }
 #[pyfunction]
-fn block_fetch_rt_quot(code: Vec<String>) -> PyResult<RtQuot> {
-    Ok(runtime()?
-        .block_on(async move { rwqfetch::fetch_rt_quot(&code).await })
-        .map_err(|e| PyException::new_err(e.to_string()))?
-        .into_iter()
-        .map(|(key, value)| (key, Quot::from(value)))
-        .collect::<RtQuot>())
+fn block_fetch_rt_quot(code: Vec<String>) -> PyResult<PyObject> {
+    to_python(
+        &runtime()?
+            .block_on(rwqfetch::fetch_rt_quot(&code))
+            .map_err(|e| PyException::new_err(e.to_string()))?,
+    )
 }
 
 // struct LogTracingLayer {}

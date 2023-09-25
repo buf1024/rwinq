@@ -1,13 +1,15 @@
-use chrono::{Local, NaiveDateTime};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::TradeType;
+use crate::{Entrust, TradeTime, TradeType, Uuid};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Deal {
     /// id
-    pub id: String,
+    #[serde(
+        serialize_with = "crate::uuid_serialize",
+        deserialize_with = "crate::uuid_deserialize"
+    )]
+    pub id: Uuid,
     /// 类型
     pub typ: TradeType,
     /// 代码
@@ -16,35 +18,38 @@ pub struct Deal {
     pub name: String,
     /// 时间
     #[serde(
-        serialize_with = "rwqcmm::naive_dt_serialize",
-        deserialize_with = "rwqcmm::naive_dt_deserialize"
+        serialize_with = "crate::trade_time_serialize",
+        deserialize_with = "crate::trade_time_deserialize"
     )]
-    pub time: NaiveDateTime,
+    pub time: TradeTime,
     /// 价格
     pub price: f32,
     /// 量
-    pub volume: i32,
+    pub volume: u32,
     /// 盈利
     pub profit: f32,
     /// 手续费
     pub fee: f32,
     /// 描述
     pub desc: String,
+    /// 委托ID
+    pub entrust_id: Uuid,
 }
 
-impl Default for Deal {
-    fn default() -> Self {
+impl From<&Entrust> for Deal {
+    fn from(entrust: &Entrust) -> Self {
         Self {
-            id: Uuid::new_v4().as_simple().to_string(),
-            typ: Default::default(),
-            code: Default::default(),
-            name: Default::default(),
-            time: Local::now().naive_local(),
-            price: Default::default(),
-            volume: Default::default(),
-            profit: Default::default(),
-            fee: Default::default(),
-            desc: Default::default(),
+            id: Default::default(),
+            entrust_id: entrust.id.clone(),
+            name: entrust.name.clone(),
+            code: entrust.code.clone(),
+            time: Default::default(),
+            typ: entrust.typ.clone(),
+            price: entrust.price,
+            volume: entrust.volume_deal,
+            profit: 0.0,
+            fee: 0.0,
+            desc: entrust.desc.clone(),
         }
     }
 }

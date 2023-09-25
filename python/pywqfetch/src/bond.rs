@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-use crate::{BondBar, BondInfo};
 use chrono::NaiveDate;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
-use pywqcmm::runtime;
+use pywqcmm::{runtime, to_python};
 
 #[pyclass]
 pub(crate) struct BondFetch {
@@ -23,13 +22,12 @@ impl BondFetch {
     fn fetch_bond_info<'a>(&self, py: Python<'a>) -> PyResult<&'a PyAny> {
         let fetch = self.fetch.clone();
         pyo3_asyncio::tokio::future_into_py(py, async move {
-            Ok(fetch
-                .fetch_bond_info()
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into_iter()
-                .map(BondInfo::from)
-                .collect::<Vec<_>>())
+            to_python(
+                &fetch
+                    .fetch_bond_info()
+                    .await
+                    .map_err(|e| PyException::new_err(e.to_string()))?,
+            )
         })
     }
     /// 获取可转债日线
@@ -54,21 +52,21 @@ impl BondFetch {
 
         let fetch = self.fetch.clone();
         pyo3_asyncio::tokio::future_into_py(py, async move {
-            let bar: BondBar = fetch
-                .fetch_bond_bar(
-                    &code[..],
-                    &name[..],
-                    &stock_code[..],
-                    &stock_name[..],
-                    fr,
-                    start,
-                    end,
-                    is_skip_rt,
-                )
-                .await
-                .map_err(|e| PyException::new_err(e.to_string()))?
-                .into();
-            Ok(bar)
+            to_python(
+                &fetch
+                    .fetch_bond_bar(
+                        &code[..],
+                        &name[..],
+                        &stock_code[..],
+                        &stock_name[..],
+                        fr,
+                        start,
+                        end,
+                        is_skip_rt,
+                    )
+                    .await
+                    .map_err(|e| PyException::new_err(e.to_string()))?,
+            )
         })
     }
 }
@@ -87,13 +85,12 @@ impl BlockBondFetch {
         }
     }
     /// 获取可转债基本信息
-    fn fetch_bond_info(&self) -> PyResult<Vec<BondInfo>> {
-        Ok(runtime()?
-            .block_on(self.fetch.fetch_bond_info())
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into_iter()
-            .map(BondInfo::from)
-            .collect())
+    fn fetch_bond_info(&self) -> PyResult<PyObject> {
+        to_python(
+            &runtime()?
+                .block_on(self.fetch.fetch_bond_info())
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     }
     /// 获取可转债日线
     fn fetch_bond_bar(
@@ -106,14 +103,16 @@ impl BlockBondFetch {
         start: Option<NaiveDate>,
         end: Option<NaiveDate>,
         skip_rt: Option<bool>,
-    ) -> PyResult<BondBar> {
+    ) -> PyResult<PyObject> {
         let is_skip_rt = skip_rt.unwrap_or(true);
         let fr: Option<rwqfetch::BarFreq> = freq.map_or(None, |v| Some(v.into()));
-        Ok(runtime()?
-            .block_on(self.fetch.fetch_bond_bar(
-                code, name, stock_code, stock_name, fr, start, end, is_skip_rt,
-            ))
-            .map_err(|e| PyException::new_err(e.to_string()))?
-            .into())
+
+        to_python(
+            &runtime()?
+                .block_on(self.fetch.fetch_bond_bar(
+                    code, name, stock_code, stock_name, fr, start, end, is_skip_rt,
+                ))
+                .map_err(|e| PyException::new_err(e.to_string()))?,
+        )
     }
 }

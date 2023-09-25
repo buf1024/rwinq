@@ -28,8 +28,6 @@ pub use ta::*;
 
 pub use rwqcmm::*;
 
-
-
 /// 模块定义的错误码
 #[derive(Error, Debug)]
 pub enum Error {
@@ -67,45 +65,6 @@ pub(crate) static HTTP_CMM_HEADER: Lazy<HeaderMap> = Lazy::new(|| {
     header.insert(ACCEPT_ENCODING, HeaderValue::from_static("gzip, deflate"));
     header
 });
-
-/// 股票市场： 深圳/上海/上海
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Market {
-    SZ = 0,
-    SH = 1,
-    BJ = 2
-}
-
-impl From<i32> for Market {
-    fn from(v: i32) -> Self {
-        match v {
-            0 => Market::SZ,
-            1 => Market::SH,
-            2 => Market::BJ,
-            _ => Market::SH,
-        }
-    }
-}
-
-/// 市场交易类型： 可转债，etf基金，股票
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub enum MarketType {
-    Bond = 0,
-    Fund = 1,
-    #[default]
-    Stock = 2,
-}
-
-impl From<i32> for MarketType {
-    fn from(v: i32) -> Self {
-        match v {
-            0 => MarketType::Bond,
-            1 => MarketType::Fund,
-            2 => MarketType::Stock,
-            _ => MarketType::Stock,
-        }
-    }
-}
 
 /// 复权方式
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

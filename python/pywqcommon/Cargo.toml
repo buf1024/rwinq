@@ -9,8 +9,9 @@ version = "0.1.0"
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-chrono = { version = "0.4.29", features = ["serde"] }
-rwqcmm = { path = "../../common" }
-pyo3 = { version = "0.19.2", features = ["extension-module", "chrono"] }
-serde = { version = "1.0.188", features = ["derive"] }
-tokio = { version = "1.32.0", features = ["rt-multi-thread"] }
+chrono = {version = "0.4.29", features = ["serde"]}
+pyo3 = {version = "0.19.2", features = ["extension-module", "chrono"]}
+pythonize = {version = "0.19.0"}
+rwqcmm = {path = "../../common"}
+serde = {version = "1.0.188", features = ["derive"]}
+tokio = {version = "1.32.0", features = ["rt-multi-thread"]}

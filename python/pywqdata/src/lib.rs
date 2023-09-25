@@ -4,7 +4,7 @@ mod pywqsync;
 use pywqsync::{BlockSync, Sync};
 
 mod pywqmongo;
-use pywqmongo::{BlockMongoLoader, MongoLoader};
+// use pywqmongo::{BlockMongoLoader, MongoLoader};
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -19,7 +19,7 @@ fn pywqdata(_py: Python, m: &PyModule) -> PyResult<()> {
     // my_module.log_something()
     m.add_class::<Sync>()?;
     m.add_class::<BlockSync>()?;
-    m.add_class::<MongoLoader>()?;
-    m.add_class::<BlockMongoLoader>()?;
+    // m.add_class::<MongoLoader>()?;
+    // m.add_class::<BlockMongoLoader>()?;
     Ok(())
 }
