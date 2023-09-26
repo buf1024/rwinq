@@ -91,6 +91,21 @@ impl From<i32> for BarFreq {
         }
     }
 }
+impl BarFreq {
+    pub fn to_seconds(&self) -> i64 {
+        match self {
+            BarFreq::Min1 => 60,
+            BarFreq::Min5 => 5 * 60,
+            BarFreq::Min15 => 15 * 60,
+            BarFreq::Min30 => 30 * 60,
+            BarFreq::Min60 => 60 * 60,
+            BarFreq::Daily => 24 * 60 * 60,
+            BarFreq::Weekly => 7 * 24 * 60 * 60,
+            BarFreq::Monthly => 30 * 24 * 60 * 60,
+            BarFreq::LooseDaily => 24 * 60 * 60,
+        }
+    }
+}
 
 /// 实时行情
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -219,6 +234,8 @@ pub struct Quot {
     /// 是否交易
     pub is_trading: bool,
 
+    /// 周期内开盘价
+    pub freq_open: f32,
     /// 周期内最高价
     pub freq_high: f32,
     /// 周期内最低价
@@ -227,6 +244,12 @@ pub struct Quot {
     pub freq_chg: f32,
     /// 周期内涨幅
     pub freq_chg_pct: f32,
+    /// 行情时间
+    #[serde(
+        serialize_with = "crate::naive_dt_serialize",
+        deserialize_with = "crate::naive_dt_deserialize"
+    )]
+    pub freq_time: NaiveDateTime,
 }
 
 pub type RtQuot = HashMap<String, Quot>;

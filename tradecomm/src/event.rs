@@ -1,4 +1,4 @@
-use rwqcmm::{BarFreq, MarketType, RtQuot};
+use rwqcmm::{MarketType, RtQuot};
 use serde::{Deserialize, Serialize};
 
 use crate::{Entrust, Position, Signal, TradeTime};
@@ -18,8 +18,8 @@ pub enum QuotEvent {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct QuotOpts {
     pub typ: MarketType,
-    pub freq: BarFreq,
-    pub codes: Option<Vec<String>>,
+    /// seconds
+    pub freq: i64,
     pub start_date: Option<TradeTime>,
     pub end_date: Option<TradeTime>,
 }

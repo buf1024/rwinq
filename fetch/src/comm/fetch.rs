@@ -466,10 +466,12 @@ pub async fn fetch_rt_quot(code: &Vec<String>) -> Result<RtQuot> {
                 bid: sn.bid,
                 ask: sn.ask,
                 time: sn.time,
+                freq_open: 0.0,
                 freq_high: 0.0,
                 freq_low: 0.0,
                 freq_chg: 0.0,
                 freq_chg_pct: 0.0,
+                freq_time: Default::default()
             };
             (k.clone(), quot)
         })
