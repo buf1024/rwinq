@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::{BarFreq, StockFetch, StockInfo};
+use rwqfetch::{BarFreq, StockInfo};
 use tokio::sync::mpsc;
 
 use crate::{
@@ -16,7 +16,6 @@ use crate::{
 use super::service::insert_many;
 
 struct StockDailyAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     freq: Option<BarFreq>,
@@ -27,9 +26,7 @@ struct StockDailyAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_bar(
+        let data = rwqfetch::fetch_stock_bar(
                 self.code,
                 Some(self.name),
                 self.freq,
@@ -48,7 +45,6 @@ impl<'a> AsyncFunc for StockDailyAsyncFunc<'a> {
 }
 
 pub(crate) struct StockDailySyncer {
-    fetch: Arc<StockFetch>,
     cache: Arc<RwLock<Cache>>,
     client: Client,
     codes: Vec<StockInfo>,
@@ -58,7 +54,6 @@ pub(crate) struct StockDailySyncer {
 impl StockDailySyncer {
     pub fn new(
         client: Client,
-        fetch: Arc<StockFetch>,
         cache: Arc<RwLock<Cache>>,
         codes: Vec<StockInfo>,
         task_n: usize,
@@ -66,7 +61,6 @@ impl StockDailySyncer {
         Self {
             client,
             cache,
-            fetch,
             codes,
             task_n,
         }
@@ -122,7 +116,6 @@ impl Syncer for StockDailySyncer {
                 self.task_n
             );
             let func = StockDailyAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 freq: Some(BarFreq::Daily),

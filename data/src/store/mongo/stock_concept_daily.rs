@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::StockFetch;
+
 use tokio::sync::mpsc;
 
 use crate::{
@@ -17,7 +17,6 @@ use crate::{
 };
 
 struct StockConceptDailyAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -27,10 +26,14 @@ struct StockConceptDailyAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockConceptDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_concept_daily(self.code, Some(self.name), self.start, self.end, true)
-            .await?;
+        let data = rwqfetch::fetch_stock_concept_daily(
+            self.code,
+            Some(self.name),
+            self.start,
+            self.end,
+            true,
+        )
+        .await?;
         let bar = data.bars;
         if bar.is_none() {
             Ok(None)
@@ -41,18 +44,13 @@ impl<'a> AsyncFunc for StockConceptDailyAsyncFunc<'a> {
 }
 
 pub(crate) struct StockConceptDailySyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
     cache: Arc<RwLock<Cache>>,
 }
 
 impl StockConceptDailySyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>, cache: Arc<RwLock<Cache>>) -> Self {
-        Self {
-            client,
-            fetch,
-            cache,
-        }
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
+        Self { client, cache }
     }
 }
 
@@ -62,7 +60,7 @@ impl Syncer for StockConceptDailySyncer {
         let mut concept: Vec<rwqfetch::StockConcept> =
             query(self.client.clone(), TAB_STOCK_CONCEPT, doc! {}, None).await?;
         if concept.is_empty() {
-            concept = self.fetch.fetch_stock_concept().await?;
+            concept = rwqfetch::fetch_stock_concept().await?;
         }
 
         for info in concept.iter() {
@@ -108,7 +106,6 @@ impl Syncer for StockConceptDailySyncer {
                 &start
             );
             let func = StockConceptDailyAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 start,

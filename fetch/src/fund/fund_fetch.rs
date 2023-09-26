@@ -4,263 +4,252 @@ use crate::util::to_std_code;
 use crate::{Error, HeaderValue, Market, MarketType, Result, HTTP_CMM_HEADER};
 use chrono::{Datelike, Duration, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use reqwest::header::REFERER;
-use reqwest::Client;
 use rwqcmm::{Bar, BarFreq, FundBar, FundInfo, FundNet};
 use std::ops::Add;
 
-pub struct FundFetch {
-    client: Client,
-}
+pub async fn fetch_fund_bar_xq(
+    code: &str,
+    name: Option<&str>,
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+) -> Result<FundBar> {
+    let mut first_date: Option<i32> = None;
+    let code = code.to_uppercase();
+    let name = name.unwrap_or("");
 
-impl FundFetch {
-    pub fn new() -> Self {
-        Self {
-            client: async_client(),
-        }
-    }
-    pub async fn fetch_fund_bar_xq(
-        &self,
-        code: &str,
-        name: Option<&str>,
-        start: Option<NaiveDate>,
-        end: Option<NaiveDate>,
-    ) -> Result<FundBar> {
-        let mut first_date: Option<i32> = None;
-        let code = code.to_uppercase();
-        let name = name.unwrap_or("");
+    let mut start = if let Some(st) = &start {
+        let prev = fetch_prev_trade_date(&st).await?;
+        first_date = Some(prev);
+        NaiveDateTime::parse_from_str(&format!("{} 00:00:00", prev), "%Y%m%d %H:%M:%S").unwrap()
+    } else {
+        NaiveDateTime::parse_from_str("2010-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap()
+    };
 
-        let mut start = if let Some(st) = &start {
-            let prev = fetch_prev_trade_date(&st).await?;
-            first_date = Some(prev);
-            NaiveDateTime::parse_from_str(&format!("{} 00:00:00", prev), "%Y%m%d %H:%M:%S").unwrap()
-        } else {
-            NaiveDateTime::parse_from_str("2010-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap()
-        };
+    let end = end.map_or(Local::now().naive_local(), |d| {
+        d.and_hms_opt(0, 0, 0).unwrap()
+    });
 
-        let end = end.map_or(Local::now().naive_local(), |d| {
-            d.and_hms_opt(0, 0, 0).unwrap()
-        });
+    let mut data = Vec::new();
 
-        let mut data = Vec::new();
-
-        let mut pre_item: Option<Bar> = None;
-        // prepare cookie
-        self.client.get("https://xueqiu.com/hq").send().await?;
-        while start <= end {
-            let timestamp = start.timestamp() * 1000;
-            let req_url = format!(
-                "https://stock.xueqiu.com/v5/stock/chart/kline.json?\
+    let mut pre_item: Option<Bar> = None;
+    // prepare cookie
+    async_client().get("https://xueqiu.com/hq").send().await?;
+    while start <= end {
+        let timestamp = start.timestamp() * 1000;
+        let req_url = format!(
+            "https://stock.xueqiu.com/v5/stock/chart/kline.json?\
             symbol={code}&begin={timestamp}&period=day&type=before&count=100&indicator=kline",
-                code = code,
-                timestamp = timestamp
-            );
+            code = code,
+            timestamp = timestamp
+        );
 
-            let resp = self.client.get(req_url).send().await?.text().await?;
-            let json: XueQiuBar = serde_json::from_str(&resp)?;
+        let resp = async_client().get(req_url).send().await?.text().await?;
+        let json: XueQiuBar = serde_json::from_str(&resp)?;
 
-            if let Some(result) = json.data {
-                let tmp_vec: Vec<_> = result
-                    .item
-                    .iter()
-                    .map(|item| {
-                        // ["timestamp","volume","open","high","low","close","chg","percent","turnoverrate","amount","volume_post","amount_post"]
-                        let trade_date: NaiveDateTime =
-                            Local.timestamp_opt(item.0 / 1000, 0).unwrap().naive_local();
+        if let Some(result) = json.data {
+            let tmp_vec: Vec<_> = result
+                .item
+                .iter()
+                .map(|item| {
+                    // ["timestamp","volume","open","high","low","close","chg","percent","turnoverrate","amount","volume_post","amount_post"]
+                    let trade_date: NaiveDateTime =
+                        Local.timestamp_opt(item.0 / 1000, 0).unwrap().naive_local();
 
-                        let volume = item.1.unwrap_or(0);
-                        let amount = item.9.unwrap_or(0.0);
-                        let (volume_chg_pct, amount_chg_pct) = if let Some(item) = &pre_item {
-                            (
-                                (((volume as i64 - item.volume as i64) * 100) as f64
-                                    / item.volume as f64) as f32,
-                                ((amount - item.amount) * 100.0 / item.amount) as f32,
-                            )
-                        } else {
-                            (0.0, 0.0)
-                        };
+                    let volume = item.1.unwrap_or(0);
+                    let amount = item.9.unwrap_or(0.0);
+                    let (volume_chg_pct, amount_chg_pct) = if let Some(item) = &pre_item {
+                        (
+                            (((volume as i64 - item.volume as i64) * 100) as f64
+                                / item.volume as f64) as f32,
+                            ((amount - item.amount) * 100.0 / item.amount) as f32,
+                        )
+                    } else {
+                        (0.0, 0.0)
+                    };
 
-                        let bar = Bar {
-                            code: result.code[2..].to_owned(),
-                            name: name.to_owned(),
-                            trade_date,
-                            open: item.2.unwrap_or(0.0),
-                            close: item.5.unwrap_or(0.0),
-                            high: item.3.unwrap_or(0.0),
-                            low: item.4.unwrap_or(0.0),
-                            volume,
-                            amount,
-                            volume_chg_pct,
-                            amount_chg_pct,
-                            turnover: item.8.unwrap_or(0.0),
-                            chg_pct: item.6.unwrap_or(0.0),
-                            hfq_factor: 1.0,
-                        };
-                        pre_item = Some(bar.clone());
-                        bar
-                    })
-                    .filter(|item| item.trade_date <= end)
-                    .collect();
-                if tmp_vec.is_empty() {
-                    break;
-                }
-                let last = tmp_vec[tmp_vec.len() - 1].trade_date.clone();
-
-                start = last.add(Duration::days(1));
-                data.extend(tmp_vec.into_iter());
-            } else {
+                    let bar = Bar {
+                        code: result.code[2..].to_owned(),
+                        name: name.to_owned(),
+                        trade_date,
+                        open: item.2.unwrap_or(0.0),
+                        close: item.5.unwrap_or(0.0),
+                        high: item.3.unwrap_or(0.0),
+                        low: item.4.unwrap_or(0.0),
+                        volume,
+                        amount,
+                        volume_chg_pct,
+                        amount_chg_pct,
+                        turnover: item.8.unwrap_or(0.0),
+                        chg_pct: item.6.unwrap_or(0.0),
+                        hfq_factor: 1.0,
+                    };
+                    pre_item = Some(bar.clone());
+                    bar
+                })
+                .filter(|item| item.trade_date <= end)
+                .collect();
+            if tmp_vec.is_empty() {
                 break;
             }
+            let last = tmp_vec[tmp_vec.len() - 1].trade_date.clone();
+
+            start = last.add(Duration::days(1));
+            data.extend(tmp_vec.into_iter());
+        } else {
+            break;
         }
-        if let Some(first_date) = first_date {
-            if data.len() > 0 {
-                let first = data.get(0).unwrap();
-                let (y, m, d) = (
-                    first.trade_date.year(),
-                    first.trade_date.month(),
-                    first.trade_date.day(),
-                );
-                let date = y * 10000 + m as i32 * 100 + d as i32;
-                if first_date == date {
-                    data = data.into_iter().skip(1).collect();
-                }
+    }
+    if let Some(first_date) = first_date {
+        if data.len() > 0 {
+            let first = data.get(0).unwrap();
+            let (y, m, d) = (
+                first.trade_date.year(),
+                first.trade_date.month(),
+                first.trade_date.day(),
+            );
+            let date = y * 10000 + m as i32 * 100 + d as i32;
+            if first_date == date {
+                data = data.into_iter().skip(1).collect();
             }
         }
-
-        Ok(FundBar {
-            code: code.to_lowercase(),
-            name: name.to_string(),
-            freq: BarFreq::Daily,
-            bars: if data.len() > 0 { Some(data) } else { None },
-        })
     }
+
+    Ok(FundBar {
+        code: code.to_lowercase(),
+        name: name.to_string(),
+        freq: BarFreq::Daily,
+        bars: if data.len() > 0 { Some(data) } else { None },
+    })
 }
 
-impl FundFetch {
-    /// etf基金基本信息
-    pub async fn fetch_fund_info(&self) -> Result<Vec<FundInfo>> {
-        let req_url = format!("http://fund.eastmoney.com/js/fundcode_search.js?v=20130718.js");
+/// etf基金基本信息
+pub async fn fetch_fund_info() -> Result<Vec<FundInfo>> {
+    let req_url = format!("http://fund.eastmoney.com/js/fundcode_search.js?v=20130718.js");
 
-        let resp = self.client.get(req_url).send().await?.text().await?;
+    let resp = async_client().get(req_url).send().await?.text().await?;
 
-        let index = resp
-            .find("[")
-            .ok_or(Error::Custom("Invalid fund info response".to_string()))?;
-        let resp = &resp[index..resp.len() - 1];
-        let json = serde_json::from_str::<Vec<Vec<&str>>>(resp)?;
+    let index = resp
+        .find("[")
+        .ok_or(Error::Custom("Invalid fund info response".to_string()))?;
+    let resp = &resp[index..resp.len() - 1];
+    let json = serde_json::from_str::<Vec<Vec<&str>>>(resp)?;
 
-        let data: Vec<_> = json
+    let data: Vec<_> = json
+        .iter()
+        .filter(|item| {
+            item.len() == 5 && (item[2].to_uppercase().contains("ETF") && !item[2].contains("联接"))
+        })
+        .map(|item| {
+            // ["000001","HXCZHH","华夏成长混合","混合型-灵活","HUAXIACHENGZHANGHUNHE"]
+            FundInfo {
+                code: to_std_code(MarketType::Fund, item[0]),
+                name: item[2].to_owned(),
+            }
+        })
+        .collect();
+
+    Ok(data)
+}
+/// etf基金净值
+pub async fn fetch_fund_net(
+    code: &str,
+    name: Option<&str>,
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+) -> Result<Vec<FundNet>> {
+    let name = name.unwrap_or("");
+    let start = start.unwrap_or(NaiveDate::parse_from_str("2010-01-01", "%Y-%m-%d").unwrap());
+    let now = Local::now();
+    let end = end.unwrap_or(now.date_naive());
+    let req_url = format!(
+        "https://api.fund.eastmoney.com/f10/lsjz?\
+        fundCode={code}&pageIndex=1&pageSize=10000&startDate={start}&endDate={end}&_={timestamp}",
+        code = &code[2..],
+        start = start,
+        end = end,
+        timestamp = now.timestamp()
+    );
+
+    let mut headers = HTTP_CMM_HEADER.to_owned();
+    let referer = format!("http://fundf10.eastmoney.com/jjjz_{code}.html", code = code);
+    headers.insert(REFERER, HeaderValue::from_str(&referer).unwrap());
+    let resp = async_client()
+        .get(req_url)
+        .headers(headers)
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    let json: EastFundNet = serde_json::from_str(&resp)?;
+
+    let mut data = Vec::new();
+    if let Some(js_data) = json.data {
+        data = js_data
+            .list
             .iter()
-            .filter(|item| {
-                item.len() == 5
-                    && (item[2].to_uppercase().contains("ETF") && !item[2].contains("联接"))
-            })
             .map(|item| {
-                // ["000001","HXCZHH","华夏成长混合","混合型-灵活","HUAXIACHENGZHANGHUNHE"]
-                FundInfo {
-                    code: to_std_code(MarketType::Fund, item[0]),
-                    name: item[2].to_owned(),
+                let trade_date = NaiveDate::parse_from_str(item.trade_date, "%Y-%m-%d").unwrap();
+                let trade_date =
+                    NaiveDateTime::new(trade_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
+                FundNet {
+                    code: code.to_string(),
+                    name: name.to_string(),
+                    trade_date,
+                    net: item.net.parse().unwrap_or(0.0),
+                    net_acc: item.net_acc.parse().unwrap_or(0.0),
+                    chg_pct: item.chg_pct.parse().unwrap_or(0.0),
+                    apply_status: item.apply_status.to_string(),
+                    redeem_status: item.redeem_status.to_string(),
                 }
             })
             .collect();
-
-        Ok(data)
     }
-    /// etf基金净值
-    pub async fn fetch_fund_net(
-        &self,
-        code: &str,
-        name: Option<&str>,
-        start: Option<NaiveDate>,
-        end: Option<NaiveDate>,
-    ) -> Result<Vec<FundNet>> {
-        let name = name.unwrap_or("");
-        let start = start.unwrap_or(NaiveDate::parse_from_str("2010-01-01", "%Y-%m-%d").unwrap());
-        let now = Local::now();
-        let end = end.unwrap_or(now.date_naive());
-        let req_url = format!(
-            "https://api.fund.eastmoney.com/f10/lsjz?\
-        fundCode={code}&pageIndex=1&pageSize=10000&startDate={start}&endDate={end}&_={timestamp}",
-            code = &code[2..],
-            start = start,
-            end = end,
-            timestamp = now.timestamp()
-        );
 
-        let mut headers = HTTP_CMM_HEADER.to_owned();
-        let referer = format!("http://fundf10.eastmoney.com/jjjz_{code}.html", code = code);
-        headers.insert(REFERER, HeaderValue::from_str(&referer).unwrap());
-        let resp = self
-            .client
-            .get(req_url)
-            .headers(headers)
-            .send()
-            .await?
-            .text()
-            .await?;
+    Ok(data)
+}
+/// etf基金k线数据
+pub async fn fetch_fund_bar(
+    code: &str,
+    name: Option<&str>,
+    freq: Option<BarFreq>,
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+    skip_rt: bool,
+) -> Result<FundBar> {
+    let market_code = if code.starts_with("sz") {
+        format!("{}.{}", Market::SZ as i32, &code[2..])
+    } else {
+        format!("{}.{}", Market::SH as i32, &code[2..])
+    };
+    let freq = if freq.is_none() {
+        BarFreq::Daily
+    } else {
+        freq.unwrap()
+    };
 
-        let json: EastFundNet = serde_json::from_str(&resp)?;
-
-        let mut data = Vec::new();
-        if let Some(js_data) = json.data {
-            data = js_data
-                .list
-                .iter()
-                .map(|item| {
-                    let trade_date =
-                        NaiveDate::parse_from_str(item.trade_date, "%Y-%m-%d").unwrap();
-                    let trade_date =
-                        NaiveDateTime::new(trade_date, NaiveTime::from_hms_opt(0, 0, 0).unwrap());
-                    FundNet {
-                        code: code.to_string(),
-                        name: name.to_string(),
-                        trade_date,
-                        net: item.net.parse().unwrap_or(0.0),
-                        net_acc: item.net_acc.parse().unwrap_or(0.0),
-                        chg_pct: item.chg_pct.parse().unwrap_or(0.0),
-                        apply_status: item.apply_status.to_string(),
-                        redeem_status: item.redeem_status.to_string(),
-                    }
-                })
-                .collect();
-        }
-
-        Ok(data)
-    }
-    /// etf基金k线数据
-    pub async fn fetch_fund_bar(
-        &self,
-        code: &str,
-        name: Option<&str>,
-        freq: Option<BarFreq>,
-        start: Option<NaiveDate>,
-        end: Option<NaiveDate>,
-        skip_rt: bool,
-    ) -> Result<FundBar> {
-        let market_code = if code.starts_with("sz") {
-            format!("{}.{}", Market::SZ as i32, &code[2..])
-        } else {
-            format!("{}.{}", Market::SH as i32, &code[2..])
-        };
-        let freq = if freq.is_none() {
-            BarFreq::Daily
-        } else {
-            freq.unwrap()
-        };
-
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
-        let bond_bar = FundBar {
-            code: code.to_owned(),
-            name: name.unwrap_or("").to_owned(),
-            freq,
-            bars: if bars.len() > 0 { Some(bars) } else { None },
-        };
-        Ok(bond_bar)
-    }
+    let bars = fetch_bar(
+        &async_client(),
+        &market_code,
+        code,
+        freq,
+        start,
+        end,
+        skip_rt,
+    )
+    .await?;
+    let bond_bar = FundBar {
+        code: code.to_owned(),
+        name: name.unwrap_or("").to_owned(),
+        freq,
+        bars: if bars.len() > 0 { Some(bars) } else { None },
+    };
+    Ok(bond_bar)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::fund::FundFetch;
+    use super::*;
     use crate::util::to_std_code;
     use crate::MarketType;
     use chrono::NaiveDate;
@@ -272,9 +261,7 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = FundFetch::new();
-
-                let data = fetch.fetch_fund_info().await;
+                let data = fetch_fund_info().await;
 
                 assert!(data.is_ok());
                 let data = data.unwrap();
@@ -298,16 +285,13 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = FundFetch::new();
-
-                let data = fetch
-                    .fetch_fund_net(
-                        &to_std_code(MarketType::Fund, "159915"),
-                        None,
-                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                    )
-                    .await;
+                let data = fetch_fund_net(
+                    &to_std_code(MarketType::Fund, "159915"),
+                    None,
+                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                )
+                .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }
@@ -325,16 +309,13 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = FundFetch::new();
-
-                let data = fetch
-                    .fetch_fund_bar_xq(
-                        &to_std_code(MarketType::Fund, "159915"),
-                        None,
-                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                    )
-                    .await;
+                let data = fetch_fund_bar_xq(
+                    &to_std_code(MarketType::Fund, "159915"),
+                    None,
+                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                )
+                .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }
@@ -352,18 +333,15 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = FundFetch::new();
-
-                let data = fetch
-                    .fetch_fund_bar(
-                        &to_std_code(MarketType::Fund, "159915"),
-                        None,
-                        None,
-                        Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
-                        Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
-                        true,
-                    )
-                    .await;
+                let data = fetch_fund_bar(
+                    &to_std_code(MarketType::Fund, "159915"),
+                    None,
+                    None,
+                    Some(NaiveDate::parse_from_str("2022-11-07", "%Y-%m-%d").unwrap()),
+                    Some(NaiveDate::parse_from_str("2022-11-10", "%Y-%m-%d").unwrap()),
+                    true,
+                )
+                .await;
                 if data.is_err() {
                     println!("error: {:?}", data);
                 }

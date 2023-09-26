@@ -52,6 +52,7 @@ pub struct Bar {
 
 /// k线频率
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[repr(u16)]
 pub enum BarFreq {
     /// 1 分钟
     Min1 = 1,
@@ -244,7 +245,7 @@ pub struct Quot {
     pub freq_chg: f32,
     /// 周期内涨幅
     pub freq_chg_pct: f32,
-    /// 行情时间
+    /// 周期行情时间
     #[serde(
         serialize_with = "crate::naive_dt_serialize",
         deserialize_with = "crate::naive_dt_deserialize"

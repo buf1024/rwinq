@@ -3,7 +3,6 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::FundFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -17,7 +16,6 @@ use crate::{
 };
 
 struct FundNetAsyncFunc<'a> {
-    fetch: Arc<FundFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -27,10 +25,8 @@ struct FundNetAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for FundNetAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_fund_net(self.code, Some(self.name), self.start, self.end)
-            .await?;
+        let data =
+            rwqfetch::fetch_fund_net(self.code, Some(self.name), self.start, self.end).await?;
         if data.is_empty() {
             Ok(None)
         } else {
@@ -40,18 +36,13 @@ impl<'a> AsyncFunc for FundNetAsyncFunc<'a> {
 }
 
 pub(crate) struct FundNetSyncer {
-    fetch: Arc<FundFetch>,
     cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl FundNetSyncer {
-    pub fn new(client: Client, fetch: Arc<FundFetch>, cache: Arc<RwLock<Cache>>) -> Self {
-        Self {
-            client,
-            fetch,
-            cache,
-        }
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
+        Self { client, cache }
     }
 }
 
@@ -105,7 +96,6 @@ impl Syncer for FundNetSyncer {
                 &start
             );
             let func = FundNetAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 start,

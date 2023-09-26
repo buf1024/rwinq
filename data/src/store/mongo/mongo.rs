@@ -5,7 +5,6 @@ use std::{
 
 use async_trait::async_trait;
 use mongodb::{bson::doc, options::ClientOptions, Client};
-use rwqfetch::{BondFetch, FundFetch, StockFetch};
 
 use crate::{
     store::{
@@ -29,9 +28,6 @@ use super::{
 };
 
 pub(crate) struct MongoStore {
-    bond_fetch: Arc<BondFetch>,
-    fund_fetch: Arc<FundFetch>,
-    stock_fetch: Arc<StockFetch>,
     syncer_vec: Vec<Arc<Box<dyn Syncer>>>,
     cache: Arc<RwLock<Cache>>,
 
@@ -48,10 +44,6 @@ impl MongoStore {
         split_count: usize,
         funcs: &Option<Vec<SyncDataType>>,
     ) -> Self {
-        let bond_fetch = Arc::new(rwqfetch::bond_fetch());
-        let fund_fetch = Arc::new(rwqfetch::fund_fetch());
-        let stock_fetch = Arc::new(rwqfetch::stock_fetch());
-
         let syncer_vec = Vec::new();
 
         let cache = Arc::new(RwLock::new(Cache::new()));
@@ -63,9 +55,6 @@ impl MongoStore {
         }
 
         Self {
-            bond_fetch,
-            fund_fetch,
-            stock_fetch,
             syncer_vec,
             cache,
             url,
@@ -79,16 +68,16 @@ impl MongoStore {
             log::info!("prepare cache data from remote");
 
             log::info!("prepare cache bond_info");
-            let bond_info = self.bond_fetch.fetch_bond_info().await?;
+            let bond_info = rwqfetch::fetch_bond_info().await?;
 
             log::info!("prepare cache index_info");
-            let index_info = self.stock_fetch.fetch_index_info().await?;
+            let index_info = rwqfetch::fetch_index_info().await?;
 
             log::info!("prepare cache stock_info");
-            let stock_info = self.stock_fetch.fetch_stock_info(None).await?;
+            let stock_info = rwqfetch::fetch_stock_info(None).await?;
 
             log::info!("prepare cache fund_info");
-            let fund_info = self.fund_fetch.fetch_fund_info().await?;
+            let fund_info = rwqfetch::fetch_fund_info().await?;
 
             log::info!("prepare cache trade_date");
             let trade_date = rwqfetch::fetch_trade_date().await?;
@@ -184,7 +173,6 @@ impl MongoStore {
                     &SyncDataType::StockBar,
                     Arc::new(Box::new(StockDailySyncer::new(
                         client.clone(),
-                        self.stock_fetch.clone(),
                         self.cache.clone(),
                         sub_codes,
                         task_n,
@@ -195,7 +183,6 @@ impl MongoStore {
                     &SyncDataType::StockMargin,
                     Arc::new(Box::new(StockMarginSyncer::new(
                         client.clone(),
-                        self.stock_fetch.clone(),
                         self.cache.clone(),
                         margin_sub_codes,
                         task_n,
@@ -212,7 +199,6 @@ impl MongoStore {
                 &SyncDataType::StockBar,
                 Arc::new(Box::new(StockDailySyncer::new(
                     client.clone(),
-                    self.stock_fetch.clone(),
                     self.cache.clone(),
                     sub_codes.clone(),
                     task_n,
@@ -225,7 +211,6 @@ impl MongoStore {
                 &SyncDataType::StockMargin,
                 Arc::new(Box::new(StockMarginSyncer::new(
                     client.clone(),
-                    self.stock_fetch.clone(),
                     self.cache.clone(),
                     margin_sub_codes,
                     task_n,
@@ -284,7 +269,6 @@ impl MongoStore {
             &SyncDataType::BondBar,
             Arc::new(Box::new(BondDailySyncer::new(
                 client.clone(),
-                self.bond_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
@@ -294,7 +278,6 @@ impl MongoStore {
             &SyncDataType::FundBar,
             Arc::new(Box::new(FundDailySyncer::new(
                 client.clone(),
-                self.fund_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
@@ -303,7 +286,6 @@ impl MongoStore {
             &SyncDataType::FundNet,
             Arc::new(Box::new(FundNetSyncer::new(
                 client.clone(),
-                self.fund_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
@@ -313,70 +295,49 @@ impl MongoStore {
             &SyncDataType::IndexBar,
             Arc::new(Box::new(IndexDailySyncer::new(
                 client.clone(),
-                self.stock_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
 
         self.add_syncer(
             &SyncDataType::StockIndex,
-            Arc::new(Box::new(StockIndexSyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockIndexSyncer::new(client.clone()))),
         );
 
         self.add_syncer(
             &SyncDataType::StockIndustry,
-            Arc::new(Box::new(StockIndustrySyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockIndustrySyncer::new(client.clone()))),
         );
         self.add_syncer(
             &SyncDataType::StockIndustryBar,
             Arc::new(Box::new(StockIndustryDailySyncer::new(
                 client.clone(),
-                self.stock_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
         self.add_syncer(
             &SyncDataType::StockIndustryDetail,
-            Arc::new(Box::new(StockIndustryDetailSyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockIndustryDetailSyncer::new(client.clone()))),
         );
 
         self.add_syncer(
             &SyncDataType::StockConcept,
-            Arc::new(Box::new(StockConceptSyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockConceptSyncer::new(client.clone()))),
         );
         self.add_syncer(
             &SyncDataType::StockConceptBar,
             Arc::new(Box::new(StockConceptDailySyncer::new(
                 client.clone(),
-                self.stock_fetch.clone(),
                 self.cache.clone(),
             ))),
         );
         self.add_syncer(
             &SyncDataType::StockConceptDetail,
-            Arc::new(Box::new(StockConceptDetailSyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockConceptDetailSyncer::new(client.clone()))),
         );
         self.add_syncer(
             &SyncDataType::StockYJBB,
-            Arc::new(Box::new(StockYJBBSyncer::new(
-                client.clone(),
-                self.stock_fetch.clone(),
-            ))),
+            Arc::new(Box::new(StockYJBBSyncer::new(client.clone()))),
         );
         self.prepare_heavy_syncer(client, split_count);
     }

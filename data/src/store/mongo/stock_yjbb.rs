@@ -1,9 +1,8 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
 use async_trait::async_trait;
 use chrono::{Datelike, Local};
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -17,7 +16,6 @@ use crate::{
 };
 
 struct StockYJBBAsyncFunc {
-    fetch: Arc<StockFetch>,
     year: u16,
     season: u16,
 }
@@ -25,7 +23,7 @@ struct StockYJBBAsyncFunc {
 #[async_trait]
 impl AsyncFunc for StockYJBBAsyncFunc {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self.fetch.fetch_stock_yjbb(self.year, self.season).await?;
+        let data = rwqfetch::fetch_stock_yjbb(self.year, self.season).await?;
         if data.is_empty() {
             Ok(None)
         } else {
@@ -35,13 +33,12 @@ impl AsyncFunc for StockYJBBAsyncFunc {
 }
 
 pub(crate) struct StockYJBBSyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockYJBBSyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
-        Self { client, fetch }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -92,11 +89,7 @@ impl Syncer for StockYJBBSyncer {
                 season
             );
 
-            let func = StockYJBBAsyncFunc {
-                fetch: self.fetch.clone(),
-                year,
-                season,
-            };
+            let func = StockYJBBAsyncFunc { year, season };
             let data = retry(func).await?;
             if let Some(data) = data {
                 if let SyncData::StockYJBB(info) = data {

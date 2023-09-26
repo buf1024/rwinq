@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::{BarFreq, FundFetch};
+use rwqfetch::BarFreq;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -16,7 +16,6 @@ use crate::{
 use super::service::insert_many;
 
 struct FundDailyAsyncFunc<'a> {
-    fetch: Arc<FundFetch>,
     code: &'a str,
     name: &'a str,
     freq: Option<BarFreq>,
@@ -27,17 +26,15 @@ struct FundDailyAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for FundDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_fund_bar(
-                self.code,
-                Some(self.name),
-                self.freq,
-                self.start,
-                self.end,
-                true,
-            )
-            .await?;
+        let data = rwqfetch::fetch_fund_bar(
+            self.code,
+            Some(self.name),
+            self.freq,
+            self.start,
+            self.end,
+            true,
+        )
+        .await?;
         let bar = data.bars;
         if bar.is_none() {
             Ok(None)
@@ -48,18 +45,13 @@ impl<'a> AsyncFunc for FundDailyAsyncFunc<'a> {
 }
 
 pub(crate) struct FundDailySyncer {
-    fetch: Arc<FundFetch>,
     cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl FundDailySyncer {
-    pub fn new(client: Client, fetch: Arc<FundFetch>, cache: Arc<RwLock<Cache>>) -> Self {
-        Self {
-            client,
-            fetch,
-            cache,
-        }
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
+        Self { client, cache }
     }
 }
 
@@ -119,7 +111,6 @@ impl Syncer for FundDailySyncer {
                 &start
             );
             let func = FundDailyAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 freq: Some(BarFreq::Daily),

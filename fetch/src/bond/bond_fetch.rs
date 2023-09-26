@@ -4,31 +4,17 @@ use crate::util::to_std_code;
 use crate::{Market, MarketType, Result, HTTP_CMM_HEADER};
 use chrono::naive::NaiveDate;
 use chrono::NaiveDateTime;
-use reqwest::Client;
 use rwqcmm::{BarFreq, BondBar, BondInfo};
 
-pub struct BondFetch {
-    client: Client,
-}
+/// 获取可转债基本信息
+pub async fn fetch_bond_info() -> Result<Vec<BondInfo>> {
+    let mut data = Vec::new();
 
-impl BondFetch {
-    pub fn new() -> Self {
-        Self {
-            client: async_client(),
-        }
-    }
-}
-
-impl BondFetch {
-    /// 获取可转债基本信息
-    pub async fn fetch_bond_info(&self) -> Result<Vec<BondInfo>> {
-        let mut data = Vec::new();
-
-        let mut page_num: i64 = 1;
-        let mut pages: i64 = -1;
-        loop {
-            let req_url = format!(
-                "https://datacenter-web.eastmoney.com/api/data/v1/get?\
+    let mut page_num: i64 = 1;
+    let mut pages: i64 = -1;
+    loop {
+        let req_url = format!(
+            "https://datacenter-web.eastmoney.com/api/data/v1/get?\
             sortColumns=PUBLIC_START_DATE&sortTypes=-1&pageSize=500&pageNumber={page_num}&\
             reportName=RPT_BOND_CB_LIST&columns=ALL&\
             quoteColumns=f2~01~CONVERT_STOCK_CODE~CONVERT_STOCK_PRICE,\
@@ -36,99 +22,96 @@ impl BondFetch {
             f2~10~SECURITY_CODE~CURRENT_BOND_PRICE,f237~10~SECURITY_CODE~TRANSFER_PREMIUM_RATIO,\
             f239~10~SECURITY_CODE~RESALE_TRIG_PRICE,f240~10~SECURITY_CODE~REDEEM_TRIG_PRICE,\
             f23~01~CONVERT_STOCK_CODE~PBV_RATIO&source=WEB&client=WEB",
-                page_num = page_num
-            );
+            page_num = page_num
+        );
 
-            let resp = self
-                .client
-                .get(req_url)
-                .headers(HTTP_CMM_HEADER.to_owned())
-                .send()
-                .await?
-                .text()
-                .await?;
+        let resp = async_client()
+            .get(req_url)
+            .headers(HTTP_CMM_HEADER.to_owned())
+            .send()
+            .await?
+            .text()
+            .await?;
 
-            let json: EastBondInfo = serde_json::from_str(&resp)?;
+        let json: EastBondInfo = serde_json::from_str(&resp)?;
 
-            if pages == -1 {
-                pages = json.result.pages;
-            }
-
-            let tmp_vec: Vec<_> = json
-                .result
-                .data
-                .iter()
-                .filter(|f| f.listing_date.is_some() && f.delist_date.is_none())
-                .map(|item| {
-                    let listing_date = item.listing_date.unwrap();
-                    let listing_date =
-                        NaiveDateTime::parse_from_str(listing_date, "%Y-%m-%d %H:%M:%S").unwrap();
-                    BondInfo {
-                        code: to_std_code(MarketType::Bond, item.code),
-                        name: item.name.to_owned(),
-                        stock_code: to_std_code(MarketType::Stock, item.stock_code),
-                        stock_name: item.stock_name.to_owned(),
-                        listing_date,
-                        is_delist: 0,
-                    }
-                })
-                .collect();
-
-            data.extend(tmp_vec.into_iter());
-
-            page_num += 1;
-            if page_num > pages {
-                break;
-            }
+        if pages == -1 {
+            pages = json.result.pages;
         }
 
-        Ok(data)
+        let tmp_vec: Vec<_> = json
+            .result
+            .data
+            .iter()
+            .filter(|f| f.listing_date.is_some() && f.delist_date.is_none())
+            .map(|item| {
+                let listing_date = item.listing_date.unwrap();
+                let listing_date =
+                    NaiveDateTime::parse_from_str(listing_date, "%Y-%m-%d %H:%M:%S").unwrap();
+                BondInfo {
+                    code: to_std_code(MarketType::Bond, item.code),
+                    name: item.name.to_owned(),
+                    stock_code: to_std_code(MarketType::Stock, item.stock_code),
+                    stock_name: item.stock_name.to_owned(),
+                    listing_date,
+                    is_delist: 0,
+                }
+            })
+            .collect();
+
+        data.extend(tmp_vec.into_iter());
+
+        page_num += 1;
+        if page_num > pages {
+            break;
+        }
     }
 
-    /// 获取可转债基本
-    ///
-    /// *code* 可转债代码，其中11开头的为深市，12开头的为沪市。
-    pub async fn fetch_bond_bar(
-        &self,
-        code: &str,
-        name: &str,
-        stock_code: &str,
-        stock_name: &str,
-        freq: Option<BarFreq>,
-        start: Option<NaiveDate>,
-        end: Option<NaiveDate>,
-        skip_rt: bool,
-    ) -> Result<BondBar> {
-        let market_code = if code.starts_with("sz") {
-            // 深圳市场
-            format!("{}.{}", Market::SZ as i32, &code[2..])
-        } else {
-            format!("{}.{}", Market::SH as i32, &code[2..])
-        };
-        let freq = if freq.is_none() {
-            BarFreq::Daily
-        } else {
-            freq.unwrap()
-        };
+    Ok(data)
+}
 
-        let bars = fetch_bar(&self.client, &market_code, code, freq, start, end, skip_rt).await?;
-        let bond_bar = BondBar {
-            code: code.to_owned(),
-            name: name.to_owned(),
-            stock_code: stock_code.to_owned(),
-            stock_name: stock_name.to_owned(),
-            freq,
-            bars: if bars.len() > 0 { Some(bars) } else { None },
-        };
-        Ok(bond_bar)
-    }
+/// 获取可转债基本
+///
+/// *code* 可转债代码，其中11开头的为深市，12开头的为沪市。
+pub async fn fetch_bond_bar(
+    code: &str,
+    name: &str,
+    stock_code: &str,
+    stock_name: &str,
+    freq: Option<BarFreq>,
+    start: Option<NaiveDate>,
+    end: Option<NaiveDate>,
+    skip_rt: bool,
+) -> Result<BondBar> {
+    let market_code = if code.starts_with("sz") {
+        // 深圳市场
+        format!("{}.{}", Market::SZ as i32, &code[2..])
+    } else {
+        format!("{}.{}", Market::SH as i32, &code[2..])
+    };
+    let freq = if freq.is_none() {
+        BarFreq::Daily
+    } else {
+        freq.unwrap()
+    };
+    let client = async_client();
+    let bars = fetch_bar(&client, &market_code, code, freq, start, end, skip_rt).await?;
+    let bond_bar = BondBar {
+        code: code.to_owned(),
+        name: name.to_owned(),
+        stock_code: stock_code.to_owned(),
+        stock_name: stock_name.to_owned(),
+        freq,
+        bars: if bars.len() > 0 { Some(bars) } else { None },
+    };
+    Ok(bond_bar)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::bond_fetch;
     use rwqcmm::BarFreq;
-    // use chrono::NaiveDate;
+    use super::*;
+
 
     #[test]
     fn test_fetch_bond_info() {
@@ -137,8 +120,7 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = bond_fetch();
-                let res = fetch.fetch_bond_info().await.unwrap();
+                let res = fetch_bond_info().await.unwrap();
 
                 assert!(res.len() > 0);
                 println!("{:?}", res[0]);
@@ -152,13 +134,12 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = bond_fetch();
-                let bond_info = fetch.fetch_bond_info().await.unwrap();
+               
+                let bond_info = fetch_bond_info().await.unwrap();
 
                 let item = bond_info.get(bond_info.len() - 1).unwrap();
 
-                let res = fetch
-                    .fetch_bond_bar(
+                let res = fetch_bond_bar(
                         &item.code[..],
                         &item.name[..],
                         &item.stock_code[..],
@@ -171,7 +152,7 @@ mod tests {
                     .await
                     .unwrap();
 
-                // let res = fetch.fetch_bond_bar("123114", "三角转债",
+                // let res = fetch_bond_bar("123114", "三角转债",
                 //                                "sz300775", "三角防务",
                 //                                Some(BarFreq::Daily),
                 //                                Some(NaiveDate::parse_from_str("20221111", "%Y%m%d")

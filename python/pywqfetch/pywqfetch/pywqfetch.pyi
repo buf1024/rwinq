@@ -58,209 +58,227 @@ def calc_cost(chip_dist: Dict, ratio: int) -> Dict:
     pass
 
 
-class BondFetch:
-    def __init__(self):
-        pass
-
-    async def fetch_bond_info(self) -> List[Dict]:
-        pass
-
-    async def fetch_bond_bar(self, code: str, name: str,
-                             stock_code: str, stock_name: str,
-                             freq: Optional[int],
-                             start: Optional[date],
-                             end: Optional[date],
-                             skip_rt: bool) -> Dict:
-        pass
+async def fetch_bond_info() -> List[Dict]:
+    pass
 
 
-class BlockBondFetch:
-    def __init__(self):
-        pass
-
-    async def fetch_bond_info(self) -> List[Dict]:
-        pass
-
-    async def fetch_bond_bar(self, code: str, name: str,
-                             stock_code: str, stock_name: str,
-                             freq: Optional[int],
-                             start: Optional[date],
-                             end: Optional[date],
-                             skip_rt: bool) -> Dict:
-        pass
+def block_fetch_bond_info() -> List[Dict]:
+    pass
 
 
-class FundFetch:
-    def __init__(self):
-        pass
-
-    async def fetch_fund_info(self) -> List[Dict]:
-        pass
-
-    async def fetch_fund_net(self, code: str, name: Optional[str],
-                             start: Optional[date], end: Optional[date]) -> List[Dict]:
-        pass
-
-    async def fetch_fund_bar(self, code: str, name: Optional[str],
-                             freq: Optional[int],
-                             start: Optional[date],
-                             end: Optional[date],
-                             skip_rt: bool) -> Dict:
-        pass
+async def fetch_bond_bar(code: str, name: str,
+                         stock_code: str, stock_name: str,
+                         freq: Optional[int],
+                         start: Optional[date],
+                         end: Optional[date],
+                         skip_rt: bool) -> Dict:
+    pass
 
 
-class BlockFundFetch:
-    def __init__(self):
-        pass
-
-    def fetch_fund_info(self) -> List[Dict]:
-        pass
-
-    def fetch_fund_net(self, code: str, name: Optional[str],
-                       start: Optional[date], end: Optional[date]) -> List[Dict]:
-        pass
-
-    def fetch_fund_bar(self, code: str, name: Optional[str],
-                       freq: Optional[int],
-                       start: Optional[date],
-                       end: Optional[date],
-                       skip_rt: bool) -> Dict:
-        pass
+def block_fetch_bond_bar(code: str, name: str,
+                         stock_code: str, stock_name: str,
+                         freq: Optional[int],
+                         start: Optional[date],
+                         end: Optional[date],
+                         skip_rt: bool) -> Dict:
+    pass
 
 
-class StockFetch:
-    def __init__(self):
-        pass
-
-    async def fetch_index_info(self) -> List[Dict]:
-        pass
-
-    async def fetch_index_bar(self, code: str, name: Optional[str] = None,
-                              freq: Optional[int] = None,
-                              start: Optional[date] = None,
-                              end: Optional[date] = None,
-                              skip_rt: bool = True) -> Dict:
-        pass
-
-    async def fetch_stock_info(self, market: int = 0) -> List[Dict]:
-        pass
-
-    async def fetch_stock_is_margin(self) -> Set[str]:
-        pass
-
-    async def fetch_stock_bar(self, code: str, name: Optional[str] = None,
-                              freq: Optional[int] = None,
-                              start: Optional[date] = None,
-                              end: Optional[date] = None,
-                              skip_rt: bool = True) -> Dict:
-        pass
-
-    async def fetch_stock_index(self, index_date: Optional[date]) -> Dict[str, Dict]:
-        pass
-
-    async def fetch_stock_industry(self) -> List[Dict]:
-        pass
-
-    async def fetch_stock_industry_detail(self, code: Optional[str] = None,
-                                          name: Optional[str] = None) -> List[Dict]:
-        pass
-
-    async def fetch_stock_industry_daily(self, code: str, name: Optional[str] = None,
-                                         start: Optional[date] = None,
-                                         end: Optional[date] = None,
-                                         skip_rt: bool = True) -> Dict:
-        pass
-
-    async def fetch_stock_concept(self) -> List[Dict]:
-        pass
-
-    async def fetch_stock_concept_detail(self, code: Optional[str] = None, name: Optional[str] = None) -> List[Dict]:
-        pass
-
-    async def fetch_stock_concept_daily(self, code: str, name: Optional[str] = None,
-                                        start: Optional[date] = None,
-                                        end: Optional[date] = None,
-                                        skip_rt: bool = True) -> Dict:
-        pass
-
-    async def fetch_stock_yjbb(self, year: int, season: int) -> List[Dict]:
-        pass
-
-    async def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
-        pass
-
-    async def fetch_stock_hot_rank(self, code: str) -> Dict:
-        pass
-
-    async def fetch_stock_comment(self, codes: Optional[List[str]] = None) -> Dict:
-        pass
-
-    async def fetch_stock_comment_his(self, code: str) -> Dict:
-        pass
+async def fetch_fund_info() -> List[Dict]:
+    pass
 
 
-class BlockStockFetch:
-    def __init__(self):
-        pass
+def block_fetch_fund_info() -> List[Dict]:
+    pass
 
-    def fetch_index_info(self) -> List[Dict]:
-        pass
 
-    def fetch_index_bar(self, code: str, name: Optional[str] = None,
-                        freq: Optional[int] = None,
-                        start: Optional[date] = None, end: Optional[date] = None,
-                        skip_rt: bool = True) -> Dict:
-        pass
+async def fetch_fund_net(code: str, name: Optional[str],
+                         start: Optional[date], end: Optional[date]) -> List[Dict]:
+    pass
 
-    def fetch_stock_info(self, market: int = 0) -> List[Dict]:
-        pass
 
-    def fetch_stock_is_margin(self) -> Set[str]:
-        pass
+def block_fetch_fund_net(code: str, name: Optional[str],
+                         start: Optional[date], end: Optional[date]) -> List[Dict]:
+    pass
 
-    def fetch_stock_bar(self, code: str, name: Optional[str] = None,
-                        freq: Optional[int] = None,
-                        start: Optional[date] = None, end: Optional[date] = None,
-                        skip_rt: bool = True) -> Dict:
-        pass
 
-    def fetch_stock_index(self, index_date: Optional[date]) -> Dict[str, Dict]:
-        pass
+async def fetch_fund_bar(code: str, name: Optional[str],
+                         freq: Optional[int],
+                         start: Optional[date],
+                         end: Optional[date],
+                         skip_rt: bool) -> Dict:
+    pass
 
-    def fetch_stock_industry(self) -> List[Dict]:
-        pass
 
-    def fetch_stock_industry_detail(self, code: Optional[str] = None,
-                                    name: Optional[str] = None) -> List[Dict]:
-        pass
+def block_fetch_fund_bar(code: str, name: Optional[str],
+                         freq: Optional[int],
+                         start: Optional[date],
+                         end: Optional[date],
+                         skip_rt: bool) -> Dict:
+    pass
 
-    def fetch_stock_industry_daily(self, code: str, name: Optional[str] = None,
-                                   start: Optional[date] = None, end: Optional[date] = None,
-                                   skip_rt: bool = True) -> Dict:
-        pass
 
-    def fetch_stock_concept(self) -> List[Dict]:
-        pass
+async def fetch_index_info() -> List[Dict]:
+    pass
 
-    def fetch_stock_concept_detail(self, code: Optional[str] = None, name: Optional[str] = None) -> List[Dict]:
-        pass
 
-    def fetch_stock_concept_daily(self, code: str, name: Optional[str] = None,
-                                  start: Optional[date] = None, end: Optional[date] = None,
-                                  skip_rt: bool = True) -> Dict:
-        pass
+def block_fetch_index_info() -> List[Dict]:
+    pass
 
-    def fetch_stock_yjbb(self, year: int, season: int) -> List[Dict]:
-        pass
 
-    def fetch_stock_margin(self, code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
-        pass
+async def fetch_index_bar(code: str, name: Optional[str] = None,
+                          freq: Optional[int] = None,
+                          start: Optional[date] = None,
+                          end: Optional[date] = None,
+                          skip_rt: bool = True) -> Dict:
+    pass
 
-    def fetch_stock_hot_rank(self, code: str) -> Dict:
-        pass
 
-    def fetch_stock_comment(self, code: Optional[List[str]] = None) -> Dict:
-        pass
+def block_fetch_index_bar(code: str, name: Optional[str] = None,
+                          freq: Optional[int] = None,
+                          start: Optional[date] = None,
+                          end: Optional[date] = None,
+                          skip_rt: bool = True) -> Dict:
+    pass
 
-    def fetch_stock_comment_his(self, code: str) -> Dict:
-        pass
+
+async def fetch_stock_info(market: int = 0) -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_info(market: int = 0) -> List[Dict]:
+    pass
+
+
+async def fetch_stock_is_margin() -> Set[str]:
+    pass
+
+
+def block_fetch_stock_is_margin() -> Set[str]:
+    pass
+
+
+async def fetch_stock_bar(code: str, name: Optional[str] = None,
+                          freq: Optional[int] = None,
+                          start: Optional[date] = None,
+                          end: Optional[date] = None,
+                          skip_rt: bool = True) -> Dict:
+    pass
+
+
+def block_fetch_stock_bar(code: str, name: Optional[str] = None,
+                          freq: Optional[int] = None,
+                          start: Optional[date] = None,
+                          end: Optional[date] = None,
+                          skip_rt: bool = True) -> Dict:
+    pass
+
+
+async def fetch_stock_index(index_date: Optional[date]) -> Dict[str, Dict]:
+    pass
+
+
+def block_fetch_stock_index(index_date: Optional[date]) -> Dict[str, Dict]:
+    pass
+
+
+async def fetch_stock_industry() -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_industry() -> List[Dict]:
+    pass
+
+
+async def fetch_stock_industry_detail(code: Optional[str] = None,
+                                      name: Optional[str] = None) -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_industry_detail(code: Optional[str] = None,
+                                      name: Optional[str] = None) -> List[Dict]:
+    pass
+
+
+async def fetch_stock_industry_daily(code: str, name: Optional[str] = None,
+                                     start: Optional[date] = None,
+                                     end: Optional[date] = None,
+                                     skip_rt: bool = True) -> Dict:
+    pass
+
+
+def block_fetch_stock_industry_daily(code: str, name: Optional[str] = None,
+                                     start: Optional[date] = None,
+                                     end: Optional[date] = None,
+                                     skip_rt: bool = True) -> Dict:
+    pass
+
+
+async def fetch_stock_concept() -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_concept() -> List[Dict]:
+    pass
+
+
+async def fetch_stock_concept_detail(code: Optional[str] = None, name: Optional[str] = None) -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_concept_detail(code: Optional[str] = None, name: Optional[str] = None) -> List[Dict]:
+    pass
+
+
+async def fetch_stock_concept_daily(code: str, name: Optional[str] = None,
+                                    start: Optional[date] = None,
+                                    end: Optional[date] = None,
+                                    skip_rt: bool = True) -> Dict:
+    pass
+
+
+def block_fetch_stock_concept_daily(code: str, name: Optional[str] = None,
+                                    start: Optional[date] = None,
+                                    end: Optional[date] = None,
+                                    skip_rt: bool = True) -> Dict:
+    pass
+
+
+async def fetch_stock_yjbb(year: int, season: int) -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_yjbb(year: int, season: int) -> List[Dict]:
+    pass
+
+
+async def fetch_stock_margin(code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
+    pass
+
+
+def block_fetch_stock_margin(code: str, start: Optional[date] = None, end: Optional[date] = None) -> List[Dict]:
+    pass
+
+
+async def fetch_stock_hot_rank(code: str) -> Dict:
+    pass
+
+
+def block_fetch_stock_hot_rank(code: str) -> Dict:
+    pass
+
+
+async def fetch_stock_comment(codes: Optional[List[str]] = None) -> Dict:
+    pass
+
+
+def block_fetch_stock_comment(codes: Optional[List[str]] = None) -> Dict:
+    pass
+
+
+async def fetch_stock_comment_his(code: str) -> Dict:
+    pass
+
+
+def block_fetch_stock_comment_his(code: str) -> Dict:
+    pass

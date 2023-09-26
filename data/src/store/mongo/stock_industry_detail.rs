@@ -1,8 +1,7 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
 use async_trait::async_trait;
 use mongodb::{bson::doc, Client};
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -15,7 +14,6 @@ use crate::{
 use crate::store::{TAB_STOCK_INDUSTRY, TAB_STOCK_INDUSTRY_DETAIL};
 
 struct StockIndustryDetailAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
 }
@@ -23,23 +21,19 @@ struct StockIndustryDetailAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockIndustryDetailAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_industry_detail(Some(self.code), Some(self.name))
-            .await?;
+        let data = rwqfetch::fetch_stock_industry_detail(Some(self.code), Some(self.name)).await?;
 
         Ok(Some(SyncData::StockIndustryDetail(data)))
     }
 }
 
 pub(crate) struct StockIndustryDetailSyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockIndustryDetailSyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
-        Self { client, fetch }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -49,7 +43,7 @@ impl Syncer for StockIndustryDetailSyncer {
         let mut industry: Vec<rwqfetch::StockIndustry> =
             query(self.client.clone(), TAB_STOCK_INDUSTRY, doc! {}, None).await?;
         if industry.is_empty() {
-            industry = self.fetch.fetch_stock_industry().await?;
+            industry = rwqfetch::fetch_stock_industry().await?;
         }
 
         for info in industry.iter() {
@@ -60,7 +54,6 @@ impl Syncer for StockIndustryDetailSyncer {
                 TAB_STOCK_INDUSTRY_DETAIL
             );
             let func = StockIndustryDetailAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
             };

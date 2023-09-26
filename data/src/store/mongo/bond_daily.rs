@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::{BarFreq, BondFetch};
+use rwqfetch::BarFreq;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -16,7 +16,6 @@ use crate::{
 use super::service::insert_many;
 
 struct BondDailyAsyncFunc<'a> {
-    fetch: Arc<BondFetch>,
     code: &'a str,
     name: &'a str,
     stock_code: &'a str,
@@ -29,19 +28,17 @@ struct BondDailyAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for BondDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_bond_bar(
-                self.code,
-                self.name,
-                self.stock_code,
-                self.stock_name,
-                self.freq,
-                self.start,
-                self.end,
-                true,
-            )
-            .await?;
+        let data = rwqfetch::fetch_bond_bar(
+            self.code,
+            self.name,
+            self.stock_code,
+            self.stock_name,
+            self.freq,
+            self.start,
+            self.end,
+            true,
+        )
+        .await?;
         let bar = data.bars;
         if bar.is_none() {
             Ok(None)
@@ -52,18 +49,13 @@ impl<'a> AsyncFunc for BondDailyAsyncFunc<'a> {
 }
 
 pub(crate) struct BondDailySyncer {
-    fetch: Arc<BondFetch>,
     cache: Arc<RwLock<Cache>>,
     client: Client,
 }
 
 impl BondDailySyncer {
-    pub fn new(client: Client, fetch: Arc<BondFetch>, cache: Arc<RwLock<Cache>>) -> Self {
-        Self {
-            client,
-            fetch,
-            cache,
-        }
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
+        Self { client, cache }
     }
 }
 
@@ -122,7 +114,6 @@ impl Syncer for BondDailySyncer {
                 &start
             );
             let func = BondDailyAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 stock_code: info.stock_code.as_str(),

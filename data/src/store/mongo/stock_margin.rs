@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::{StockFetch, StockInfo};
+use rwqfetch::StockInfo;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -16,7 +16,6 @@ use crate::{
 use super::service::insert_many;
 
 struct StockMarginAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     start: Option<NaiveDate>,
     end: Option<NaiveDate>,
@@ -25,9 +24,7 @@ struct StockMarginAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockMarginAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_margin(self.code, self.start, self.end)
+        let data = rwqfetch::fetch_stock_margin(self.code, self.start, self.end)
             .await?;
         if data.is_empty() {
             Ok(None)
@@ -38,7 +35,6 @@ impl<'a> AsyncFunc for StockMarginAsyncFunc<'a> {
 }
 
 pub(crate) struct StockMarginSyncer {
-    fetch: Arc<StockFetch>,
     cache: Arc<RwLock<Cache>>,
     client: Client,
     codes: Vec<StockInfo>,
@@ -48,14 +44,12 @@ pub(crate) struct StockMarginSyncer {
 impl StockMarginSyncer {
     pub fn new(
         client: Client,
-        fetch: Arc<StockFetch>,
         cache: Arc<RwLock<Cache>>,
         codes: Vec<StockInfo>,
         task_n: usize,
     ) -> Self {
         Self {
             client,
-            fetch,
             cache,
             codes,
             task_n,
@@ -114,7 +108,6 @@ impl Syncer for StockMarginSyncer {
                 self.task_n
             );
             let func = StockMarginAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 start,
                 end: None,

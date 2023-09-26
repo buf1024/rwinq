@@ -3,7 +3,6 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use mongodb::{bson::doc, options::FindOptions, Client};
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -19,7 +18,6 @@ use crate::{
 use crate::store::{TAB_STOCK_INDUSTRY, TAB_STOCK_INDUSTRY_DAILY};
 
 struct StockIndustryDailyAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
     start: Option<NaiveDate>,
@@ -29,10 +27,14 @@ struct StockIndustryDailyAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockIndustryDailyAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_industry_daily(self.code, Some(self.name), self.start, self.end, true)
-            .await?;
+        let data = rwqfetch::fetch_stock_industry_daily(
+            self.code,
+            Some(self.name),
+            self.start,
+            self.end,
+            true,
+        )
+        .await?;
         let bar = data.bars;
         if bar.is_none() {
             Ok(None)
@@ -43,18 +45,13 @@ impl<'a> AsyncFunc for StockIndustryDailyAsyncFunc<'a> {
 }
 
 pub(crate) struct StockIndustryDailySyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
     cache: Arc<RwLock<Cache>>,
 }
 
 impl StockIndustryDailySyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>, cache: Arc<RwLock<Cache>>) -> Self {
-        Self {
-            client,
-            fetch,
-            cache,
-        }
+    pub fn new(client: Client, cache: Arc<RwLock<Cache>>) -> Self {
+        Self { client, cache }
     }
 }
 
@@ -64,7 +61,7 @@ impl Syncer for StockIndustryDailySyncer {
         let mut industry: Vec<rwqfetch::StockIndustry> =
             query(self.client.clone(), TAB_STOCK_INDUSTRY, doc! {}, None).await?;
         if industry.is_empty() {
-            industry = self.fetch.fetch_stock_industry().await?;
+            industry = rwqfetch::fetch_stock_industry().await?;
         }
 
         for info in industry.iter() {
@@ -118,7 +115,6 @@ impl Syncer for StockIndustryDailySyncer {
                 &start
             );
             let func = StockIndustryDailyAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
                 start,

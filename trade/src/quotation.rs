@@ -5,13 +5,13 @@ use std::{
 
 use crate::{Error, Result};
 use async_trait::async_trait;
-use chrono::{Local, NaiveDate, NaiveDateTime};
-use rwqdata::{fetch_is_trade_date, fetch_rt_quot, BarFreq, Quot, RtQuot};
+use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone, Utc};
+use rwqdata::{fetch_is_trade_date, fetch_rt_quot, fetch_stock_bar, BarFreq, Quot, RtQuot};
 use rwqtradecmm::{QuotEvent, QuotOpts};
 
 #[async_trait]
 pub trait Quotation {
-    async fn subscribe(&mut self, codes: &Vec<String>);
+    async fn subscribe(&mut self, codes: &Vec<String>) -> Result<()>;
     async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>>;
 }
 
@@ -156,9 +156,9 @@ impl MyQuotation {
 
 struct BacktestQuotation {
     quotation: MyQuotation,
-    quots: BTreeMap<u64, RtQuot>,
+    quots: BTreeMap<i64, RtQuot>,
     index: usize,
-    iter: Vec<u64>,
+    iter: Vec<i64>,
     freq: Vec<i64>,
 }
 
@@ -206,7 +206,7 @@ impl BacktestQuotation {
 }
 #[async_trait]
 impl Quotation for BacktestQuotation {
-    async fn subscribe(&mut self, codes: &Vec<String>) {
+    async fn subscribe(&mut self, codes: &Vec<String>) -> Result<()> {
         let new_codes: Vec<_> = codes
             .iter()
             .filter(|code| !self.codes.contains(code))
@@ -218,153 +218,80 @@ impl Quotation for BacktestQuotation {
 
         if self.freq.contains(&self.opts.freq) && !new_codes.is_empty() {
             let freq = self.get_freq().unwrap();
-            
-            for code in new_codes {
-                let r = if m < FREQ_1D {
-                    self.fetcher
-                        .fetch_stock_minute(code.as_str(), m / 60)
-                        .await
-                        .with_context(|| "fetch stock minute error")?
-                } else {
-                    let mut q_data = Vec::new();
-                    if self.db.is_some() {
-                        let db = self.db.as_ref().unwrap();
-                        let filter = match (self.opts.start_date, self.opts.end_date) {
-                            (None, None) => doc! {"code": code.as_str()},
-                            (None, Some(end)) => {
-                                let s = end.and_hms(0, 0, 0);
-                                let s = Local.from_local_datetime(&s).unwrap();
-                                doc! {
-                                   "code": code.as_str(),
-                                   "trade_date": {"$lte": s}
-                                }
-                            }
-                            (Some(start), None) => {
-                                let s = start.and_hms(0, 0, 0);
-                                let s = Local.from_local_datetime(&s).unwrap();
-                                doc! {
-                                   "code": code.as_str(),
-                                   "trade_date": {"$gte": s}
-                                }
-                            }
-                            (Some(start), Some(end)) => {
-                                let s = start.and_hms(0, 0, 0);
-                                let s = Utc.from_local_datetime(&s).unwrap();
-
-                                let e = end.and_hms(0, 0, 0);
-                                let e = Utc.from_local_datetime(&e).unwrap();
-                                doc! {
-                                   "code": code.as_str(),
-                                   "trade_date": {"$gte": s, "$lte": e},
-                                }
-                            }
-                        };
-                        let opts = FindOptions::builder().sort(doc! {"trade_date": 1}).build();
-                        if is_index(code.as_str()) {
-                            let mut cursor = db
-                                .get_coll::<IndexDaily>("index_daily")?
-                                .find(filter, opts)
-                                .await
-                                .with_context(|| "query index_daily failed")?;
-                            while let Some(item) = cursor
-                                .try_next()
-                                .await
-                                .with_context(|| "query index_daily failed")?
-                            {
-                                let time = item
-                                    .trade_date
-                                    .to_chrono()
-                                    .format("%Y-%m-%d %H:%M:%S")
-                                    .to_string();
-                                let s_bar = StockBar {
-                                    time,
-                                    open: item.open,
-                                    high: item.high,
-                                    low: item.low,
-                                    close: item.close,
-                                    vol: item.volume,
-                                };
-                                q_data.push(s_bar)
-                            }
-                        } else {
-                            let mut cursor = db
-                                .get_coll::<StockDaily>("stock_daily")?
-                                .find(filter, opts)
-                                .await
-                                .with_context(|| "query stock_daily failed")?;
-                            while let Some(item) = cursor
-                                .try_next()
-                                .await
-                                .with_context(|| "query stock_daily failed")?
-                            {
-                                let time = item
-                                    .trade_date
-                                    .to_chrono()
-                                    .format("%Y-%m-%d %H:%M:%S")
-                                    .to_string();
-                                let s_bar = StockBar {
-                                    time,
-                                    open: item.open,
-                                    high: item.high,
-                                    low: item.low,
-                                    close: item.close,
-                                    vol: item.volume as u64,
-                                };
-                                q_data.push(s_bar)
-                            }
-                        }
-                    }
-                    q_data
-                };
-                for bar in r.iter() {
-                    let t = NaiveDateTime::parse_from_str(bar.time.as_str(), "%Y-%m-%d %H:%M:%S")
-                        .with_context(|| "parse time error")?;
-                    let t = t.timestamp();
-                    if !self.bar_list.contains_key(&(t as u64)) {
-                        self.bar_list.insert(t as u64, RtQuotBar::new());
-                    }
-                    let q_bar = self.bar_list.get_mut(&(t as u64)).unwrap();
-
-                    if !q_bar.contains_key(&code) {
-                        let rt_q = QuotBar {
-                            frequency,
-                            open: bar.open,
-                            high: bar.high,
-                            low: bar.close,
-                            close: bar.high,
-                            start: NaiveDateTime::from_timestamp(t - (frequency as i64), 0)
-                                .format("%Y-%m-%d %H:%M:%S")
-                                .to_string(),
-                            end: bar.time.clone(),
-                            quot: Quot {
-                                code: code.clone(),
-                                open: bar.open,
-                                now: bar.close,
-                                high: bar.high,
-                                low: bar.low,
-                                buy: bar.close,
-                                sell: bar.close,
-                                vol: bar.vol,
-                                date: NaiveDateTime::parse_from_str(
-                                    &bar.time[..],
-                                    "%Y-%m-%d %H:%M:%S",
-                                )
+            let start = match self.opts.start_date.as_ref() {
+                Some(start) => {
+                    let mut start_date;
+                    if self.iter.len() > 0 && self.index < self.iter.len() {
+                        start_date = Some(
+                            Utc.timestamp_opt(self.iter[self.index] as i64, 0)
                                 .unwrap()
-                                .date()
-                                .format("%Y-%m-%d")
-                                .to_string(),
-                                time: bar.time.clone(),
-                                ..Default::default()
-                            },
+                                .naive_local()
+                                .date(),
+                        );
+                    } else {
+                        return Ok(());
+                    }
+                    if start_date.is_none() {
+                        start_date = Some(start.date())
+                    }
+                    start_date
+                }
+                None => None,
+            };
+            let end = self.opts.end_date.as_ref().map(|end| end.date());
+
+            for code in new_codes {
+                let bars = fetch_stock_bar(&code, None, Some(freq), start, end, true)
+                    .await
+                    .map_err(|e| Error::Custom(format!("{}", e.to_string())))?;
+                if bars.bars.is_none() {
+                    continue;
+                }
+                let bars = bars.bars.unwrap();
+
+                for bar in bars.iter() {
+                    let ts = bar.trade_date.timestamp();
+                    if !self.quots.contains_key(&ts) {
+                        self.quots.insert(ts, RtQuot::new());
+                    }
+                    let quot = self.quots.get_mut(&ts).unwrap();
+
+                    if !quot.contains_key(&code) {
+                        let new_quot = Quot {
+                            code: code.clone(),
+                            name: bar.name.clone(),
+                            open: bar.open,
+                            last_close: bar.close / (1.0 + bar.chg_pct / 100.0),
+                            now: bar.close,
+                            high: bar.high,
+                            low: bar.low,
+                            buy: bar.close,
+                            sell: bar.close,
+                            volume: bar.volume,
+                            amount: bar.amount,
+                            bid: Default::default(),
+                            ask: Default::default(),
+                            time: Default::default(),
+                            chg: bar.chg_pct / 100.0 * bar.close,
+                            chg_pct: bar.chg_pct,
+                            turnover: bar.turnover,
+                            total_value: 0.0,
+                            currency_value: 0.0,
+                            is_trading: true,
+                            freq_open: bar.open,
+                            freq_high: bar.high,
+                            freq_low: bar.low,
+                            freq_chg: bar.chg_pct / 100.0 * bar.close,
+                            freq_chg_pct: bar.chg_pct,
+                            freq_time: bar.trade_date,
                         };
-                        q_bar.insert(code.clone(), rt_q);
+                        quot.insert(code.clone(), new_quot);
                     }
                 }
             }
-            self.iter_vec.clear();
-            self.iter_vec.extend(self.bar_list.keys());
+            self.iter.extend(self.quots.keys());
         }
-        // Ok(())
+        Ok(())
     }
     async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>> {
         todo!()
@@ -467,8 +394,9 @@ impl RealtimeQuotation {
 
 #[async_trait]
 impl Quotation for RealtimeQuotation {
-    async fn subscribe(&mut self, codes: &Vec<String>) {
+    async fn subscribe(&mut self, codes: &Vec<String>) -> Result<()> {
         self.add_codes(&codes);
+        Ok(())
     }
     async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>> {
         let n = Local::now().naive_local();

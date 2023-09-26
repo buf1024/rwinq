@@ -18,6 +18,7 @@ pub use stock::*;
 
 /// 股票市场： 深圳/上海/上海
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[repr(u8)]
 pub enum Market {
     SZ = 0,
     SH = 1,
@@ -39,6 +40,7 @@ impl From<i32> for Market {
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, Default, serde::Deserialize, serde::Serialize,
 )]
+#[repr(u8)]
 pub enum MarketType {
     Bond = 0,
     Fund = 1,

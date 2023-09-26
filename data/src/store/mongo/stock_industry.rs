@@ -1,8 +1,7 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
 use async_trait::async_trait;
 use mongodb::{bson::doc, Client};
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -14,27 +13,24 @@ use crate::{
 
 use super::service::{insert_many, query};
 
-struct StockIndustryAsyncFunc {
-    fetch: Arc<StockFetch>,
-}
+struct StockIndustryAsyncFunc;
 
 #[async_trait]
 impl AsyncFunc for StockIndustryAsyncFunc {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self.fetch.fetch_stock_industry().await?;
+        let data = rwqfetch::fetch_stock_industry().await?;
 
         Ok(Some(SyncData::StockIndustry(data)))
     }
 }
 
 pub(crate) struct StockIndustrySyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockIndustrySyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
-        Self { client, fetch }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -42,9 +38,7 @@ impl StockIndustrySyncer {
 impl Syncer for StockIndustrySyncer {
     async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         log::info!("start fetch {}", TAB_STOCK_INDUSTRY);
-        let func = StockIndustryAsyncFunc {
-            fetch: self.fetch.clone(),
-        };
+        let func = StockIndustryAsyncFunc {};
         let data = retry(func).await?;
         if let Some(data) = data {
             if let SyncData::StockIndustry(info) = data {

@@ -1,8 +1,5 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use mongodb::Client;
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -14,14 +11,12 @@ use crate::{
 
 use super::service::insert_many;
 
-struct StockIndexAsyncFunc {
-    fetch: Arc<StockFetch>,
-}
+struct StockIndexAsyncFunc;
 
 #[async_trait]
 impl AsyncFunc for StockIndexAsyncFunc {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self.fetch.fetch_stock_index(None).await?;
+        let data = rwqfetch::fetch_stock_index(None).await?;
 
         if data.is_empty() {
             return Ok(None);
@@ -34,13 +29,12 @@ impl AsyncFunc for StockIndexAsyncFunc {
 }
 
 pub(crate) struct StockIndexSyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockIndexSyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
-        Self { client, fetch }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -48,9 +42,7 @@ impl StockIndexSyncer {
 impl Syncer for StockIndexSyncer {
     async fn fetch(&self, tx: mpsc::UnboundedSender<SyncData>) -> Result<()> {
         log::info!("start sync {}", TAB_STOCK_INDEX);
-        let func = StockIndexAsyncFunc {
-            fetch: self.fetch.clone(),
-        };
+        let func = StockIndexAsyncFunc {};
         let data = retry(func).await?;
         if let Some(data) = data {
             tx.send(data).map_err(|e| {

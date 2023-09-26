@@ -1,8 +1,7 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
 use async_trait::async_trait;
 use mongodb::{bson::doc, Client};
-use rwqfetch::StockFetch;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -15,7 +14,6 @@ use crate::{
 use crate::store::{TAB_STOCK_CONCEPT, TAB_STOCK_CONCEPT_DETAIL};
 
 struct StockConceptDetailAsyncFunc<'a> {
-    fetch: Arc<StockFetch>,
     code: &'a str,
     name: &'a str,
 }
@@ -23,23 +21,19 @@ struct StockConceptDetailAsyncFunc<'a> {
 #[async_trait]
 impl<'a> AsyncFunc for StockConceptDetailAsyncFunc<'a> {
     async fn call(&self) -> Result<Option<SyncData>> {
-        let data = self
-            .fetch
-            .fetch_stock_concept_detail(Some(self.code), Some(self.name))
-            .await?;
+        let data = rwqfetch::fetch_stock_concept_detail(Some(self.code), Some(self.name)).await?;
 
         Ok(Some(SyncData::StockConceptDetail(data)))
     }
 }
 
 pub(crate) struct StockConceptDetailSyncer {
-    fetch: Arc<StockFetch>,
     client: Client,
 }
 
 impl StockConceptDetailSyncer {
-    pub fn new(client: Client, fetch: Arc<StockFetch>) -> Self {
-        Self { client, fetch }
+    pub fn new(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -49,7 +43,7 @@ impl Syncer for StockConceptDetailSyncer {
         let mut concept: Vec<rwqfetch::StockConcept> =
             query(self.client.clone(), TAB_STOCK_CONCEPT, doc! {}, None).await?;
         if concept.is_empty() {
-            concept = self.fetch.fetch_stock_concept().await?;
+            concept = rwqfetch::fetch_stock_concept().await?;
         }
 
         for info in concept.iter() {
@@ -60,7 +54,6 @@ impl Syncer for StockConceptDetailSyncer {
                 TAB_STOCK_CONCEPT_DETAIL
             );
             let func = StockConceptDetailAsyncFunc {
-                fetch: self.fetch.clone(),
                 code: info.code.as_str(),
                 name: info.name.as_str(),
             };

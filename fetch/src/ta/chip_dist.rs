@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::{Error, Result};
 use rwqcmm::Bar;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// 筹码分布计算。
 ///
@@ -193,7 +193,7 @@ pub fn calc_cost(chip_dist: &ChipDist, ratio: isize) -> Result<BTreeMap<i32, f64
 mod tests {
     use chrono::NaiveDateTime;
 
-    use crate::{calc_chip_dist, calc_winner, StockFetch, calc_cost};
+    use crate::{calc_chip_dist, calc_cost, calc_winner, fetch_stock_bar};
     #[test]
     fn test_calc_winner() {
         tokio::runtime::Builder::new_multi_thread()
@@ -201,13 +201,10 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = StockFetch::new();
-
                 let end = NaiveDateTime::parse_from_str("20230901 00:00:00", "%Y%m%d %H:%M:%S")
                     .unwrap()
                     .date();
-                let bar = fetch
-                    .fetch_stock_bar("sz301421", None, None, None, Some(end), true)
+                let bar = fetch_stock_bar("sz301421", None, None, None, Some(end), true)
                     .await
                     .unwrap();
                 let bar = bar.bars.unwrap();
@@ -218,8 +215,7 @@ mod tests {
                     println!("winner1 key: {}, value: {}", *key, *value);
                 });
 
-                let bar = fetch
-                    .fetch_stock_bar("sz301421", None, None, None, None, true)
+                let bar = fetch_stock_bar("sz301421", None, None, None, None, true)
                     .await
                     .unwrap();
                 let bar = bar.bars.unwrap();
@@ -239,10 +235,7 @@ mod tests {
             .build()
             .unwrap()
             .block_on(async {
-                let fetch = StockFetch::new();
-
-                let bar = fetch
-                    .fetch_stock_bar("sz301421", None, None, None, None, true)
+                let bar = fetch_stock_bar("sz301421", None, None, None, None, true)
                     .await
                     .unwrap();
                 let bar = bar.bars.unwrap();

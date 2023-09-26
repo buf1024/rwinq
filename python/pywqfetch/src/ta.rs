@@ -2,7 +2,7 @@ use pyo3::{exceptions::PyException, prelude::*};
 use pywqcmm::{to_python, to_rust};
 
 #[pyfunction]
-pub fn calc_chip_dist(
+pub(crate) fn calc_chip_dist(
     data: PyObject,
     ac: Option<f32>,
     chip_dist: Option<PyObject>,
@@ -20,7 +20,7 @@ pub fn calc_chip_dist(
 }
 
 #[pyfunction]
-pub fn calc_winner(
+pub(crate) fn calc_winner(
     chip_dist: PyObject,
     data: Option<PyObject>,
     price: Option<f32>,
@@ -37,7 +37,7 @@ pub fn calc_winner(
     )
 }
 #[pyfunction]
-pub fn calc_cost(chip_dist: PyObject, ratio: isize) -> PyResult<PyObject> {
+pub(crate) fn calc_cost(chip_dist: PyObject, ratio: isize) -> PyResult<PyObject> {
     let dist = Python::with_gil(|py| to_rust(chip_dist.as_ref(py)))?;
     to_python(&rwqfetch::calc_cost(&dist, ratio).map_err(|e| PyException::new_err(e.to_string()))?)
 }
