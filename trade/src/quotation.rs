@@ -294,7 +294,46 @@ impl Quotation for BacktestQuotation {
         Ok(())
     }
     async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>> {
-        todo!()
+        if let Some(codes) = codes {
+            self.subscribe(codes).await?;
+        }
+
+        let index = self.index;
+
+        if index >= self.iter.len() && self.iter.len() > 0 {
+            let ts = *self.iter.get(index - 1).unwrap();
+
+            let n = Utc.timestamp_opt(ts, 0).unwrap().naive_local();
+
+            let base_event = self.get_base_event(codes, &n).await?;
+            if let Some(event) = base_event {
+                return Ok(Some(event));
+            }
+
+            if !self.is_end {
+                self.is_end = true;
+                return Ok(Some(QuotEvent::End));
+            }
+
+            return Ok(None);
+        }
+        let ts = *self.iter.get(index - 1).unwrap();
+
+        let n = Utc.timestamp_opt(ts, 0).unwrap().naive_local();
+
+        let base_event = self.get_base_event(codes, &n).await?;
+        if let Some(event) = base_event {
+            return Ok(Some(event));
+        }
+
+        let quot = self
+            .quots
+            .get(&ts)
+            .ok_or(Error::Custom(format!("ts: {}, quotation miss", ts)))?;
+
+        self.index += 1;
+
+        Ok(Some(QuotEvent::Quot(quot.clone())))
     }
 }
 

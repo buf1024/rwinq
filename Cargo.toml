@@ -6,6 +6,7 @@ members = [
   "strategy",
   "tradecomm",
   "trade",
+  "rwinq",
   "python/pywqcommon",
   "python/pywqfetch",
   "python/pywqdata",
