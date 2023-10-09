@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use chrono::{Local, NaiveDateTime};
+use chrono::{Local, NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
 
 /// 交易类型
@@ -73,6 +73,18 @@ where
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradeTime(pub NaiveDateTime);
+
+impl From<NaiveDateTime> for TradeTime {
+    fn from(value: NaiveDateTime) -> Self {
+        Self(value)
+    }
+}
+impl From<NaiveDate> for TradeTime {
+    fn from(value: NaiveDate) -> Self {
+        Self(value.and_hms_opt(0, 0, 0).unwrap())
+    }
+}
+
 impl Default for TradeTime {
     fn default() -> Self {
         Self(Local::now().naive_local())

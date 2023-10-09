@@ -1,18 +1,23 @@
 use std::{
     collections::BTreeMap,
     ops::{Deref, DerefMut},
+    time::Duration,
 };
 
 use crate::{Error, Result};
 use async_trait::async_trait;
 use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone, Utc};
 use rwqdata::{fetch_is_trade_date, fetch_rt_quot, fetch_stock_bar, BarFreq, Quot, RtQuot};
-use rwqtradecmm::{QuotEvent, QuotOpts};
+use rwqtradecmm::{Event, QuotEvent, QuotOpts};
+use tokio::sync::{
+    broadcast,
+    mpsc::{UnboundedReceiver, UnboundedSender},
+};
 
 #[async_trait]
 pub trait Quotation {
     async fn subscribe(&mut self, codes: &Vec<String>) -> Result<()>;
-    async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>>;
+    async fn fetch(&mut self, codes: Option<&Vec<String>>) -> Result<Option<QuotEvent>>;
 }
 
 pub fn backtest(opts: QuotOpts) -> Box<dyn Quotation> {
@@ -98,6 +103,7 @@ impl MyQuotation {
         }
         Ok(None)
     }
+
     fn add_codes(&mut self, codes: &Vec<String>) {
         let codes: Vec<_> = codes
             .iter()
@@ -122,7 +128,7 @@ impl MyQuotation {
 
     async fn get_base_event(
         &mut self,
-        codes: &Option<Vec<String>>,
+        codes: Option<&Vec<String>>,
         n: &NaiveDateTime,
     ) -> Result<Option<QuotEvent>> {
         if let Some(new_codes) = codes {
@@ -293,7 +299,7 @@ impl Quotation for BacktestQuotation {
         }
         Ok(())
     }
-    async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>> {
+    async fn fetch(&mut self, codes: Option<&Vec<String>>) -> Result<Option<QuotEvent>> {
         if let Some(codes) = codes {
             self.subscribe(codes).await?;
         }
@@ -437,7 +443,7 @@ impl Quotation for RealtimeQuotation {
         self.add_codes(&codes);
         Ok(())
     }
-    async fn fetch(&mut self, codes: &Option<Vec<String>>) -> Result<Option<QuotEvent>> {
+    async fn fetch(&mut self, codes: Option<&Vec<String>>) -> Result<Option<QuotEvent>> {
         let n = Local::now().naive_local();
 
         let base_event = self.get_base_event(codes, &n).await?;
@@ -469,5 +475,165 @@ impl Deref for RealtimeQuotation {
 impl DerefMut for RealtimeQuotation {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.quotation
+    }
+}
+
+/// 行情任务
+///
+/// 在`internal`的时间间隔重新获取行情，获取到的行情通过`rx`发送出去。 订阅新的行情通过`tx`发送。
+/// 退出task是通过`shutdown`来实现
+pub async fn quotation_task(
+    mut quot: Box<dyn Quotation>,
+    interval: Option<Duration>,
+    tx: UnboundedSender<QuotEvent>,
+    mut rx: UnboundedReceiver<Event>,
+    mut shutdown: broadcast::Receiver<bool>,
+) -> Result<()> {
+    let mut event_tx_is_close = false;
+    loop {
+        tokio::select! {
+            rs = quot.fetch(None) => {
+                let is_end = rs.map_or_else(|e| {
+                    tracing::error!("quotation task fetch error: {}", &e);
+                    false
+                }, |qdata| {
+                    qdata.map_or_else(|| false, |qevent| {
+                        match qevent {
+                            QuotEvent::End => true,
+                            _ => {
+                                tracing::debug!(" quot event: {:?}", &qevent);
+                                if let Err(e) = tx.send(qevent) {
+                                    tracing::error!("quotation task dispatch quot failed(no receiver): {}", e);
+                                }
+                                false
+                            },
+                        }
+                    })
+                });
+                if is_end {
+                    break;
+                }
+
+            },
+            event = rx.recv(), if !event_tx_is_close => {
+                if event.is_none() {
+                    tracing::error!("quotation task recv none event(all tx close)!");
+                    event_tx_is_close = true;
+                    continue;
+                }
+                let event = event.unwrap();
+
+                match &event {
+                    Event::Subscribe(codes) => {
+                        if let Err(e) = quot.subscribe(codes).await {
+                            tracing::error!("quotation add new codes: {:?} failed: {}", codes, e);
+                        }
+                    },
+                    _ => {}
+                }
+
+
+            },
+            _ = shutdown.recv() => break,
+        }
+        if let Some(it) = interval {
+            tokio::select! {
+                _ = tokio::time::sleep(it) => {},
+                _ = shutdown.recv() => break,
+            }
+        }
+    }
+    tracing::info!("quotation tasks end!");
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use super::{backtest, realtime};
+
+    use chrono::NaiveDate;
+    use rwqdata::{BarFreq, MarketType::Stock};
+    use rwqtradecmm::QuotOpts;
+    use tokio::time::sleep;
+
+    #[test]
+    fn test_backtest_quotation() {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        rt.block_on(async move {
+            let opts = QuotOpts {
+                start_date: Some(
+                    NaiveDate::parse_from_str("2022-03-01", "%Y-%m-%d")
+                        .unwrap()
+                        .into(),
+                ),
+                end_date: Some(
+                    NaiveDate::parse_from_str("2022-03-01", "%Y-%m-%d")
+                        .unwrap()
+                        .into(),
+                ),
+                freq: BarFreq::Min5.to_seconds(),
+            };
+
+            let mut quot = backtest(opts);
+            quot.subscribe(&vec![
+                "sh000001".into(),
+                "sz399106".into(),
+                "sz399006".into(),
+                "sh600031".into(),
+                "sz300780".into(),
+            ])
+            .await.unwrap();
+            loop {
+                let q = quot.fetch(None).await.unwrap();
+
+                if q.is_some() {
+                    println!("quot={:?}", serde_json::to_string(&q));
+                }
+                if q.is_none() {
+                    break;
+                }
+                sleep(Duration::from_secs(1)).await;
+
+                println!("sleep");
+            }
+        });
+    }
+
+    #[test]
+    fn test_realtime_quotation() {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        rt.block_on(async move {
+            let opts = QuotOpts {
+                start_date: None,
+                end_date: None,
+                freq: 3,
+            };
+            let mut quot = realtime(opts);
+            quot.subscribe(&vec![
+                "sh000001".into(),
+                "sz399106".into(),
+                "sz399006".into(),
+                "sh600031".into(),
+                "sz300780".into(),
+            ])
+            .await.unwrap();
+            loop {
+                let q = quot.fetch(None).await.unwrap();
+
+                println!("quot={:?}", q);
+
+                sleep(Duration::from_secs(1)).await;
+
+                println!("sleep");
+            }
+        });
     }
 }
