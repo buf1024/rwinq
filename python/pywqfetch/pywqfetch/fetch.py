@@ -25,7 +25,7 @@ def calc_cost(*, chip_dist: Dict, ratio: int) -> Dict:
 
 def _str_to_datetime(d: str) -> datetime:
     nd = None
-    for fmt in ['%Y%m%d', '%Y-%m-%d']:
+    for fmt in ['%Y%m%d', '%Y-%m-%d', '%Y-%m-%d %H', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S']:
         try:
             nd = datetime.strptime(d, fmt)
             return nd
@@ -39,6 +39,12 @@ def _to_dataframe(to_frame, data):
     if to_frame and data is not None:
         data = pd.DataFrame(data)
     return data
+
+
+def _utc_ts_to_datetime(df: Optional[pd.DataFrame], field: str):
+    if df is not None and len(df) > 0:
+        df[field] = pd.to_datetime(df[field], unit='s')
+    return df
 
 
 async def fetch_trade_date(to_frame=True) -> Union[Set[int], pd.DataFrame]:
@@ -59,7 +65,7 @@ def block_fetch_trade_date(to_frame=True) -> Union[Set[int], pd.DataFrame]:
 
 async def fetch_next_trade_date(d: Union[date, datetime, str]) -> date:
     d = _str_to_datetime(d) if type(d) == type('') else d
-    data = await fetch_next_trade_date(d)
+    data = await wqfetch.fetch_next_trade_date(d)
     return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
 
@@ -71,7 +77,7 @@ def block_fetch_next_trade_date(d: Union[date, datetime, str]) -> date:
 
 async def fetch_prev_trade_date(d: Union[date, datetime, str]) -> date:
     d = _str_to_datetime(d) if type(d) == type('') else d
-    data = await fetch_prev_trade_date(d)
+    data = await wqfetch.fetch_prev_trade_date(d)
     return datetime.strptime('{} 00:00:00'.format(data), '%Y%m%d %H:%M:%S').date()
 
 
@@ -119,26 +125,32 @@ async def fetch_bond_info(*, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
 async def fetch_bond_bar(*, code: str, name: str,
                          stock_code: str, stock_name: str,
                          freq: Optional[int] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          skip_rt: bool = True,
                          to_frame=True, ) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_bond_bar(code=code, name=name,
                                         stock_code=stock_code, stock_name=stock_name,
                                         freq=freq, start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_bond_bar(*, code: str, name: str,
                          stock_code: str, stock_name: str,
                          freq: Optional[int] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          skip_rt: bool = True,
                          to_frame=True, ) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = wqfetch.block_fetch_bond_bar(code=code, name=name,
                                         stock_code=stock_code, stock_name=stock_name,
                                         freq=freq, start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 # fund
@@ -155,16 +167,20 @@ def block_fetch_fund_info(*, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
 
 
 async def fetch_fund_net(*, code: str, name: Optional[str] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     return _to_dataframe(to_frame,
                          await wqfetch.fetch_fund_net(code=code, name=name,
                                                       start=start, end=end))
 
 
 def block_fetch_fund_net(*, code: str, name: Optional[str] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     return _to_dataframe(to_frame,
                          wqfetch.block_fetch_fund_net(code=code, name=name,
                                                       start=start, end=end))
@@ -172,23 +188,29 @@ def block_fetch_fund_net(*, code: str, name: Optional[str] = None,
 
 async def fetch_fund_bar(*, code: str, name: Optional[str] = None,
                          freq: Optional[int] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          skip_rt: bool = True,
                          to_frame=True) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_fund_bar(code=code, name=name,
                                         freq=freq, start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_fund_bar(*, code: str, name: Optional[str] = None,
                          freq: Optional[int] = None,
-                         start: Optional[date] = None, end: Optional[date] = None,
+                         start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                          skip_rt: bool = True,
                          to_frame=True) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = wqfetch.block_fetch_fund_bar(code=code, name=name,
                                         freq=freq, start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
     # stock
@@ -206,21 +228,29 @@ def block_fetch_index_info(*, to_frame=True) -> Union[List[Dict], pd.DataFrame]:
 
 async def fetch_index_bar(*, code: str, name: Optional[str] = None,
                           freq: Optional[int] = None,
-                          start: Optional[date] = None, end: Optional[date] = None, skip_rt: bool = True, to_frame=True) -> Dict:
+                          start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
+                          skip_rt: bool = True, to_frame=True) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_stock_bar(code=code, name=name,
                                          freq=freq, start=start, end=end,
                                          skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_index_bar(*, code: str, name: Optional[str] = None,
                           freq: Optional[int] = None,
-                          start: Optional[date] = None, end: Optional[date] = None, skip_rt: bool = True, to_frame=True) -> Dict:
+                          start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
+                          skip_rt: bool = True, to_frame=True) -> Dict:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = wqfetch.block_fetch_stock_bar(code=code, name=name,
                                          freq=freq, start=start, end=end,
                                          skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
@@ -252,29 +282,35 @@ def block_fetch_stock_is_margin(*, to_frame=True) -> Union[Set[str], pd.DataFram
 
 async def fetch_stock_bar(*, code: str, name: Optional[str] = None,
                           freq: Optional[int] = None,
-                          start: Optional[date] = None, end: Optional[date] = None,
+                          start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                           skip_rt: bool = True,
                           to_frame=True) -> Union[Dict, pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_stock_bar(code=code, name=name,
                                          freq=freq, start=start, end=end,
                                          skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_stock_bar(*, code: str, name: Optional[str] = None,
                           freq: Optional[int] = None,
-                          start: Optional[date] = None, end: Optional[date] = None,
+                          start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                           skip_rt: bool = True,
                           to_frame=True) -> Union[Dict, pd.DataFrame]:
     data = wqfetch.block_fetch_stock_bar(code=code, name=name,
                                          freq=freq, start=start, end=end,
                                          skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
-async def fetch_stock_index(*, index_date: Optional[date] = None, to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
+async def fetch_stock_index(*, index_date: Optional[Union[date, str]] = None, to_frame=True) -> Union[Dict[str, Dict], pd.DataFrame]:
+    index_date = _str_to_datetime(index_date) if type(
+        index_date) == type('') else index_date
     data = await wqfetch.fetch_stock_index(index_date)
     if to_frame:
         data = pd.DataFrame(list(data.values()))
@@ -313,24 +349,28 @@ def block_fetch_stock_industry_detail(*, code: Optional[str] = None,
 
 
 async def fetch_stock_industry_daily(*, code: str, name: Optional[str] = None,
-                                     start: Optional[date] = None, end: Optional[date] = None,
+                                     start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                                      skip_rt: bool = True,
                                      to_frame=True) -> Union[Dict, pd.DataFrame]:
-
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_stock_industry_daily(code=code, name=name,
                                                     start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_stock_industry_daily(*, code: str, name: Optional[str] = None,
-                                     start: Optional[date] = None, end: Optional[date] = None,
+                                     start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                                      skip_rt: bool = True,
                                      to_frame=True) -> Union[Dict, pd.DataFrame]:
-
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = wqfetch.block_fetch_stock_industry_daily(code=code, name=name,
                                                     start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
@@ -357,22 +397,28 @@ def block_fetch_stock_concept_detail(*, code: Optional[str] = None, name: Option
 
 
 async def fetch_stock_concept_daily(*, code: str, name: Optional[str] = None,
-                                    start: Optional[date] = None, end: Optional[date] = None,
+                                    start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                                     skip_rt: bool = True,
                                     to_frame=True) -> Union[Dict, pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = await wqfetch.fetch_stock_industry_daily(code=code, name=name,
                                                     start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
 def block_fetch_stock_concept_daily(*, code: str, name: Optional[str] = None,
-                                    start: Optional[date] = None, end: Optional[date] = None,
+                                    start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                                     skip_rt: bool = True,
                                     to_frame=True) -> Union[Dict, pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     data = wqfetch.block_fetch_stock_industry_daily(code=code, name=name,
                                                     start=start, end=end, skip_rt=skip_rt)
-    data['bars'] = _to_dataframe(to_frame, data['bars'])
+    data['bars'] = _utc_ts_to_datetime(
+        _to_dataframe(to_frame, data['bars']), 'trade_date')
     return data
 
 
@@ -388,14 +434,18 @@ def block_fetch_stock_yjbb(*, year: int, season: int,
                          wqfetch.block_fetch_stock_yjbb(year, season))
 
 
-async def fetch_stock_margin(*, code: str, start: Optional[date] = None, end: Optional[date] = None,
+async def fetch_stock_margin(*, code: str, start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                              to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     return _to_dataframe(to_frame,
                          await wqfetch.fetch_stock_margin(code, start, end))
 
 
-def block_fetch_stock_margin(*, code: str, start: Optional[date] = None, end: Optional[date] = None,
+def block_fetch_stock_margin(*, code: str, start: Optional[Union[date, str]] = None, end: Optional[Union[date, str]] = None,
                              to_frame=True) -> Union[List[Dict], pd.DataFrame]:
+    start = _str_to_datetime(start) if type(start) == type('') else start
+    end = _str_to_datetime(end) if type(end) == type('') else end
     return _to_dataframe(to_frame,
                          wqfetch.block_fetch_stock_margin(code, start, end))
 

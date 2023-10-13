@@ -226,21 +226,16 @@ impl Quotation for BacktestQuotation {
             let freq = self.get_freq().unwrap();
             let start = match self.opts.start_date.as_ref() {
                 Some(start) => {
-                    let mut start_date;
                     if self.iter.len() > 0 && self.index < self.iter.len() {
-                        start_date = Some(
+                        Some(
                             Utc.timestamp_opt(self.iter[self.index] as i64, 0)
                                 .unwrap()
                                 .naive_local()
                                 .date(),
-                        );
+                        )
                     } else {
-                        return Ok(());
+                        Some(start.date())
                     }
-                    if start_date.is_none() {
-                        start_date = Some(start.date())
-                    }
-                    start_date
                 }
                 None => None,
             };
@@ -250,50 +245,49 @@ impl Quotation for BacktestQuotation {
                 let bars = fetch_stock_bar(&code, None, Some(freq), start, end, true)
                     .await
                     .map_err(|e| Error::Custom(format!("{}", e.to_string())))?;
-                if bars.bars.is_none() {
-                    continue;
-                }
-                let bars = bars.bars.unwrap();
 
-                for bar in bars.iter() {
-                    let ts = bar.trade_date.timestamp();
-                    if !self.quots.contains_key(&ts) {
-                        self.quots.insert(ts, RtQuot::new());
-                    }
-                    let quot = self.quots.get_mut(&ts).unwrap();
+                bars.bars.and_then(|bars| {
+                    for bar in bars.iter() {
+                        let ts = bar.trade_date.timestamp();
+                        if !self.quots.contains_key(&ts) {
+                            self.quots.insert(ts, RtQuot::new());
+                        }
+                        let quot = self.quots.get_mut(&ts).unwrap();
 
-                    if !quot.contains_key(&code) {
-                        let new_quot = Quot {
-                            code: code.clone(),
-                            name: bar.name.clone(),
-                            open: bar.open,
-                            last_close: bar.close / (1.0 + bar.chg_pct / 100.0),
-                            now: bar.close,
-                            high: bar.high,
-                            low: bar.low,
-                            buy: bar.close,
-                            sell: bar.close,
-                            volume: bar.volume,
-                            amount: bar.amount,
-                            bid: Default::default(),
-                            ask: Default::default(),
-                            time: Default::default(),
-                            chg: bar.chg_pct / 100.0 * bar.close,
-                            chg_pct: bar.chg_pct,
-                            turnover: bar.turnover,
-                            total_value: 0.0,
-                            currency_value: 0.0,
-                            is_trading: true,
-                            freq_open: bar.open,
-                            freq_high: bar.high,
-                            freq_low: bar.low,
-                            freq_chg: bar.chg_pct / 100.0 * bar.close,
-                            freq_chg_pct: bar.chg_pct,
-                            freq_time: bar.trade_date,
-                        };
-                        quot.insert(code.clone(), new_quot);
+                        if !quot.contains_key(&code) {
+                            let new_quot = Quot {
+                                code: code.clone(),
+                                name: bar.name.clone(),
+                                open: bar.open,
+                                last_close: bar.close / (1.0 + bar.chg_pct / 100.0),
+                                now: bar.close,
+                                high: bar.high,
+                                low: bar.low,
+                                buy: bar.close,
+                                sell: bar.close,
+                                volume: bar.volume,
+                                amount: bar.amount,
+                                bid: Default::default(),
+                                ask: Default::default(),
+                                time: bar.trade_date,
+                                chg: bar.chg_pct / 100.0 * bar.close,
+                                chg_pct: bar.chg_pct,
+                                turnover: bar.turnover,
+                                total_value: 0.0,
+                                currency_value: 0.0,
+                                is_trading: true,
+                                freq_open: bar.open,
+                                freq_high: bar.high,
+                                freq_low: bar.low,
+                                freq_chg: bar.chg_pct / 100.0 * bar.close,
+                                freq_chg_pct: bar.chg_pct,
+                                freq_time: bar.trade_date,
+                            };
+                            quot.insert(code.clone(), new_quot);
+                        }
                     }
-                }
+                    Some(())
+                });
             }
             self.iter.extend(self.quots.keys());
         }
@@ -323,7 +317,7 @@ impl Quotation for BacktestQuotation {
 
             return Ok(None);
         }
-        let ts = *self.iter.get(index - 1).unwrap();
+        let ts = *self.iter.get(index).unwrap();
 
         let n = Utc.timestamp_opt(ts, 0).unwrap().naive_local();
 
@@ -554,7 +548,7 @@ mod tests {
     use super::{backtest, realtime};
 
     use chrono::NaiveDate;
-    use rwqdata::{BarFreq, MarketType::Stock};
+    use rwqdata::BarFreq;
     use rwqtradecmm::QuotOpts;
     use tokio::time::sleep;
 
@@ -567,16 +561,17 @@ mod tests {
         rt.block_on(async move {
             let opts = QuotOpts {
                 start_date: Some(
-                    NaiveDate::parse_from_str("2022-03-01", "%Y-%m-%d")
+                    NaiveDate::parse_from_str("2023-10-13", "%Y-%m-%d")
                         .unwrap()
                         .into(),
                 ),
-                end_date: Some(
-                    NaiveDate::parse_from_str("2022-03-01", "%Y-%m-%d")
-                        .unwrap()
-                        .into(),
-                ),
-                freq: BarFreq::Min5.to_seconds(),
+                // end_date: Some(
+                //     NaiveDate::parse_from_str("2022-03-01", "%Y-%m-%d")
+                //         .unwrap()
+                //         .into(),
+                // ),
+                end_date: None,
+                freq: BarFreq::Min15.to_seconds(),
             };
 
             let mut quot = backtest(opts);
@@ -587,7 +582,8 @@ mod tests {
                 "sh600031".into(),
                 "sz300780".into(),
             ])
-            .await.unwrap();
+            .await
+            .unwrap();
             loop {
                 let q = quot.fetch(None).await.unwrap();
 
@@ -624,7 +620,9 @@ mod tests {
                 "sh600031".into(),
                 "sz300780".into(),
             ])
-            .await.unwrap();
+            .await
+            .unwrap();
+            let mut count = 0;
             loop {
                 let q = quot.fetch(None).await.unwrap();
 
@@ -633,6 +631,10 @@ mod tests {
                 sleep(Duration::from_secs(1)).await;
 
                 println!("sleep");
+                count += 1;
+                if count == 10 {
+                    break;
+                }
             }
         });
     }
