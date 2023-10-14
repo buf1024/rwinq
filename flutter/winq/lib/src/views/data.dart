@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class DataSyncView extends StatefulWidget {
@@ -11,6 +13,7 @@ class _DataSyncViewState extends State<DataSyncView>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   List<String> items = ['股票', '场内基金', '可转债'];
   late TabController _tabController;
+  Process? process;
   @override
   void initState() {
     super.initState();
@@ -43,7 +46,12 @@ class _DataSyncViewState extends State<DataSyncView>
     return Row(
       children: [
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            if(process != null) {
+              process!.kill();
+              process = null;
+            }
+          },
           style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.withOpacity(0.8)),
           child: const Text(
@@ -57,7 +65,23 @@ class _DataSyncViewState extends State<DataSyncView>
         ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.withOpacity(0.8)),
-          onPressed: () {},
+          onPressed: () async {
+            bool restart = false;
+            if (process == null) {
+              restart = true;
+            } else {
+              bool isExists = process!.kill(ProcessSignal.sigusr1);
+              if (!isExists) {
+                restart = true;
+              }
+            }
+            if (restart) {
+              process = await Process.start(
+                  '/Users/luoguochun/privt/proj/quant/rwinq/target/debug/rwinq',
+                  []);
+              print('started procces, ${process!.pid}');
+            }
+          },
           child: const Text('全部开始', style: TextStyle(fontSize: 12.0)),
         ),
         const Spacer()
@@ -271,7 +295,7 @@ class _DataSyncViewState extends State<DataSyncView>
       ],
     );
   }
-  
+
   @override
   bool get wantKeepAlive => true;
 }

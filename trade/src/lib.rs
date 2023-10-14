@@ -1,5 +1,9 @@
 pub mod quotation;
 pub use quotation::*;
+
+pub mod investor;
+pub use investor::*;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]

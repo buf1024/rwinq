@@ -41,7 +41,7 @@ pub enum Event {
 #[serde(deny_unknown_fields, rename_all = "snake_case")]
 pub enum BrokerEvent {
     /// 委托结果，成交单，成交历史，在内部不使用
-    Entrust(Entrust),
+    Entrust(Vec<Entrust>),
     /// 总资金，可用资金，持仓市值
     FundSync((f32, f32, f32)),
     /// 持仓头寸

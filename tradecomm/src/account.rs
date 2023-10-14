@@ -46,19 +46,20 @@ pub struct Account {
     pub cash_frozen: f32,
     pub total_net_value: f32,
 
-    pub total_hold_value: f32,
-    pub cost: f32,        // 持仓陈本
-    pub profit: f32,      // 持仓盈亏
-    pub profit_rate: f32, // 持仓盈比例
+    pub total_hold_value: f32, // 持仓市值
+    pub cost: f32,             // 持仓陈本
+    pub profit: f32,           // 持仓盈亏
+    pub profit_rate: f32,      // 持仓盈比例
 
     pub close_profit: f32, // 平仓盈亏
 
     pub total_profit: f32,      // 总盈亏
     pub total_profit_rate: f32, // 总盈亏比例
 
-    pub broker_fee: f32,   // 0.00025
-    pub transfer_fee: f32, // 0.00002
-    pub tax_fee: f32,      // 0.001
+    pub broker_fee: f32,   // 佣金，默认万2.5 0.00025
+    pub hand_fee: f32,     // 经手费，默认万0.35 0.000035
+    pub transfer_fee: f32, // 过户费，默认万1 0.0001
+    pub tax_fee: f32,      // 印花税，默认千1 0.001
 
     #[serde(
         serialize_with = "crate::opt_trade_time_serialize",
@@ -97,7 +98,7 @@ impl Account {
             .collect()
     }
 
-    pub fn get_est_fee(&self, typ: TradeType, code: &str, price: f32, volume: u32) -> f32 {
+    pub fn get_est_fee(&self, typ: TradeType, price: f32, volume: u32) -> f32 {
         let total = price * volume as f32;
         let mut broker_fee = total * self.broker_fee;
 
@@ -107,25 +108,18 @@ impl Account {
         let mut tax_fee = 0.0;
         if matches!(self.typ, MarketType::Stock) {
             match typ {
-                TradeType::Buy => {
-                    if code.contains("sh") {
-                        tax_fee = total * self.transfer_fee;
-                    }
-                }
-                TradeType::Sell => {
-                    if code.contains("sh") {
-                        tax_fee = total * self.tax_fee;
-                    }
-                }
                 TradeType::Cancel => {}
+                _ => {
+                    tax_fee = total * (self.tax_fee + self.hand_fee + self.transfer_fee);
+                }
             }
         }
         let fee = broker_fee + tax_fee;
         (fee * 100.0).round() / 100.0
     }
 
-    pub fn get_est_cost(&self, typ: TradeType, code: &str, price: f32, volume: u32) -> f32 {
-        let fee = self.get_est_fee(typ, code, price, volume) + price * volume as f32;
-        (fee * 100.0).round() / 100.0
+    pub fn get_est_cost(&self, typ: TradeType, price: f32, volume: u32) -> f32 {
+        let cost = self.get_est_fee(typ, price, volume) + price * volume as f32;
+        (cost * 100.0).round() / 100.0
     }
 }
